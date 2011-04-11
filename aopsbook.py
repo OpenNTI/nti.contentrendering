@@ -18,6 +18,12 @@ class angle(Base.Command):
 	def invoke( self, tex ):
 		super(angle, self).invoke(  tex )
 
+class parts(Base.List):
+	pass
+
+class part(Base.List.item):
+	pass
+
 
 from plasTeX.Packages.graphicx import *
 
