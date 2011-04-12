@@ -11,6 +11,10 @@ class _Ignored(Base.Command):
 	def invoke( self, tex ):
 		return []
 
+#
+# Presentation things to ignore
+#
+
 class rindent(_Ignored):
 	pass
 
@@ -18,6 +22,16 @@ class rule(Base.Boxes.rule):
 	" Rules have no place in this DOM"
 	def invoke( self, tex ):
 		super(rule,self).invoke( tex )
+		return []
+
+class vspace(Base.Space.vspace):
+	def invoke( self, tex ):
+		super( vspace, self ).invoke( tex )
+		return []
+
+class vskip(Base.Primitives.vskip):
+	def invoke( self, tex ):
+		super( vskip, self ).invoke( tex )
 		return []
 
 
@@ -85,9 +99,6 @@ class exerhard(exer):
 class bogus(Base.Environment):
 	pass
 
-class secprob(Base.Environment):
-	pass
-
 class importantdef(Base.Environment):
 	pass
 
@@ -116,9 +127,51 @@ class picsecprob(Base.Environment):
 	def invoke( self, tex ):
 		if self.macroMode != Base.Environment.MODE_END:
 			self.ownerDocument.context.counters['probnum'].stepcounter()
+		return super(picsecprob,self).invoke( tex )
 
 
-# FIXME: These counters are not right
+class sectionproblems(Base.subsection):
+	counter = 'probnum'
+
+	def invoke( self, tex ):
+		self.ownerDocument.context.counters['saveprobnum'].setcounter(
+			self.ownerDocument.context.counters['probnum'] )
+		return super(sectionproblems,self).invoke( tex )
+
+	def digest(self, tokens):
+		"""
+		Items should absorb all of the content within that
+		item, not just the `[...]' argument.  This is
+		more useful for the resulting document object.
+
+		"""
+		for tok in tokens:
+			if tok.isElementContentWhitespace:
+				continue
+			tokens.push(tok)
+			break
+		self.digestUntil(tokens, nomoresectionproblems)
+		# Force grouping into paragraphs to eliminate the empties
+		self.paragraphs()
+
+class picsecprobspec(picsecprob):
+	pass
+
+class secprob(picsecprob):
+	args = ''
+
+
+class nomoresectionproblems( Base.Command ):
+
+	blockType = True
+
+	def invoke( self, tex ):
+		self.ownerDocument.context.counters['probnum'].setcounter(
+			self.ownerDocument.context.counters['saveprobnum'] )
+		return super(nomoresectionproblems,self).invoke(tex)
+
+
+# FIXME: These counters are not right?
 # If we don't override the args attribute, these consume one letter of text
 class reviewprobs(Base.section):
 	args = ''
