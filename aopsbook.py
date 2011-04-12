@@ -130,6 +130,14 @@ from plasTeX.Base import Crossref
 class probref(Crossref.ref):
 	pass
 
+class picproblem(Base.Environment):
+	args = ' pic:str '
+
+	def invoke( self, tex ):
+		if self.macroMode != Base.Environment.MODE_END:
+			self.ownerDocument.context.counters['probnum'].stepcounter()
+		return super(picproblem,self).invoke( tex )
+
 class picsecprob(Base.Environment):
 	args = ' pic '
 
@@ -138,6 +146,23 @@ class picsecprob(Base.Environment):
 			self.ownerDocument.context.counters['probnum'].stepcounter()
 		return super(picsecprob,self).invoke( tex )
 
+class problem(Base.Environment):
+	args = ' [unknown] '
+
+	def invoke( self, tex ):
+		if self.macroMode != Base.Environment.MODE_END:
+			self.ownerDocument.context.counters['probnum'].stepcounter()
+		return super(problem,self).invoke( tex )
+
+def _digestAndCollect( self, tokens, until ):
+	for tok in tokens:
+		if tok.isElementContentWhitespace:
+			continue
+		tokens.push(tok)
+		break
+	self.digestUntil(tokens, until )
+	# Force grouping into paragraphs to eliminate the empties
+	self.paragraphs()
 
 class sectionproblems(Base.subsection):
 	counter = 'probnum'
@@ -148,20 +173,8 @@ class sectionproblems(Base.subsection):
 		return super(sectionproblems,self).invoke( tex )
 
 	def digest(self, tokens):
-		"""
-		Items should absorb all of the content within that
-		item, not just the `[...]' argument.  This is
-		more useful for the resulting document object.
+		_digestAndCollect( self, tokens, nomoresectionproblems )
 
-		"""
-		for tok in tokens:
-			if tok.isElementContentWhitespace:
-				continue
-			tokens.push(tok)
-			break
-		self.digestUntil(tokens, nomoresectionproblems)
-		# Force grouping into paragraphs to eliminate the empties
-		self.paragraphs()
 
 class picsecprobspec(picsecprob):
 	pass
@@ -178,6 +191,21 @@ class nomoresectionproblems( Base.Command ):
 		self.ownerDocument.context.counters['probnum'].setcounter(
 			self.ownerDocument.context.counters['saveprobnum'] )
 		return super(nomoresectionproblems,self).invoke(tex)
+
+class beginsol( Base.subsection ):
+	args = ''
+	counter = ''
+
+	def digest( self, tokens ):
+		_digestAndCollect( self, tokens, stopsol )
+
+class stopsol( Base.Command ):
+	pass
+
+class solution( Base.Environment ):
+	args = ''
+	blockType = True
+	forcePars = True
 
 
 # FIXME: These counters are not right?
@@ -281,20 +309,7 @@ class hintitem(Crossref.ref):
 		return Command.invoke(self,tex)
 
 	def digest(self, tokens):
-		"""
-		Items should absorb all of the content within that
-		item, not just the `[...]' argument.  This is
-		more useful for the resulting document object.
-
-		"""
-		for tok in tokens:
-			if tok.isElementContentWhitespace:
-				continue
-			tokens.push(tok)
-			break
-		self.digestUntil(tokens, hintitem)
-		if True: #self.forcePars:
-			self.paragraphs()
+		_digestAndCollect( self, tokens, hintitem )
 
 
 def ProcessOptions( options, document ):
