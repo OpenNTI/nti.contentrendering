@@ -34,6 +34,11 @@ class vskip(Base.Primitives.vskip):
 		super( vskip, self ).invoke( tex )
 		return []
 
+class chapterpicture(_OneText):
+	def invoke( self, tex ):
+		super(chapterpicture,self).invoke( tex )
+		return []
+
 
 class Def(_OneText):
 	pass
@@ -226,11 +231,78 @@ class rightpic(includegraphics):
 leftpic = rightpic
 parpic = rightpic
 
+## Hints
+class hints(_Ignored):
+	pass
+
+class hint(Crossref.label):
+
+	def invoke( self, tex ):
+		res = super( hint, self ).invoke( tex )
+		return res
+
+
+class thehints(Base.List):
+	# We keep counters but ignore them
+	counters = ['hintnum']
+	args = ''
+
+	def invoke( self, tex ):
+		res = super(thehints, self).invoke( tex )
+
+		if self.macroMode != Base.Environment.MODE_END:
+			self.ownerDocument.context.counters['hintnum'].setcounter(0)
+
+	def digest( self, tokens ):
+		super(thehints,self).digest( tokens )
+		# When we end the hints, go back and fixup the references and
+		# move things into the dom. Remember not to iterate across
+		# self and mutate self at the same time, hence the copy
+		nodes = list(self.childNodes)
+		for child in nodes:
+			if child.idref and child.idref['label'] and \
+				   type(child.idref['label']).__module__ == 'aopsbook':
+				# we are the current parent, the label needs to be the
+				# new parent
+				self.removeChild( child )
+				child.idref['label'].appendChild( child )
+			else:
+				# for now, if it doesn't refer to anything, delete it
+				self.removeChild( child )
+
+
+class hintitem(Crossref.ref):
+	args = 'label:idref'
+
+	def invoke( self, tex ):
+#		self.counter = 'hintnum'
+#		self.position = self.ownerDocument.context.counters[self.counter].value + 1
+		#ignore the list implementation
+		return Command.invoke(self,tex)
+
+	def digest(self, tokens):
+		"""
+		Items should absorb all of the content within that
+		item, not just the `[...]' argument.  This is
+		more useful for the resulting document object.
+
+		"""
+		for tok in tokens:
+			if tok.isElementContentWhitespace:
+				continue
+			tokens.push(tok)
+			break
+		self.digestUntil(tokens, hintitem)
+		if True: #self.forcePars:
+			self.paragraphs()
+
+
 def ProcessOptions( options, document ):
 
 	document.context.newcounter( 'exnumber' )
 
 	document.context.newcounter( 'partnum' )
+
 	# used in \begin{problem}.
 	# TODO: Get this to reset in chapters (probably not important)
 	document.context.newcounter( 'probnum' )
@@ -243,5 +315,8 @@ def ProcessOptions( options, document ):
 
 	document.userdata.setPath( 'packages/graphicx/extensions',
 							   ['.pdf', '.png','.jpg','.jpeg','.gif','.ps','.eps'])
+
+	# hints
+	document.context.newcounter( 'hintnum' )
 
 
