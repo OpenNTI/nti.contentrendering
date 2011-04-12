@@ -70,6 +70,9 @@ class exerhard(Base.List.item):
 class bogus(Base.Environment):
 	pass
 
+class secprob(Base.Environment):
+	pass
+
 class importantdef(Base.Environment):
 	pass
 
@@ -84,6 +87,7 @@ class game(Base.Environment):
 
 class sidebar(Base.Environment):
 	pass
+
 
 
 from plasTeX.Base import Crossref
