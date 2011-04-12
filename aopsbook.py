@@ -80,11 +80,12 @@ class part(Base.List.item):
 	def digest( self, tex ):
 		super( part, self ).digest( tex )
 
+#Exercises exist at the end of a section and are started with \exercises.  There is
+#no explicit stop.  Exercises end when a new section starts
+
 class exnumber(Base.Command):
 	unicode = ''
 
-#Exercises exist at the end of a section and are started with \exercises.  There is
-#no explicit stop.  Exercises end when a new section starts
 class exercises(Base.subsection):
 	args = ''
 	counter = ''
@@ -103,6 +104,9 @@ class importantdef(Base.Environment):
 	pass
 
 class important(Base.Environment):
+	pass
+
+class concept(Base.Environment):
 	pass
 
 class warning(Base.Environment):
