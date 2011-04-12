@@ -66,14 +66,20 @@ class part(Base.List.item):
 	def digest( self, tex ):
 		super( part, self ).digest( tex )
 
-#Exercises seem similar to parts so maybe this gets duplicated.
-class exercieses(Base.List):
-	pass
+class exnumber(Base.Command):
+	unicode = ''
 
-class exer(Base.List.item):
-	pass
+#Exercises exist at the end of a section and are started with \exercises.  There is
+#no explicit stop.  Exercises end when a new section starts
+class exercises(Base.subsection):
+	args = ''
+	counter = ''
 
-class exerhard(Base.List.item):
+class exer(Base.subsubsection):
+	args = ''
+	counter='exnumber'
+
+class exerhard(exer):
 	pass
 
 class bogus(Base.Environment):
@@ -164,6 +170,9 @@ leftpic = rightpic
 parpic = rightpic
 
 def ProcessOptions( options, document ):
+
+	document.context.newcounter( 'exnumber' )
+
 	document.context.newcounter( 'partnum' )
 	# used in \begin{problem}.
 	# TODO: Get this to reset in chapters (probably not important)
