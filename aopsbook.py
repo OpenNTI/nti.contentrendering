@@ -6,9 +6,18 @@ class _OneText(Base.Command):
 	def invoke( self, tex ):
 		return super(_OneText, self).invoke( tex )
 
-class rindent(Base.Command):
-
+class _Ignored(Base.Command):
+	unicode = ''
 	def invoke( self, tex ):
+		return []
+
+class rindent(_Ignored):
+	pass
+
+class rule(Base.Boxes.rule):
+	" Rules have no place in this DOM"
+	def invoke( self, tex ):
+		super(rule,self).invoke( tex )
 		return []
 
 
@@ -103,6 +112,24 @@ class picsecprob(Base.Environment):
 			self.ownerDocument.context.counters['probnum'].stepcounter()
 
 
+# FIXME: These counters are not right
+# If we don't override the args attribute, these consume one letter of text
+class reviewprobs(Base.section):
+	args = ''
+	counter = 'probnum'
+
+class challengeprobs(Base.section):
+	args = ''
+	counter = 'probnum'
+
+class revprob(Base.subsection):
+	args = ''
+
+class chall(Base.subsection):
+	args = ''
+
+class challhard(Base.subsection):
+	args = ''
 
 
 from plasTeX.Packages.graphicx import *
