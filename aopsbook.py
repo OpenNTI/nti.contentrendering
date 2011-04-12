@@ -57,8 +57,34 @@ class part(Base.List.item):
 	def digest( self, tex ):
 		super( part, self ).digest( tex )
 
+#Exercises seem similar to parts so maybe this gets duplicated.
+class exercieses(Base.List):
+	pass
+
+class exer(Base.List.item):
+	pass
+
+class exerhard(Base.List.item):
+	pass
+
 class bogus(Base.Environment):
 	pass
+
+class importantdef(Base.Environment):
+	pass
+
+class important(Base.Environment):
+	pass
+
+class warning(Base.Environment):
+	pass
+
+class game(Base.Environment):
+	pass
+
+class sidebar(Base.Environment):
+	pass
+
 
 from plasTeX.Base import Crossref
 
