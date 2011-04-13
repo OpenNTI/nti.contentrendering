@@ -18,6 +18,9 @@ class _Ignored(Base.Command):
 class rindent(_Ignored):
 	pass
 
+class vupnud(_Ignored):
+	pass
+
 class rule(Base.Boxes.rule):
 	" Rules have no place in this DOM"
 	def invoke( self, tex ):
@@ -51,11 +54,14 @@ class angle(Base.Command):
 	def invoke( self, tex ):
 		super(angle, self).invoke(  tex )
 
+# Citations
+class MathCounts(_Ignored):
+	#TODO: How to represent this?
+	pass
+
 # Counters
 class partnum(Base.Command):
 	unicode = ''
-
-
 
 class parts(Base.List):
 
@@ -152,7 +158,9 @@ class problem(Base.Environment):
 	def invoke( self, tex ):
 		if self.macroMode != Base.Environment.MODE_END:
 			self.ownerDocument.context.counters['probnum'].stepcounter()
-		return super(problem,self).invoke( tex )
+		super(problem,self).invoke( tex )
+		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
+		print self.attributes
 
 def _digestAndCollect( self, tokens, until ):
 	for tok in tokens:
