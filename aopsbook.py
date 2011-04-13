@@ -177,7 +177,6 @@ class problem(Base.Environment):
 			self.ownerDocument.context.counters['probnum'].stepcounter()
 		super(problem,self).invoke( tex )
 		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
-		print self.attributes
 
 def _digestAndCollect( self, tokens, until ):
 	for tok in tokens:
@@ -261,8 +260,14 @@ class rightpic(includegraphics):
 	" For our purposes, exactly the same as an includegraphics commend. "
 	packageName = 'aopsbook'
 
-leftpic = rightpic
-parpic = rightpic
+class leftpic(rightpic):
+	pass
+class parpic(rightpic):
+	pass
+
+
+class fig(Base.figure):
+	pass
 
 ## Hints
 class hints(_Ignored):
