@@ -21,6 +21,21 @@ class rindent(_Ignored):
 class vupnud(_Ignored):
 	pass
 
+class picskip(Base.Command):
+	args = ' {text:int} '
+
+	def invoke( self, tex ):
+		# There's a {0} or so with this that we need to discard too
+		# TODO: This may not be the best way
+		tex.readGrouping( '{}' )
+		return []
+
+	def digest( self, tokens ):
+		return super(picskip,self).digest( tokens )
+
+
+
+
 class rule(Base.Boxes.rule):
 	" Rules have no place in this DOM"
 	def invoke( self, tex ):
@@ -136,21 +151,23 @@ from plasTeX.Base import Crossref
 class probref(Crossref.ref):
 	pass
 
-class picproblem(Base.Environment):
-	args = ' pic:str '
+class _BasePicProblem(Base.Environment):
+	args = 'pic'
 
-	def invoke( self, tex ):
+	def invoke(self,tex):
+		res = super(_BasePicProblem,self).invoke( tex )
 		if self.macroMode != Base.Environment.MODE_END:
 			self.ownerDocument.context.counters['probnum'].stepcounter()
-		return super(picproblem,self).invoke( tex )
+		# Move from the argument into the DOM
+		if 'pic' in self.attributes:
+			self.appendChild( self.attributes['pic'] )
+		return res
 
-class picsecprob(Base.Environment):
-	args = ' pic '
+class picproblem(_BasePicProblem):
+	pass
 
-	def invoke( self, tex ):
-		if self.macroMode != Base.Environment.MODE_END:
-			self.ownerDocument.context.counters['probnum'].stepcounter()
-		return super(picsecprob,self).invoke( tex )
+class picsecprob(_BasePicProblem):
+	pass
 
 class problem(Base.Environment):
 	args = ' [unknown] '
@@ -184,12 +201,14 @@ class sectionproblems(Base.subsection):
 		_digestAndCollect( self, tokens, nomoresectionproblems )
 
 
-class picsecprobspec(picsecprob):
+class picsecprobspec(_BasePicProblem):
 	pass
 
-class secprob(picsecprob):
-	args = ''
+class picproblemspec(_BasePicProblem):
+	pass
 
+class secprob(problem):
+	args = ''
 
 class nomoresectionproblems( Base.Command ):
 
@@ -240,29 +259,7 @@ from plasTeX.Packages.graphicx import *
 
 class rightpic(includegraphics):
 	" For our purposes, exactly the same as an includegraphics commend. "
-#	packageName = 'aopsbook'
-
-
-	def invoke( self, tex ):
-		# literally replace it with include graphics. This doesn't seem to be quite working at
-		# render time.
-		node = includegraphics()
-		node.parentNode = self.parentNode
-		node.ownerDocument = self.ownerDocument
-		res = node.invoke( tex )
-		if res is None:
-			self._backup = node
-			# FIXME: Returning this as a list (to completely replace this object) doesn't work.
-			# Do we understand that wrong?
-			return node
-		return res
-
-	def __getattribute__(self, value ):
-		# TODO: With replacement working, this is useless
-		if value == 'imageoverride':
-			return getattr( self._backup, value )
-		return includegraphics.__getattribute__( self, value )
-
+	packageName = 'aopsbook'
 
 leftpic = rightpic
 parpic = rightpic
@@ -336,8 +333,8 @@ def ProcessOptions( options, document ):
 	document.userdata.setPath( 'packages/aopsbook/paths', ['.', '../Images/'])
 	document.userdata.setPath( 'packages/graphicx/paths', ['.', '../Images/'])
 
-	document.userdata.setPath( 'packages/graphicx/extensions',
-							   ['.pdf', '.png','.jpg','.jpeg','.gif','.ps','.eps'])
+#	document.userdata.setPath( 'packages/graphicx/extensions',
+#							   ['.pdf', '.png','.jpg','.jpeg','.gif','.ps','.eps'])
 
 	# hints
 	document.context.newcounter( 'hintnum' )
