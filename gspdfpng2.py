@@ -2,6 +2,7 @@
 
 from plasTeX.Logging import getLogger
 import plasTeX.Imagers, glob, sys, os
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 status = getLogger('status')
 
@@ -10,6 +11,10 @@ if sys.platform.startswith('win'):
    gs = 'gswin32c'
 
 import plasTeX.Imagers.gspdfpng
+
+def _scale(n):
+	# Use IM to scale. Must be top-level to pickle
+	return os.system( 'convert %s -scale 50%% %s' % (n,n) )
 
 class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 	""" Imager that uses gs to convert pdf to png, using PDFCROP to handle the scaling """
@@ -31,7 +36,16 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 					value = '"%s"' % value
 				options += '%s %s ' % (opt, value)
 
-		return os.system('%s %s%s' % (self.command, options, 'images.out')), None
+		res = os.system('%s %s%s' % (self.command, options, 'images.out')), None
+		self.scaleImages()
+		return res
+
+	def scaleImages(self):
+		" Uses ImageMagick to scale the images in parallel "
+		with ProcessPoolExecutor() as executor:
+			for i in executor.map( _scale, glob.glob( 'img*.png') ):
+				print i
+
 
 
 Imager = GSPDFPNG2
