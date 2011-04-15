@@ -31,11 +31,10 @@ def main(argv):
 	# Parse the document
 	tex.parse()
 
-	document.createAttribute( 'xmlns:plastex' ).nodeValue = 'http://plastex.sf.net'
 
 	# Set up TEXINPUTS to include the current directory for the renderer
-	os.environ['TEXINPUTS'] = '%s%s%s%s' % (os.getcwd(), os.pathsep,
-										 os.environ.get('TEXINPUTS',''), os.pathsep)
+#	os.environ['TEXINPUTS'] = '%s%s%s%s' % (os.getcwd(), os.pathsep,
+#										 os.environ.get('TEXINPUTS',''), os.pathsep)
 
 	# # Change to specified directory to output to
 	# outdir = config['files']['directory']
@@ -46,8 +45,73 @@ def main(argv):
 	# 	log.info('Directing output files to directory: %s.' % outdir)
 	# 	os.chdir(outdir)
 
+	transform( document )
+
 	outfile = '%s.xml' % jobname
 	with open(outfile,'w') as f: f.write(document.toXML().encode('utf-8'))
+
+import string
+
+def transform( document ):
+	""" Applies DOM transformations to the document. """
+
+	class _mathnode(plasTeX.Base.Command):
+
+		def toXML(self):
+			return "<%s expr='%s' />" % (self.nodeName, self.expr)
+
+	class mathangle(_mathnode):
+		nodeName = 'mathangle'
+
+	class mathline(_mathnode):
+		nodeName = 'mathline'
+
+	class mathname(_mathnode):
+		nodeName = 'mathname'
+
+	document.context['mathangle'] = mathangle
+	document.context['mathname'] = mathname
+	document.context['mathline'] = mathline
+
+	# Remove unneeded math elements ($24$) and add semantic
+	# information where we can infer it from the text
+	# ("angle $AB" => <mathangle 'AB'>)
+	for math in document.getElementsByTagName( 'math' ):
+		try:
+			text = math.textContent
+			if not(text):
+				print 'Found empty math node'
+			elif all( [c in string.ascii_letters for c in text] ):
+				r = None
+				if math.previousSibling:
+					print math.previousSibling.textContent, '|'
+				if math.previousSibling:
+					prevText = (math.previousSibling.textContent or '').rstrip()
+					if prevText.lower().endswith( ' angle' ):
+						r = document.createElement( 'mathangle' )
+					elif prevText.lower().endswith( ' line') or prevText == 'Line':
+						r = document.createElement( 'mathline' )
+				if r is None:
+					r = document.createElement( 'mathname' )
+				r.expr = text
+				math.parentNode.replaceChild( r, math )
+				print 'Replaced text %s' % text
+			else:
+				float(math.textContent)
+				oldparent = math.parentNode
+				math.parentNode.replaceChild( text, math )
+				oldparent.normalize()
+				print 'Replaced float %s' % text
+		except UnicodeEncodeError, e:
+			pass
+		except ValueError, e:
+			import traceback
+			traceback.print_exc()
+		except plasTeX.DOM.NotFoundErr, e:
+			print 'Unable to replace ', math.textContent
+			import traceback
+			traceback.print_exc()
+
 
 
 if __name__ == '__main__':
