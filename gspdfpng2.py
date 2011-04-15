@@ -8,7 +8,7 @@ status = getLogger('status')
 
 gs = 'gs'
 if sys.platform.startswith('win'):
-   gs = 'gswin32c'
+	gs = 'gswin32c'
 
 import plasTeX.Imagers.gspdfpng
 
@@ -44,7 +44,7 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 		" Uses ImageMagick to scale the images in parallel "
 		with ProcessPoolExecutor() as executor:
 			for i in executor.map( _scale, glob.glob( 'img*.png') ):
-				print i
+				pass
 
 
 

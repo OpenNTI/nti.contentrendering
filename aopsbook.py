@@ -57,6 +57,28 @@ class chapterpicture(_OneText):
 		super(chapterpicture,self).invoke( tex )
 		return []
 
+# FIXME: Chapterauthor and chapterquote are included
+# BEFORE the \chapter marker, and so get digested into the
+# PREVIOUS section in the DOM, not the chapter they belong too.
+# Maybe these can just be discarded?
+
+class chapterquote(Base.Command):
+	args = ''
+
+	def invoke( self, tex ):
+		#TODO: Can we read the next command, which should be the
+		#\chapterauthor and add that as a child node?
+		tokens, source = tex.readGrouping( '{}', expanded=True, parentNode=self)
+		self += tokens
+		return None
+
+class chapterauthor(Base.Command):
+	args = ''
+
+	def invoke( self, tex ):
+		self += tex.readGrouping( '{}', expanded=True, parentNode=self)[0]
+		return None
+
 
 class Def(_OneText):
 	pass
