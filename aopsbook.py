@@ -62,7 +62,18 @@ class Def(_OneText):
 	pass
 
 class Defnoindex(_OneText):
-	pass
+	args = 'text'
+
+from plasTeX.Base import math
+
+class text(Base.Command):
+	args = 'self'
+	mathMode = False
+	def invoke( self, tex ):
+		print '!!!Got text'
+		return super(text,self).invoke( tex )
+
+math.text = text
 
 class angle(Base.Command):
 
