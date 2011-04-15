@@ -31,6 +31,8 @@ def main(argv):
 	# Parse the document
 	tex.parse()
 
+	document.createAttribute( 'xmlns:plastex' ).nodeValue = 'http://plastex.sf.net'
+
 	# Set up TEXINPUTS to include the current directory for the renderer
 	os.environ['TEXINPUTS'] = '%s%s%s%s' % (os.getcwd(), os.pathsep,
 										 os.environ.get('TEXINPUTS',''), os.pathsep)
