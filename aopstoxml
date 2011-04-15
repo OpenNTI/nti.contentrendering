@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+
+import os, sys, codecs, string, glob
+import plasTeX
+from plasTeX.TeX import TeX
+
+def main(argv):
+	""" Main program routine """
+
+	file = argv.pop(0)
+
+	# Create document instance that output will be put into
+	document = plasTeX.TeXDocument()
+
+	# Instantiate the TeX processor
+	tex = TeX(document, file=file)
+
+	# Populate variables for use later
+	jobname = document.userdata['jobname'] = tex.jobname
+	cwd = document.userdata['working-dir'] = os.getcwd()
+
+	# Load aux files for cross-document references
+#	pauxname = '%s.paux' % jobname
+
+	# for dirname in [cwd] + config['general']['paux-dirs']:
+	# 	for fname in glob.glob(os.path.join(dirname, '*.paux')):
+	# 		if os.path.basename(fname) == pauxname:
+	# 			continue
+	# 		document.context.restore(fname, rname)
+
+	# Parse the document
+	tex.parse()
+
+	# Set up TEXINPUTS to include the current directory for the renderer
+	os.environ['TEXINPUTS'] = '%s%s%s%s' % (os.getcwd(), os.pathsep,
+										 os.environ.get('TEXINPUTS',''), os.pathsep)
+
+	# # Change to specified directory to output to
+	# outdir = config['files']['directory']
+	# if outdir:
+	# 	outdir = string.Template(outdir).substitute({'jobname':jobname})
+	# 	if not os.path.isdir(outdir):
+	# 		os.makedirs(outdir)
+	# 	log.info('Directing output files to directory: %s.' % outdir)
+	# 	os.chdir(outdir)
+
+	outfile = '%s.xml' % jobname
+	with open(outfile,'w') as f: f.write(document.toXML().encode('utf-8'))
+
+
+if __name__ == '__main__':
+	main(sys.argv[1:])

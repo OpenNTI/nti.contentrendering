@@ -64,16 +64,16 @@ class Def(_OneText):
 class Defnoindex(_OneText):
 	args = 'text'
 
-from plasTeX.Base import math
-
-class text(Base.Command):
-	args = 'self'
-	mathMode = False
+class text(Base.BoxCommand):
 	def invoke( self, tex ):
-		print '!!!Got text'
 		return super(text,self).invoke( tex )
 
-math.text = text
+#We would like to be able to normalize math mode
+#at parse time such that expressions like $24$ automatically
+#become simple text nodes, but that's not (easily) possible: we cannot
+#make that decision until after the children are parsed, and by then
+#we're in the DOM (the digest() method does not yet have the proper parentNode)
+#to remove
 
 class angle(Base.Command):
 
@@ -354,5 +354,6 @@ def ProcessOptions( options, document ):
 
 	# hints
 	document.context.newcounter( 'hintnum' )
+
 
 
