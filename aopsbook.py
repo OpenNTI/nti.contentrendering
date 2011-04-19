@@ -147,11 +147,12 @@ class exnumber(Base.Command):
 
 class exercises(Base.subsection):
 	args = ''
-	counter = ''
+	counter= ''
 
 class exer(Base.subsubsection):
 	args = ''
 	counter='exnumber'
+
 
 class exerhard(exer):
 	pass
@@ -186,11 +187,11 @@ class probref(Crossref.ref):
 
 class _BasePicProblem(Base.Environment):
 	args = 'pic'
-
+	counter = 'probnum'
 	def invoke(self,tex):
 		res = super(_BasePicProblem,self).invoke( tex )
 		if self.macroMode != Base.Environment.MODE_END:
-			self.ownerDocument.context.counters['probnum'].stepcounter()
+			self.refstepcounter(tex)
 		# Move from the argument into the DOM
 		if 'pic' in self.attributes:
 			self.appendChild( self.attributes['pic'] )
@@ -202,27 +203,25 @@ class picproblem(_BasePicProblem):
 class picsecprob(_BasePicProblem):
 	pass
 
+import pdb
+
 class problem(Base.Environment):
 	args = ' [unknown] '
-
+	counter = 'probnum'
 	def invoke( self, tex ):
 		if self.macroMode != Base.Environment.MODE_END:
-			self.ownerDocument.context.counters['probnum'].stepcounter()
+			self.refstepcounter(tex)
 		super(problem,self).invoke( tex )
 		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
 
+
 def _digestAndCollect( self, tokens, until ):
-	for tok in tokens:
-		if tok.isElementContentWhitespace:
-			continue
-		tokens.push(tok)
-		break
 	self.digestUntil(tokens, until )
 	# Force grouping into paragraphs to eliminate the empties
 	self.paragraphs()
 
 class sectionproblems(Base.subsection):
-	counter = 'probnum'
+	counter = 'sectionprobsnotused'
 
 	def invoke( self, tex ):
 		self.ownerDocument.context.counters['saveprobnum'].setcounter(
@@ -376,6 +375,8 @@ def ProcessOptions( options, document ):
 
 	# hints
 	document.context.newcounter( 'hintnum' )
+
+	document.context.newcounter('sectionprobsnotused')
 
 
 
