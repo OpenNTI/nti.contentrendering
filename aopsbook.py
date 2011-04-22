@@ -112,6 +112,17 @@ class rlin(Base.Command):
 		arrow += expr
 		return [arrow]
 
+class vv(Base.Command):
+	""" A vector from esvect. We simplify to the common overrightarrow """
+
+	args = ''
+
+	def invoke( self, tex ):
+		arrow = self.ownerDocument.createElement( 'vec' )
+		expr = tex.readGrouping( '{}', expanded=True, parentNode=arrow)[0]
+		arrow += expr
+		return [arrow]
+
 # Citations
 class MathCounts(_Ignored):
 	#TODO: How to represent this?
