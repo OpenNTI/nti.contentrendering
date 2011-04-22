@@ -102,6 +102,16 @@ class angle(Base.Command):
 	def invoke( self, tex ):
 		super(angle, self).invoke(  tex )
 
+class rlin(Base.Command):
+	""" A presentation command that means overleftrightarrow """
+	args = ''
+
+	def invoke( self, tex ):
+		arrow = self.ownerDocument.createElement( 'overleftrightarrow' )
+		expr = tex.readGrouping( '{}', expanded=True, parentNode=arrow)[0]
+		arrow += expr
+		return [arrow]
+
 # Citations
 class MathCounts(_Ignored):
 	#TODO: How to represent this?
