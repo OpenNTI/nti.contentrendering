@@ -3,6 +3,11 @@
 import os, sys, codecs, string, glob
 import plasTeX
 from plasTeX.TeX import TeX
+from ImageGenerator import ImageGenerator
+from plasTeX.Logging import getLogger
+import pdb
+
+log = getLogger()
 
 def main(argv):
 	""" Main program routine """
@@ -33,22 +38,27 @@ def main(argv):
 
 
 	# Set up TEXINPUTS to include the current directory for the renderer
-#	os.environ['TEXINPUTS'] = '%s%s%s%s' % (os.getcwd(), os.pathsep,
-#										 os.environ.get('TEXINPUTS',''), os.pathsep)
+	os.environ['TEXINPUTS'] = '%s%s%s%s' % (os.getcwd(), os.pathsep,
+										 os.environ.get('TEXINPUTS',''), os.pathsep)
 
-	# # Change to specified directory to output to
-	# outdir = config['files']['directory']
-	# if outdir:
-	# 	outdir = string.Template(outdir).substitute({'jobname':jobname})
-	# 	if not os.path.isdir(outdir):
-	# 		os.makedirs(outdir)
-	# 	log.info('Directing output files to directory: %s.' % outdir)
-	# 	os.chdir(outdir)
+	 # Change to specified directory to output to
+	outdir = document.config['files']['directory']
+	if outdir:
+		outdir = string.Template(outdir).substitute({'jobname':jobname})
+		if not os.path.isdir(outdir):
+			os.makedirs(outdir)
+		log.info('Directing output files to directory: %s.' % outdir)
+		os.chdir(outdir)
 
 	transform( document )
 
+	generateImages(document, ['pdf2svg','gspdfpng2'])
+
 	outfile = '%s.xml' % jobname
 	with open(outfile,'w') as f: f.write(document.toXML().encode('utf-8'))
+
+
+
 
 import string
 
@@ -112,7 +122,15 @@ def transform( document ):
 			import traceback
 			traceback.print_exc()
 
+def generateImages(document, imagerNames):
+	### Generates required images ###
+	generator = ImageGenerator(document, imagerNames)
 
+
+	nodes = document.getElementsByTagName('math')
+	nodes.extend(document.getElementsByTagName('includegraphics'))
+
+	generator.renderImages(document, nodes)
 
 if __name__ == '__main__':
 	main(sys.argv[1:])
