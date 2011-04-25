@@ -14,6 +14,11 @@ def main(argv):
 
 	file = argv.pop(0)
 
+	outFormat = 'xml'
+
+	if argv:
+		outFormat = argv.pop(0)
+
 	# Create document instance that output will be put into
 	document = plasTeX.TeXDocument()
 
@@ -52,13 +57,32 @@ def main(argv):
 
 	transform( document )
 
-	generateImages(document, ['pdf2svg','gspdfpng2'])
+	if outFormat == 'images':
+		generateImages(document, ['pdf2svg','gspdfpng2'])
 
+	if outFormat == 'xhtml':
+		document.config['files']['split-level'] = 0
+		render( document, jobname, 'XHTML' )
+
+	if outFormat == 'xml':
+		toXml( document, jobname )
+
+
+
+def render(document, jobname, rname):
+    # Load renderer
+    try:
+        exec('from plasTeX.Renderers.%s import Renderer' % rname)
+    except ImportError, msg:
+        log.error('Could not import renderer "%s".  Make sure that it is installed correctly, and can be imported by Python.' % rname)
+        sys.exit(1)
+
+    # Apply renderer
+    Renderer().render(document)
+
+def toXml( document, jobname ):
 	outfile = '%s.xml' % jobname
 	with open(outfile,'w') as f: f.write(document.toXML().encode('utf-8'))
-
-
-
 
 import string
 
@@ -93,8 +117,7 @@ def transform( document ):
 				print 'Found empty math node'
 			elif all( [c in string.ascii_letters for c in text] ):
 				r = None
-				if math.previousSibling:
-					print math.previousSibling.textContent, '|'
+
 				if math.previousSibling:
 					prevText = (math.previousSibling.textContent or '').rstrip()
 					if prevText.lower().endswith( ' angle' ):
@@ -105,22 +128,39 @@ def transform( document ):
 					r = document.createElement( 'mathname' )
 				r.expr = text
 				math.parentNode.replaceChild( r, math )
-				print 'Replaced text %s' % text
+
 			else:
 				float(math.textContent)
 				oldparent = math.parentNode
 				math.parentNode.replaceChild( text, math )
 				oldparent.normalize()
-				print 'Replaced float %s' % text
+
 		except UnicodeEncodeError, e:
 			pass
 		except ValueError, e:
-			import traceback
-			traceback.print_exc()
+			pass
 		except plasTeX.DOM.NotFoundErr, e:
 			print 'Unable to replace ', math.textContent
 			import traceback
 			traceback.print_exc()
+
+	# Chapterauthor and chapterquote need to move down a level, inside
+	# their respective chapters. NOTE: They use the same
+	# macros for the book quote, the first one, which we want to leave alone.
+	for chapterquote in document.getElementsByTagName( 'chapterquote')[1:]:
+		chapterauthor = chapterquote.parentNode.getElementsByTagName( 'chapterauthor' )[0]
+		parent = chapterquote.parentNode
+		# move it up out of containing par and raggedbottom, etc
+		while parent:
+			if parent.nextSibling and parent.nextSibling.nodeName == 'chapter':
+				break
+			parent = parent.parentNode
+
+		if parent and parent.nextSibling:
+			chapterquote.parentNode.removeChild( chapterauthor )
+			chapterquote.parentNode.removeChild( chapterquote )
+			parent.nextSibling.insert( 0, chapterquote )
+			parent.nextSibling.insert( 1, chapterauthor )
 
 def generateImages(document, imagerNames):
 	### Generates required images ###
