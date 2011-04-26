@@ -144,6 +144,9 @@ def transform( document ):
 			import traceback
 			traceback.print_exc()
 
+	#Transform the remaining plastex math elements to mathml
+	transform2mathml(document)
+
 	# Chapterauthor and chapterquote need to move down a level, inside
 	# their respective chapters. NOTE: They use the same
 	# macros for the book quote, the first one, which we want to leave alone.
@@ -161,6 +164,13 @@ def transform( document ):
 			chapterquote.parentNode.removeChild( chapterquote )
 			parent.nextSibling.insert( 0, chapterquote )
 			parent.nextSibling.insert( 1, chapterauthor )
+
+from plastex2mathml import plastex2mathml
+
+def transform2mathml(document):
+	mathmlTransform = plastex2mathml()
+
+	mathmlTransform.transform(document)
 
 def generateImages(document, imagerNames):
 	### Generates required images ###
