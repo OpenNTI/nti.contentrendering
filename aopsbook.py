@@ -391,8 +391,12 @@ def ProcessOptions( options, document ):
 	document.userdata.setPath( 'packages/aopsbook/paths', ['.', '../Images/'])
 	document.userdata.setPath( 'packages/graphicx/paths', ['.', '../Images/'])
 
-#	document.userdata.setPath( 'packages/graphicx/extensions',
-#							   ['.pdf', '.png','.jpg','.jpeg','.gif','.ps','.eps'])
+	# AoPS uses fully qualified image names, so we don't want to
+	# search for multiple extensions; that really slows things down
+	# since it spawns an external program (1 min vs 20 secs)
+	document.userdata.setPath( 'packages/graphicx/extensions',
+							   [] )
+	document.userdata.setPath( 'packages/aopsbook/extensions', [])
 
 	# hints
 	document.context.newcounter( 'hintnum' )
