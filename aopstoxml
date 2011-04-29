@@ -55,7 +55,8 @@ def main(argv):
 		log.info('Directing output files to directory: %s.' % outdir)
 		os.chdir(outdir)
 
-	transform( document )
+	mathml = outFormat == 'mathml'
+	transform( document, mathml )
 
 	if outFormat == 'images':
 		generateImages(document, ['pdf2svg','gspdfpng2'])
@@ -64,7 +65,7 @@ def main(argv):
 		document.config['files']['split-level'] = 0
 		render( document, jobname, 'XHTML' )
 
-	if outFormat == 'xml':
+	if outFormat == 'xml' or mathml:
 		toXml( document, jobname )
 
 
@@ -86,7 +87,7 @@ def toXml( document, jobname ):
 
 import string
 
-def transform( document ):
+def transform( document, mathml=False ):
 	""" Applies DOM transformations to the document. """
 
 	class _mathnode(plasTeX.Base.Command):
@@ -144,8 +145,9 @@ def transform( document ):
 			import traceback
 			traceback.print_exc()
 
-	#Transform the remaining plastex math elements to mathml
-	transform2mathml(document)
+	# Transform the remaining plastex math elements to mathml
+	if mathml:
+		transform2mathml(document)
 
 	# Chapterauthor and chapterquote need to move down a level, inside
 	# their respective chapters. NOTE: They use the same

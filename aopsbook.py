@@ -374,6 +374,33 @@ class hintitem(Crossref.ref):
 	def digest(self, tokens):
 		_digestAndCollect( self, tokens, hintitem )
 
+class ntirequires(Base.Command):
+	args = 'rels:dict'
+
+	def toXML(self):
+		"""
+		<nti:topic rdf:about='...'>
+		  <nti:requires><aops:concept>...</aops:concept></nti:requires>
+		"""
+		rels = self.attributes['rels']
+		xml = "<nti:topic rdf:about='" + self.findContainer() + "'>"
+		for key in rels:
+			xml += "<nti:requires><aops:concept>" + key + "<aops:concept><nti:requires>"
+		xml += "</nti:topic>"
+		return xml
+
+	def findContainer(self):
+		# parent node should have the 'title' attribute
+		result = ""
+		parentNode = self.parentNode
+		while parentNode:
+			if hasattr(parentNode.attributes,'title'):
+				result = parentNode.attributes['title']
+				break
+			parentNode = parentNode.parentNode
+		return result
+
+
 
 def ProcessOptions( options, document ):
 
