@@ -3,6 +3,8 @@
 from plasTeX.Logging import getLogger
 import plasTeX.Imagers, glob, sys, os
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+import resources
+
 
 status = getLogger('status')
 
@@ -49,3 +51,9 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 
 
 Imager = GSPDFPNG2
+
+class ResourceGenerator(resources.ResourceGenerator):
+	extension='png'
+	resourceType='png'
+	def __init__(self, document):
+		super(ResourceGenerator, self).__init__(document, Imager(document, ''))

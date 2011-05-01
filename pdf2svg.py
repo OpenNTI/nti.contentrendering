@@ -2,8 +2,9 @@
 
 import os, re
 import plasTeX.Imagers
-
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+import resources
+
 
 def do_convert(  page ):
 	# convert to svg
@@ -49,3 +50,9 @@ class PDF2SVG(plasTeX.Imagers.VectorImager):
 		return True
 
 Imager = PDF2SVG
+
+class ResourceGenerator(resources.ResourceGenerator):
+	extension='svg'
+	resourceType='svgoep'
+	def __init__(self, document):
+		super(ResourceGenerator, self).__init__(document, Imager(document, ''))

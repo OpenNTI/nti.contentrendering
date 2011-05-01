@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, time, tempfile, shutil, re, string, pickle, codecs
+import os, time, tempfile, shutil, re, string, pickle, codecs, pdb
 try: from hashlib import md5
 except ImportError: from md5 import new as md5
 from plasTeX.Logging import getLogger
@@ -26,59 +26,170 @@ except ImportError:
 
 from collections import defaultdict
 
+class ResourceSet(object):
+	def __init__(self, path, source):
+		self.path=path
+		self.resources={}
+		self.source=source
+	def getTypes(self):
+		return resources.keys()
+	def __str__(self):
+		return '%s' % self.resources
+
+import uuid
+class ResourceDB(object):
+
+	types = {'svg': 'pdf2svg', 'png': 'gspdfpng2', 'mathml': 'html2mathml'}
+
+	"""
+	Manages external resources (images, mathml, videos, etc..) for a document
+	"""
+	def __init__(self, document, path=None):
+		self.__document=document
+		self.__config=self.__document.config
+		if not path:
+			path = self.__config['resourcedb']['location']
+
+		self.__dbpath=os.path.join(path, self.__document.userdata['jobname'])
+
+		if not os.path.isdir(self.__dbpath):
+			os.makedirs(self.__dbpath)
+
+		log.info('Using %s as resource db' % self.__dbpath)
+
+		self.__indexPath = os.path.join(self.__dbpath, 'resources.index')
+
+		self.__loadResourceDB()
+
+		self.__generateResourceSets()
+
+		self.__saveResourceDB()
+
+	def __str__(self):
+		return '%s'%self.__db
+
+	def getResourceSet(self, node):
+		if node.source in self.__db:
+			return self.__db[node.source]
+		else:
+			return None
+
+	def __generateResourceSets(self):
+
+		#set of all nodes we need to generate resources for
+		nodesToGenerate=self.__findNodes(self.__document)
+
+		#print nodesToGenerate
+
+		#Each unique source gets a resourceset
+		for node in nodesToGenerate:
+			if not node.source in  self.__db:
+				self.__db[node.source]=ResourceSet(os.path.join(self.__dbpath,str(uuid.uuid1())), node.source)
+		#Generate a mapping of types to source  {png: [src2, src5], mathml: [src1, src5]}
+		typesToSource=defaultdict(set)
+
+
+
+		for node in nodesToGenerate:
+			resourceset=self.__db[node.source]
+			for rType in node.resourceTypes:
+				if not rType in resourceset.resources:
+					typesToSource[rType].add(node.source)
+
+		print typesToSource
+
+		for rType, sources in typesToSource.items():
+			self.__generateResources(rType, sources)
+
+	def __generateResources(self, type, sources):
+		#Load a resource generate
+		generator=self.__loadGenerator(type)
+
+		if not generator:
+			return
+
+
+		resourcesets=[rset for rset in self.__db.values() if rset.source in sources]
+
+		generator.generateResources(self.__document, resourcesets)
+
+	def __loadGenerator(self, type):
+		if not type in self.types:
+			log.warn('No generator specified for resource type %s' % type)
+			return None
+		try:
+			exec('from %s import ResourceGenerator' % self.types[type])
+			return ResourceGenerator(self.__document)
+		except ImportError, msg:
+			log.warning("Could not load custom imager '%s' because '%s'" % (type, msg))
+			return None
+
+
+
+	def __findNodes(self, node):
+		nodes=[]
+		#print 'looking at node %s'%node
+		if getattr(node, 'resourceTypes', None):
+		#	print '****** Found resource types %s'%node.resourceTypes
+			nodes.append(node)
+
+		if getattr(node, 'attributes', None):
+			for attrval in node.attributes.values():
+				if getattr(attrval, 'childNodes', None):
+					for child in attrval.childNodes:
+						nodes.extend(self.__findNodes(child))
+
+		for child in node.childNodes:
+			nodes.extend(self.__findNodes(child))
+
+		return list(set(nodes))
+
+
+	def __loadResourceDB(self):
+		if os.path.isfile(self.__indexPath):
+			try:
+				self.__db = pickle.load(open(self.__indexPath, 'r'))
+				for key, value in self.__db.items():
+					if not os.path.exists(value.path):
+						print 'Deleting resources for %s %s'% (key, value.path)
+						del self.__db[key]
+						continue
+			except ImportError:
+				print 'Error loading cache.  Starting from scratch'
+				os.remove(self.__indexPath)
+				self.__db={}
+		else:
+			self.__db={}
+
+	def __saveResourceDB(self):
+		if not os.path.isdir(os.path.dirname(self.__indexPath)):
+			os.makedirs(os.path.dirname(self.__indexPath))
+		pickle.dump(self.__db, open(self.__indexPath,'w'))
+
+
+
 #We need to add caching so we don't regenerate from run to run.  We also
 #need to key images by source so we don't
 #generate duplicate images
-class ImageGenerator(object):
+class ResourceGenerator(object):
 
 	compiler = 'latex'
 
 	imageAttrs = ''
 
-	def __init__(self, document, names = None):
-		self.config=document.config
+	def __init__(self,document,  imager):
+		 self.imager=imager
+		 self.document=document
 
-		imagerNames = [ x for x in names if x ]
-
-		self.imagers=[]
-
-		for name in imagerNames:
-			if name == 'none':
-				break
-			try:
-				exec('from plasTeX.Imagers.%s import Imager' % name)
-			except ImportError, msg:
-				log.warning("Could not load default imager '%s' because '%s'" % (name, msg))
-			try:
-				exec('from %s import Imager' % name)
-			except ImportError, msg:
-				log.warning("Could not load custom imager '%s' because '%s'" % (name, msg))
-				continue
-
-			imager = Imager(document, None)
-
-
-
-			# Make sure that this imager works on this machine
-			if imager.verify():
-				self.imagers.append(imager)
-				log.info('Using the imager "%s".' % name)
-
-		if len(self.imagers) == 0:
-			log.warn('No imagers found.  Images will not be generated')
-
-
-
-	def renderImages(self, document, nodes):
+	#resource sets = source->resourceset
+	def generateResources(self, document,resourcesets):
 		"""
 		The first pass collects the latex source for each of the
 		provided nodes.  A latex file is generated from the collected source and compiled.  The compiled latex
-		is passed to each imager and the the list of generated images are returned.  The images are stored on disk
-		and another pass is made over the dom to add image details to the specified nodes.
+		is passed to the imager and the the list of generated images are returned.  The images are stored on disk
+	    in the path provided by the resource set and noted as appropriate
 		"""
-
-
-		self.config = document.config
+		self.config=document.config
 
 		# Start the document with a preamble
 		self.source = StringIO()
@@ -90,8 +201,8 @@ class ImageGenerator(object):
 
 		#Collect the requested nodes
 
-		for node in nodes:
-			self.__writeImage(node)
+		for resourceSet in resourcesets:
+			self.writeNode(resourceSet.source)
 
 
 		#Finish the document
@@ -104,27 +215,17 @@ class ImageGenerator(object):
 		#Given the output execute each imager.  Collect the resulting paths by id
 		#so they can be added to the dom
 
-
-		convertedImages = defaultdict(list)
-		for imager in self.imagers:
-			log.info('Converting images using %s' % imager)
-			#Make sure we are at the beginning of the output for each imager
-			output.seek(0)
-			images = self.__convert(output, nodes, imager)
-			#print images
-			for node, generatedPath in zip(nodes, images):
-				convertedImages[node].append(generatedPath)
-
-		#pass back over the nodes and add info for the images
-		for node in nodes:
-			node.images=convertedImages[node]
+		self.convert(output, resourcesets)
 
 
-	def __convert(self, output, nodes, imager):
+	def convert(self, output,  resourcesets):
 		"""
 		Given a compiled latex document of images execute the provided imager and
-		persist the results. The list of persisted image objects are returned
+		persist the results.
 		"""
+
+		imager=self.imager
+
 		if not imager:
 			log.warning('No imager command is configured.  ' +
 						'No images will be created.')
@@ -150,7 +251,7 @@ class ImageGenerator(object):
 		if images is None:
 			images = [f for f in os.listdir('.')
 							if re.match(r'^img\d+\.\w+$', f)]
-		if len(images) != len(nodes):
+		if len(images) != len(resourcesets):
  			log.warning('The number of images generated (%d) and the number of images requested (%d) is not the same.' % (len(images), len(nodes)))
 
 		# Sort by creation date
@@ -165,13 +266,14 @@ class ImageGenerator(object):
 			log.warning('PIL (Python Imaging Library) is not installed.	 ' +
 						'Images will not be cropped.')
 
-		imageObjs=[]
 
 		# Move images to their final location and create img objects to return
-		for tmpPath, node in zip(images, nodes):
+		for tmpPath, resourceset in zip(images, resourcesets):
 
 			#Create a dest for the image
-			finalPath = 'images/%s/%s%s' % (node.id, node.id, imager.fileExtension)
+			finalPath = os.path.join(resourceset.path, tmpPath)
+
+			print 'Moving image for %s to %s' % (resourceset.source, finalPath)
 
 			imageObj = Image(finalPath, self.config['images'])
 
@@ -186,7 +288,7 @@ class ImageGenerator(object):
 						value.imageUnits = self.imageUnits
 						setattr(img, name, value)
 
-			imageObjs.append(imageObj)
+			resourceset.resources[self.resourceType]=imageObj
 
 			# Move the image
 			directory = os.path.dirname(imageObj.path)
@@ -208,8 +310,6 @@ class ImageGenerator(object):
 		# Remove temporary directory
 		shutil.rmtree(tempdir, True)
 
-		return imageObjs
-
 
 	def __compileLatex(self, source):
 		"""
@@ -228,7 +328,7 @@ class ImageGenerator(object):
 		tempdir = tempfile.mkdtemp()
 		os.chdir(tempdir)
 
-		filename = 'images.tex'
+		filename = 'resources.tex'
 
 		# Write LaTeX source file
 		if self.config['images']['save-file']:
@@ -261,9 +361,9 @@ class ImageGenerator(object):
 		# 		break
 
 		output = None
-		for ext in ['.dvi','.pdf','.ps']:
-			if os.path.isfile('images'+ext):
-				output = WorkingFile('images'+ext, 'rb', tempdir=tempdir)
+		for ext in ['.dvi','.pdf','.ps','.xml']:
+			if os.path.isfile('resources'+ext):
+				output = WorkingFile('resources'+ext, 'rb', tempdir=tempdir)
 				break
 
 		# Change back to original working directory
@@ -271,7 +371,7 @@ class ImageGenerator(object):
 
 		return output
 
-	def __writeImage(self,node, context=''):
+	def writeNode(self,source, context=''):
 		"""
 		Write LaTeX source for the image
 
@@ -281,7 +381,7 @@ class ImageGenerator(object):
 		context -- the LaTeX code of the context of the image
 
 		"""
-		self.source.write('%s\n\\begin{plasTeXimage}{%s}\n%s\n\\end{plasTeXimage}\n' % (context, node.id, node.source))
+		self.source.write('%s\n\\begin{plasTeXimage}{%s}\n%s\n\\end{plasTeXimage}\n' % (context, source,source))
 
 
 

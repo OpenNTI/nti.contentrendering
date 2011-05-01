@@ -8,6 +8,8 @@ using the OS X CoreGraphics library via the Quartz bridge from PyObjc.
 
 import sys, os
 from optparse import OptionParser
+import resources
+
 try:
 	from Quartz import *
 except ImportError:

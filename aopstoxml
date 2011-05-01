@@ -3,7 +3,6 @@
 import os, sys, codecs, string, glob
 import plasTeX
 from plasTeX.TeX import TeX
-from ImageGenerator import ImageGenerator
 from plasTeX.Logging import getLogger
 import pdb
 
@@ -59,7 +58,9 @@ def main(argv):
 	transform( document, mathml )
 
 	if outFormat == 'images':
-		generateImages(document, ['pdf2svg','gspdfpng2'])
+		db = generateImages(document)
+
+		print db
 
 	if outFormat == 'xhtml':
 		document.config['files']['split-level'] = 0
@@ -174,15 +175,16 @@ def transform2mathml(document):
 
 	mathmlTransform.transform(document)
 
-def generateImages(document, imagerNames):
+from resources import ResourceDB
+
+def generateImages(document):
 	### Generates required images ###
-	generator = ImageGenerator(document, imagerNames)
+
+	db = ResourceDB(document)
+
+	return db;
 
 
-	nodes = document.getElementsByTagName('math')
-	nodes.extend(document.getElementsByTagName('includegraphics'))
-
-	generator.renderImages(document, nodes)
 
 if __name__ == '__main__':
 	main(sys.argv[1:])

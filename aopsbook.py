@@ -306,10 +306,18 @@ class chall(Base.subsection):
 class challhard(Base.subsection):
 	args = ''
 
+from plasTeX.Base import Math
+class math(Math.math):
+	resourceTypes = ['svg', 'mathml']
 
 from plasTeX.Packages.graphicx import *
 
-class rightpic(includegraphics):
+
+class myIncludeGraphics(includegraphics):
+	macroName = 'includegraphics'
+	resourceTypes = ['png', 'svg']
+
+class rightpic(myIncludeGraphics):
 	" For our purposes, exactly the same as an includegraphics commend. "
 	packageName = 'aopsbook'
 
