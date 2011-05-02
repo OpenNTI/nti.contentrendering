@@ -33,7 +33,8 @@ class picskip(Base.Command):
 	def digest( self, tokens ):
 		return super(picskip,self).digest( tokens )
 
-
+class newline(_Ignored):
+	macroName='\\'
 
 
 class rule(Base.Boxes.rule):
