@@ -36,7 +36,7 @@ def _scale(input, output, scale):
 
 class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 	""" Imager that uses gs to convert pdf to png, using PDFCROP to handle the scaling """
-	command = ('%s -dSAFER -dBATCH -dNOPAUSE -sDEVICE=png16m -r500 ' % gs) + \
+	command = ('%s -dSAFER -dBATCH -dNOPAUSE -sDEVICE=pngalpha -r500 ' % gs) + \
 			  '-dGraphicsAlphaBits=4 -sOutputFile=img%d.png'
 	compiler = 'pdflatex'
 	fileExtension = '.png'

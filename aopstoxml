@@ -5,21 +5,36 @@ import plasTeX
 from plasTeX.TeX import TeX
 from plasTeX.Logging import getLogger
 import pdb
+from plasTeX.Config import config
+from plasTeX.ConfigManager import *
 
 log = getLogger()
 
 def main(argv):
 	""" Main program routine """
 
-	file = argv.pop(0)
+	try:
+		opts, args = config.getopt(argv)
+	except Exception, msg:
+		log.error(msg)
+		print >>sys.stderr, config.usage()
+		sys.exit(1)
+
+	if not args:
+		print >>sys.stderr, config.usage()
+		sys.exit(1)
+
+
+	file = args.pop(0)
 
 	outFormat = 'xml'
 
-	if argv:
-		outFormat = argv.pop(0)
+	if args:
+		outFormat = args.pop()
+
 
 	# Create document instance that output will be put into
-	document = plasTeX.TeXDocument()
+	document = plasTeX.TeXDocument(config=config)
 
 	# Instantiate the TeX processor
 	tex = TeX(document, file=file)
