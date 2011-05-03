@@ -30,7 +30,7 @@ def main(argv):
 	outFormat = 'xml'
 
 	if args:
-		outFormat = args.pop()
+		outFormat = args.pop(0)
 
 
 	# Create document instance that output will be put into
