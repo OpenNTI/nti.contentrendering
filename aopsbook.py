@@ -38,9 +38,12 @@ class newline(_Ignored):
 
 
 class rule(Base.Boxes.rule):
-	" Rules have no place in this DOM"
+	" Rules have no place in this DOM, except in math mode, where their presentation
+	can be important (e.g., the rlin macro)."
 	def invoke( self, tex ):
-		super(rule,self).invoke( tex )
+		superResult = super(rule,self).invoke( tex )
+		if self.ownerDocument.context.isMathMode:
+			return superResult
 		return []
 
 class vspace(Base.Space.vspace):
@@ -103,26 +106,29 @@ class angle(Base.Command):
 	def invoke( self, tex ):
 		super(angle, self).invoke(  tex )
 
-class rlin(Base.Command):
-	""" A presentation command that means overleftrightarrow """
-	args = ''
+#
+# The rlin command and the vv command break rendering of
+# vectors, so they are disabled.
+# class rlin(Base.Command):
+# 	""" A presentation command that means overleftrightarrow """
+# 	args = ''
 
-	def invoke( self, tex ):
-		arrow = self.ownerDocument.createElement( 'overleftrightarrow' )
-		expr = tex.readGrouping( '{}', expanded=True, parentNode=arrow)[0]
-		arrow += expr
-		return [arrow]
+# 	def invoke( self, tex ):
+# 		arrow = self.ownerDocument.createElement( 'overleftrightarrow' )
+# 		expr = tex.readGrouping( '{}', expanded=True, parentNode=arrow)[0]
+# 		arrow += expr
+# 		return [arrow]
 
-class vv(Base.Command):
-	""" A vector from esvect. We simplify to the common overrightarrow """
-
-	args = ''
-
-	def invoke( self, tex ):
-		arrow = self.ownerDocument.createElement( 'vec' )
-		expr = tex.readGrouping( '{}', expanded=True, parentNode=arrow)[0]
-		arrow += expr
-		return [arrow]
+#class vv(Base.Command):
+#	""" A vector from esvect. We simplify to the common overrightarrow """
+#
+#	args = ''
+#
+#	def invoke( self, tex ):
+#		arrow = self.ownerDocument.createElement( 'vec' )
+#		expr = tex.readGrouping( '{}', expanded=True, parentNode=arrow)[0]
+#		arrow += expr
+#		return [arrow]
 
 # Citations
 class MathCounts(_Ignored):
