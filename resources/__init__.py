@@ -299,13 +299,6 @@ class ResourceGenerator(object):
 			except OSError:
 				shutil.copy(os.path.join(tempdir, tmpPath), imageObj.path)
 
-			try:
-				imageObj.crop()
-			 	status.dot()
-			except Exception, msg:
-			 	import traceback
-			 	traceback.print_exc()
-			 	log.warning('failed to crop %s (%s)', dest.path, msg)
 
 		# Remove temporary directory
 		shutil.rmtree(tempdir, True)

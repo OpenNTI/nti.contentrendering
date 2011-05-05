@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os,tempfile, shutil,re, codecs
+import os,tempfile, shutil,re, codecs,pdb
 from plasTeX.Logging import getLogger
 import plasTeX.Imagers, glob, sys, os
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
@@ -32,19 +32,21 @@ import plasTeX.Imagers.gspdfpng
 
 def _scale(input, output, scale):
 	# Use IM to scale. Must be top-level to pickle
-	return os.system( 'convert %s -scale %d%% %s' % (input, scale*25 , output) )
+	#scale is 1x, 2x, 4x
+	return os.system( 'convert %s -resize %d%% %s' % (input, 100*(scale/4.0) , output) )
 
 class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 	""" Imager that uses gs to convert pdf to png, using PDFCROP to handle the scaling """
-	command = ('%s -dSAFER -dBATCH -dNOPAUSE -sDEVICE=pngalpha -r500 ' % gs) + \
+	command = ('%s -dSAFER -dBATCH -dNOPAUSE -sDEVICE=pngalpha ' % gs) + \
 			  '-dGraphicsAlphaBits=4 -sOutputFile=img%d.png'
 	compiler = 'pdflatex'
 	fileExtension = '.png'
+	size=256
 	scaleFactor=1
 
 	def executeConverter(self, output):
 		open('images.out', 'wb').write(output.read())
-		# Now crop it
+		# Now crop
 		print 'croping'
 		os.system( "pdfcrop --hires --margin 3 images.out images.out" )
 		options = ''
@@ -55,7 +57,7 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 					value = '"%s"' % value
 				options += '%s %s ' % (opt, value)
 
-		res = os.system('%s %s%s' % (self.command, options, 'images.out')), None
+		res = os.system('%s -r%d %s%s' % (self.command, 500 ,options, 'images.out')), None
 		self.scaleImages()
 		return res
 
@@ -67,6 +69,8 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 				pass
 
 
+def _invert(input, output):
+	return os.system('convert %s -negate %s' % (input, output))
 
 Imager = GSPDFPNG2
 
@@ -106,10 +110,35 @@ class ResourceGenerator(resources.ResourceGenerator):
 			scaledImages[scale]=self.__generateWithScaleFactor(output, resourcesets, scale)
 			os.chdir(baseTemp)
 
+		invertedImages={1:None, 2:None, 4:None}
+
+
+		for scale in scaledImages.keys():
+			os.chdir(tmpLocations[scale])
+
+			sources = scaledImages[scale]
+			dests=[]
+			for img in sources:
+				root, ext = os.path.splitext(img)
+				dests.append('%s_invert%s'%(root, ext))
+
+			with ProcessPoolExecutor() as executor:
+				for i in executor.map(_invert, sources, dests):
+					pass
+
+			invertedImages[scale]=dests
+			os.chdir(baseTemp)
+
+
 
 		if PILImage is None:
 			log.warning('PIL (Python Imaging Library) is not installed.	 ' +
 						'Images will not be cropped.')
+
+		#Create an inverted images to go with it
+
+
+
 
 		os.chdir(cwd)
 
@@ -118,34 +147,36 @@ class ResourceGenerator(resources.ResourceGenerator):
 		# Move images to their final location and create img objects to return
 		for scale in scaledImages.keys():
 			tempdir=tmpLocations[scale]
-			for tmpPath, resourceset in zip(scaledImages[scale], resourcesets):
+			for tmpPath, tmpPathInverted, resourceset in zip(scaledImages[scale], invertedImages[scale], resourcesets):
 
 				imageObj = self.__createImageObject(resourceset, tmpPath, '%sx'%scale)
+
+				imageObjInv = self.__createImageObject(resourceset, tmpPathInverted, '%sx'%scale)
 
 				if not self.resourceType in  resourceset.resources:
 					resourceset.resources[self.resourceType]={}
 
-				resourceset.resources[self.resourceType][scale]=imageObj
+				resourceset.resources[self.resourceType][scale]=(imageObj, imageObjInv)
 
-				# Move the image
-				directory = os.path.dirname(imageObj.path)
-				if directory and not os.path.isdir(directory):
-					os.makedirs(directory)
-				try:
-					shutil.copy2(os.path.join(tempdir,tmpPath), imageObj.path)
-				except OSError:
-					shutil.copy(os.path.join(tempdir, tmpPath), imageObj.path)
+				self.__moveImage(os.path.join(tempdir, tmpPath), imageObj.path)
+				self.__moveImage(os.path.join(tempdir, tmpPathInverted), imageObjInv.path)
 
-				try:
-					imageObj.crop()
-					status.dot()
-				except Exception, msg:
-					import traceback
-					traceback.print_exc()
-					log.warning('failed to crop %s (%s)', imageObj.path, msg)
+
 
 		# Remove temporary directory
 		shutil.rmtree(baseTemp, True)
+
+	def __moveImage(self, source, dest):
+		#print 'Moving %s to %s' % (source, dest)
+		# Move the image
+		directory = os.path.dirname(dest)
+		if directory and not os.path.isdir(directory):
+			os.makedirs(dest)
+		try:
+			shutil.copy2(source, dest)
+		except OSError:
+			shutil.copy(source, dest)
+
 
 	def __generateWithScaleFactor(self,output, resourcesets, factor):
 		imager=self.imager
