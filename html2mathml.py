@@ -12,6 +12,7 @@ class MathMLGenerator(resources.ResourceGenerator):
 	compiler = 'ttm'
 	resourceType='mathml'
 	extension='xml'
+	illegalCommands=['\\\\overleftrightarrow', '\\\\vv', '\\\\smash', '\\\\rlin', '\\\\textregistered']
 
 	def __init__(self, document):
 		super(ResourceGenerator, self).__init__(document, None)
@@ -29,6 +30,12 @@ class MathMLGenerator(resources.ResourceGenerator):
 		"""
 		self.source.write('%s\n%s\n' % (context, source))
 
+
+	def canGenerate(self, source):
+		for command in self.illegalCommands:
+			if re.search(command, source):
+				return False
+		return True
 
 	def convert(self, output, resourcesets):
 		cwd = os.getcwd()

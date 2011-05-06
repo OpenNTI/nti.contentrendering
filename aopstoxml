@@ -75,7 +75,6 @@ def main(argv):
 	if outFormat == 'images':
 		db = generateImages(document)
 
-		print db
 
 	if outFormat == 'xhtml':
 		document.config['files']['split-level'] = 0
@@ -107,6 +106,11 @@ def transform( document, mathml=False ):
 	""" Applies DOM transformations to the document. """
 
 	class _mathnode(plasTeX.Base.Command):
+		resourceTypes=['mathml','svg']
+
+		@property
+		def source(self):
+			return self.origMathSource
 
 		def toXML(self):
 			return "<%s expr='%s' />" % (self.nodeName, self.expr)
@@ -115,6 +119,7 @@ def transform( document, mathml=False ):
 		nodeName = 'mathangle'
 
 	class mathline(_mathnode):
+		resourceTypes=['svg']
 		nodeName = 'mathline'
 
 	class mathname(_mathnode):
@@ -144,6 +149,7 @@ def transform( document, mathml=False ):
 				if r is None:
 					r = document.createElement( 'mathname' )
 				r.expr = text
+				r.origMathSource=math.source
 				math.parentNode.replaceChild( r, math )
 
 			else:

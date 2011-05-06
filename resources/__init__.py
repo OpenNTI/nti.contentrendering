@@ -199,9 +199,13 @@ class ResourceGenerator(object):
 		self.source.write('\\graphicspath{{%s/}}\n' % (document.userdata['working-dir']))
 
 
-		#Collect the requested nodes
+		generatableResources=[]
+		#make sure we can actually generate all the resource sets
+		for rset in resourcesets:
+			if self.canGenerate(rset.source):
+				generatableResources.append(rset)
 
-		for resourceSet in resourcesets:
+		for resourceSet in generatableResources:
 			self.writeNode(resourceSet.source)
 
 
@@ -215,7 +219,10 @@ class ResourceGenerator(object):
 		#Given the output execute each imager.  Collect the resulting paths by id
 		#so they can be added to the dom
 
-		self.convert(output, resourcesets)
+		self.convert(output, generatableResources)
+
+	def canGenerate(self, source):
+		return True
 
 
 	def convert(self, output,  resourcesets):

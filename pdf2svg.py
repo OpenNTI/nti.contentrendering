@@ -53,6 +53,6 @@ Imager = PDF2SVG
 
 class ResourceGenerator(resources.ResourceGenerator):
 	extension='svg'
-	resourceType='svgoep'
+	resourceType='svg'
 	def __init__(self, document):
 		super(ResourceGenerator, self).__init__(document, Imager(document, ''))
