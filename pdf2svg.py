@@ -53,6 +53,8 @@ class PDF2SVG(plasTeX.Imagers.VectorImager):
 
 				the_tuple[1].width = float(the_tuple[0][1])
 				the_tuple[1].height = float(the_tuple[0][2])
+				# FIXME: The depth (height above baseline) is not correct
+				the_tuple[1].depth = -3
 
 		return 0, filenames
 

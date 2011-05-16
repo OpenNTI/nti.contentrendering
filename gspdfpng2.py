@@ -58,6 +58,8 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 			width_in_pt, height_in_pt = subprocess.Popen( "pdfinfo -box -f %d images.out | grep MediaBox | awk '{print $4,$5}'" % (page), shell=True, stdout=subprocess.PIPE).communicate()[0].split()
 			img.width = float(width_in_pt)
 			img.height = float(height_in_pt)
+			# We're arbitrarily assigning a height above baseline to match the margin
+			img.depth = -3
 		options = ''
 		if self._configOptions:
 			for opt, value in self._configOptions:
