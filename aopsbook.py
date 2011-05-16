@@ -327,6 +327,7 @@ class myIncludeGraphics(includegraphics):
 class rightpic(myIncludeGraphics):
 	" For our purposes, exactly the same as an includegraphics commend. "
 	packageName = 'aopsbook'
+	macroName = None
 
 class leftpic(rightpic):
 	pass
