@@ -47,8 +47,10 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 	def executeConverter(self, output):
 		open('images.out', 'wb').write(output.read())
 		# Now crop
-		print 'croping'
 		os.system( "pdfcrop --hires --margin 3 images.out images.out" )
+		# Record the fact that we've cropped them
+		for img in self.images.values():
+			img._cropped = True
 		options = ''
 		if self._configOptions:
 			for opt, value in self._configOptions:
@@ -59,6 +61,7 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 
 		res = os.system('%s -r%d %s%s' % (self.command, 500 ,options, 'images.out')), None
 		self.scaleImages()
+
 		return res
 
 	def scaleImages(self):

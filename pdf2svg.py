@@ -34,6 +34,9 @@ class PDF2SVG(plasTeX.Imagers.VectorImager):
 		open('images.pdf', 'w').write(output.read())
 		#Crop all the pages of the PDF to the exact size
 		os.system( "pdfcrop --hires --margin 0 images.pdf images.pdf" )
+		# Notice that, unlike with PNGs we don't set the crop flag: we allow
+		# the cropping to go through so it can inspect and set the sizes
+
 		#Find out how many pages to expect
 		import subprocess
 		maxpages = int(subprocess.Popen( "pdfinfo images.pdf | grep Pages | awk '{print $2}'", shell=True, stdout=subprocess.PIPE).communicate()[0])
@@ -43,6 +46,7 @@ class PDF2SVG(plasTeX.Imagers.VectorImager):
 			for i in executor.map( do_convert, xrange( 1, maxpages + 1 ) ):
 				if i:
 					filenames.append( i )
+
 
 		return 0, filenames
 
