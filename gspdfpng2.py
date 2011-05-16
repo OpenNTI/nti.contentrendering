@@ -20,7 +20,7 @@ except ImportError:
 
 import plasTeX.Imagers
 from plasTeX.Imagers import Image, WorkingFile
-
+import subprocess
 
 status = getLogger('status')
 
@@ -48,9 +48,14 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 		open('images.out', 'wb').write(output.read())
 		# Now crop
 		os.system( "pdfcrop --hires --margin 3 images.out images.out" )
+		maxpages = int(subprocess.Popen( "pdfinfo images.out | grep Pages | awk '{print $2}'", shell=True, stdout=subprocess.PIPE).communicate()[0])
 		# Record the fact that we've cropped them
-		for img in self.images.values():
+		for img,page in zip(self.images.values(),xrange(1,maxpages + 1)):
 			img._cropped = True
+			#TODO: Parallelize this
+			width_in_pt, height_in_pt = subprocess.Popen( "pdfinfo -box -f %d images.out | grep MediaBox | awk '{print $4,$5}'" % (page), shell=True, stdout=subprocess.PIPE).communicate()[0].split()
+			img.width = float(width_in_pt)
+			img.height = float(height_in_pt)
 		options = ''
 		if self._configOptions:
 			for opt, value in self._configOptions:
@@ -63,6 +68,12 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 		self.scaleImages()
 
 		return res
+
+	def writePreamble( self, document ):
+		""" Because we do our own cropping, we don't need the registration mark. Hence, we define that to do nothing; the
+		superclass then does NOT define it. """
+		self.source.write( "\\newcommand{\plasTeXregister}{}" )
+		super(GSPDFPNG2,self).writePreamble( document )
 
 	def scaleImages(self):
 		" Uses ImageMagick to scale the images in parallel "

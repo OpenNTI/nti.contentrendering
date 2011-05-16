@@ -50,19 +50,9 @@ class PDF2SVG(plasTeX.Imagers.VectorImager):
 		with ProcessPoolExecutor( max_workers=16 ) as executor:
 			for the_tuple in zip(executor.map( do_convert, xrange( 1, maxpages + 1 ) ),self.images.values()):
 				filenames.append( the_tuple[0][0] )
-				print the_tuple
 
 				the_tuple[1].width = float(the_tuple[0][1])
 				the_tuple[1].height = float(the_tuple[0][2])
-				# JAM: Quick hack, make sure that a corresponding bitmap, if any
-				# has a matching size (Really, we need to do this in gspdfpng2)
-				if the_tuple[1].bitmap:
-					print the_tuple[1].bitmap
-					the_tuple[1].bitmap.width = float(the_tuple[0][1])
-					the_tuple[1].bitmap.height = float(the_tuple[0][2])
-
-
-
 
 		return 0, filenames
 
