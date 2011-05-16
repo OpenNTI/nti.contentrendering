@@ -34,12 +34,12 @@ class picskip(Base.Command):
 		return super(picskip,self).digest( tokens )
 
 class newline(_Ignored):
-	macroName='\\'
+	macroName = '\\'
 
 
 class rule(Base.Boxes.rule):
-	" Rules have no place in this DOM, except in math mode, where their presentation
-	can be important (e.g., the rlin macro)."
+	""" Rules have no place in this DOM, except in math mode, where their presentation
+	can be important (e.g., the rlin macro)."""
 	def invoke( self, tex ):
 		superResult = super(rule,self).invoke( tex )
 		if self.ownerDocument.context.isMathMode:
