@@ -30,6 +30,10 @@ if sys.platform.startswith('win'):
 
 import plasTeX.Imagers.gspdfpng
 
+def _size(page,key):
+	width_in_pt, height_in_pt = subprocess.Popen( "pdfinfo -box -f %d images.out | grep MediaBox | awk '{print $4,$5}'" % (page), shell=True, stdout=subprocess.PIPE).communicate()[0].split()
+	return (key, width_in_pt, height_in_pt)
+
 def _scale(input, output, scale):
 	# Use IM to scale. Must be top-level to pickle
 	#scale is 1x, 2x, 4x
@@ -49,17 +53,18 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 		# Now crop
 		os.system( "pdfcrop --hires --margin 3 images.out images.out" )
 		maxpages = int(subprocess.Popen( "pdfinfo images.out | grep Pages | awk '{print $2}'", shell=True, stdout=subprocess.PIPE).communicate()[0])
-		# Record the fact that we've cropped them
-		for img,page in zip(self.images.values(),xrange(1,maxpages + 1)):
-			img._cropped = True
-			#TODO: Parallelize this
+		# Record the fact that we've cropped them (in parallel, getting the size takes time)
+		with ProcessPoolExecutor() as executor:
+			for the_tuple in executor.map( _size, xrange(1, maxpages + 1 ), self.images.keys() ):
+				img = self.images[the_tuple[0]]
+				img._cropped = True
+				img.width = float(the_tuple[1])
+				img.height = float(the_tuple[2])
+				img.depth = -3
 			# TODO: This is in points, we want it in pixels; these are
 			# coming in too small
-			width_in_pt, height_in_pt = subprocess.Popen( "pdfinfo -box -f %d images.out | grep MediaBox | awk '{print $4,$5}'" % (page), shell=True, stdout=subprocess.PIPE).communicate()[0].split()
-			img.width = float(width_in_pt)
-			img.height = float(height_in_pt)
 			# We're arbitrarily assigning a height above baseline to match the margin
-			img.depth = -3
+
 		options = ''
 		if self._configOptions:
 			for opt, value in self._configOptions:
