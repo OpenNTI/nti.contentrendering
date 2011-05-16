@@ -5,7 +5,6 @@ import plasTeX
 from plasTeX.TeX import TeX
 from plasTeX.Logging import getLogger
 import pdb
-from plasTeX.Config import config
 from plasTeX.ConfigManager import *
 
 log = getLogger()
@@ -13,28 +12,19 @@ log = getLogger()
 def main(argv):
 	""" Main program routine """
 
-	try:
-		opts, args = config.getopt(argv)
-	except Exception, msg:
-		log.error(msg)
-		print >>sys.stderr, config.usage()
-		sys.exit(1)
 
-	if not args:
-		print >>sys.stderr, config.usage()
-		sys.exit(1)
-
-
-	file = args.pop(0)
+	file = argv.pop(0)
 
 	outFormat = 'xml'
 
-	if args:
-		outFormat = args.pop(0)
+	if argv:
+		outFormat = argv.pop(0)
+
+	#Use transperant images
 
 
 	# Create document instance that output will be put into
-	document = plasTeX.TeXDocument(config=config)
+	document = plasTeX.TeXDocument()
 
 	# Instantiate the TeX processor
 	tex = TeX(document, file=file)

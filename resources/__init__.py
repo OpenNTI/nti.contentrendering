@@ -48,7 +48,7 @@ class ResourceDB(object):
 		self.__document=document
 		self.__config=self.__document.config
 		if not path:
-			path = self.__config['resourcedb']['location']
+			path = 'resources'
 
 		self.__dbpath=os.path.join(path, self.__document.userdata['jobname'])
 
