@@ -4,7 +4,7 @@ import os, re
 import plasTeX.Imagers
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import resources
-
+import subprocess
 
 def do_convert(  page ):
 	# convert to svg
@@ -20,7 +20,11 @@ def do_convert(  page ):
 	#Then remove the width and height boxes since this interacts badly with
 	#HTML embedding
 	os.system( "sed -i '' 's/width=.*pt\"//' %s" % filename )
-	return filename
+
+	# Get the width and height from the media box since we're not cropping it
+	# in Python code
+	width_in_pt, height_in_pt = subprocess.Popen( "pdfinfo -box -f %d images.pdf | grep MediaBox | awk '{print $4,$5}'" % (page), shell=True, stdout=subprocess.PIPE).communicate()[0].split()
+	return (filename, width_in_pt, height_in_pt)
 
 
 class PDF2SVG(plasTeX.Imagers.VectorImager):
@@ -34,18 +38,30 @@ class PDF2SVG(plasTeX.Imagers.VectorImager):
 		open('images.pdf', 'w').write(output.read())
 		#Crop all the pages of the PDF to the exact size
 		os.system( "pdfcrop --hires --margin 0 images.pdf images.pdf" )
-		# Notice that, unlike with PNGs we don't set the crop flag: we allow
-		# the cropping to go through so it can inspect and set the sizes
+		# We must mark these as cropped
+		for img in self.images.values():
+			img._cropped = True
 
 		#Find out how many pages to expect
-		import subprocess
+
 		maxpages = int(subprocess.Popen( "pdfinfo images.pdf | grep Pages | awk '{print $2}'", shell=True, stdout=subprocess.PIPE).communicate()[0])
 
 		filenames = []
 		with ProcessPoolExecutor( max_workers=16 ) as executor:
-			for i in executor.map( do_convert, xrange( 1, maxpages + 1 ) ):
-				if i:
-					filenames.append( i )
+			for the_tuple in zip(executor.map( do_convert, xrange( 1, maxpages + 1 ) ),self.images.values()):
+				filenames.append( the_tuple[0][0] )
+				print the_tuple
+
+				the_tuple[1].width = float(the_tuple[0][1])
+				the_tuple[1].height = float(the_tuple[0][2])
+				# JAM: Quick hack, make sure that a corresponding bitmap, if any
+				# has a matching size (Really, we need to do this in gspdfpng2)
+				if the_tuple[1].bitmap:
+					print the_tuple[1].bitmap
+					the_tuple[1].bitmap.width = float(the_tuple[0][1])
+					the_tuple[1].bitmap.height = float(the_tuple[0][2])
+
+
 
 
 		return 0, filenames
