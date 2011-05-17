@@ -43,6 +43,12 @@ class rule(Base.Boxes.rule):
 	def invoke( self, tex ):
 		superResult = super(rule,self).invoke( tex )
 		if self.ownerDocument.context.isMathMode:
+			if self.ownerDocument.context.contexts[-1].parent.name == 'array':
+				# One exception is when they use rules inside arrays
+				# to try to extend an hline. mathjax rendering doesn't
+				# need this, and I didn't see it being helpful in
+				# their PDF either
+				return []
 			return superResult
 		return []
 
