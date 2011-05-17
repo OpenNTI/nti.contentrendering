@@ -21,6 +21,7 @@ except ImportError:
 import plasTeX.Imagers
 from plasTeX.Imagers import Image, WorkingFile
 import subprocess
+import math
 
 status = getLogger('status')
 
@@ -58,8 +59,8 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 			for the_tuple in executor.map( _size, xrange(1, maxpages + 1 ), self.images.keys() ):
 				img = self.images[the_tuple[0]]
 				img._cropped = True
-				img.width = float(the_tuple[1])
-				img.height = float(the_tuple[2])
+				img.width = math.ceil( float(the_tuple[1]) ) * 1.3
+				img.height = math.ceil( float(the_tuple[2]) ) * 1.3
 				img.depth = -3
 			# TODO: This is in points, we want it in pixels; these are
 			# coming in too small

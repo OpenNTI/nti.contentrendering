@@ -5,6 +5,7 @@ import plasTeX.Imagers
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import resources
 import subprocess
+import math
 
 def do_convert(  page ):
 	# convert to svg
@@ -51,8 +52,8 @@ class PDF2SVG(plasTeX.Imagers.VectorImager):
 			for the_tuple in zip(executor.map( do_convert, xrange( 1, maxpages + 1 ) ),self.images.values()):
 				filenames.append( the_tuple[0][0] )
 
-				the_tuple[1].width = float(the_tuple[0][1])
-				the_tuple[1].height = float(the_tuple[0][2])
+				the_tuple[1].width = math.ceil( float(the_tuple[0][1]) ) * 1.3
+				the_tuple[1].height = math.ceil( float(the_tuple[0][2]) ) * 1.3
 				# FIXME: The depth (height above baseline) is not correct
 				the_tuple[1].depth = -3
 
