@@ -106,7 +106,7 @@ class angle(Base.Command):
 	def invoke( self, tex ):
 		super(angle, self).invoke(  tex )
 
-#
+
 # The rlin command and the vv command break rendering of
 # vectors, so they are disabled.
 # class rlin(Base.Command):
@@ -129,6 +129,18 @@ class angle(Base.Command):
 #		expr = tex.readGrouping( '{}', expanded=True, parentNode=arrow)[0]
 #		arrow += expr
 #		return [arrow]
+
+
+## rlin is re-enabled for the sake of mathjax
+class rlin(Base.Command):
+ 	""" A presentation command that means overleftrightarrow. However,
+	we represent it in the DOM for MathJax--it needs to get the
+	grouping around the text. This corresponds to a custom macro in
+	the default-layout.html AoPS template. """
+ 	args = '{text}'
+
+ 	def invoke( self, tex ):
+		return super(rlin,self).invoke( tex )
 
 # Citations
 class MathCounts(_Ignored):
