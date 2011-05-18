@@ -26,6 +26,12 @@ except ImportError:
 
 from collections import defaultdict
 
+class Resource(object):
+	def __init__(self, filename):
+		self.filename=filename
+		self.path = os.path.join(os.getcwd(), self.filename)
+		self.checksum=None
+
 class ResourceSet(object):
 	def __init__(self, path, source):
 		self.path=path
@@ -171,72 +177,33 @@ class ResourceDB(object):
 #We need to add caching so we don't regenerate from run to run.  We also
 #need to key images by source so we don't
 #generate duplicate images
-class ResourceGenerator(object):
 
-	compiler = 'latex'
+class BaseResourceGenerator(object):
 
-	imageAttrs = ''
+	compiler = ''
 
-	def __init__(self,document,  imager):
-		 self.imager=imager
-		 self.document=document
 
-	#resource sets = source->resourceset
-	def generateResources(self, document,resourcesets):
-		"""
-		The first pass collects the latex source for each of the
-		provided nodes.  A latex file is generated from the collected source and compiled.  The compiled latex
-		is passed to the imager and the the list of generated images are returned.  The images are stored on disk
-	    in the path provided by the resource set and noted as appropriate
-		"""
-		self.config=document.config
+	def __init__(self,document):
+		self.document=document
 
-		# Start the document with a preamble
+	def generateResources(self, document, resourcesets):
 		self.source = StringIO()
 		self.source.write('\\scrollmode\n')
-		self.__writePreamble(document)
+		self.writePreamble(document)
 		self.source.write('\\begin{document}\n')
-		self.source.write('\\graphicspath{{%s/}}\n' % (document.userdata['working-dir']))
 
+		generatableResources=[rset for rset in resourcesets if self.canGenerate(rset.source)]
 
-		generatableResources=[]
-		#make sure we can actually generate all the resource sets
-		for rset in resourcesets:
-			if self.canGenerate(rset.source):
-				generatableResources.append(rset)
+		if not len(generatableResources)>0:
+			print 'No resources to generate'
+			return
 
-		for resourceSet in generatableResources:
-			self.writeNode(resourceSet.source)
+		for rset in generatableResources:
+			self.writeResource(rset.source, '')
 
-
-		#Finish the document
 		self.source.write('\n\\end{document}\\endinput')
 
-		#Compile the latex source into something usefull to the imagers
-		#Each page of the output is an image and is in the order of the ids
-		output = self.__compileLatex(self.source)
-
-		#Given the output execute each imager.  Collect the resulting paths by id
-		#so they can be added to the dom
-
-		self.convert(output, generatableResources)
-
-	def canGenerate(self, source):
-		return True
-
-
-	def convert(self, output,  resourcesets):
-		"""
-		Given a compiled latex document of images execute the provided imager and
-		persist the results.
-		"""
-
-		imager=self.imager
-
-		if not imager:
-			log.warning('No imager command is configured.  ' +
-						'No images will be created.')
-			return []
+		output = self.compileSource()
 
 		cwd = os.getcwd()
 
@@ -244,84 +211,26 @@ class ResourceGenerator(object):
 		tempdir = tempfile.mkdtemp()
 		os.chdir(tempdir)
 
-		# Execute converter
-
-
-		rc, images = imager.executeConverter(output)
-		if rc:
-			log.warning('Image converter did not exit properly.	 ' +
-						'Images may be corrupted or missing.')
-		#print "Converted images are"
-		#print images
-
-		# Get a list of all of the image files
-		if images is None:
-			images = [f for f in os.listdir('.')
-							if re.match(r'^img\d+\.\w+$', f)]
-		if len(images) != len(resourcesets):
- 			log.warning('The number of images generated (%d) and the number of images requested (%d) is not the same.' % (len(images), len(nodes)))
-
-		# Sort by creation date
-		#images.sort(lambda a,b: cmp(os.stat(a)[9], os.stat(b)[9]))
-
-		images.sort(lambda a,b: cmp(int(re.search(r'(\d+)\.\w+$',a).group(1)),
-									int(re.search(r'(\d+)\.\w+$',b).group(1))))
+		resources=self.convertOutput(output)
 
 		os.chdir(cwd)
 
-		if PILImage is None:
-			log.warning('PIL (Python Imaging Library) is not installed.	 ' +
-						'Images will not be cropped.')
+		for resource, rset in zip(resources, generatableResources):
+			finalPath=os.path.join(rset.path, resource)
+			copy(os.path.join(tempdir, resource), os.path.join(rset.path, resource))
+			rset.resources[self.resourceType]=finalPath
+
+	def writePreamble(self, document):
+		self.source.write(document.preamble.source)
+		self.source.write('\\makeatletter\\oddsidemargin -0.25in\\evensidemargin -0.25in\n')
 
 
-		# Move images to their final location and create img objects to return
-		for tmpPath, resourceset in zip(images, resourcesets):
-
-			#Create a dest for the image
-			finalPath = os.path.join(resourceset.path, tmpPath)
-
-			print 'Moving image for %s to %s' % (resourceset.source, finalPath)
-
-			imageObj = Image(finalPath, self.config['images'])
-
-			# Populate image attrs that will be bound later
-			if self.imageAttrs:
-				tmpl = string.Template(self.imageAttrs)
-				vars = {'filename':filename}
-				for name in ['height','width','depth']:
-					if getattr(img, name) is None:
-						vars['attr'] = name
-						value = DimensionPlaceholder(tmpl.substitute(vars))
-						value.imageUnits = self.imageUnits
-						setattr(img, name, value)
-
-			resourceset.resources[self.resourceType]=imageObj
-
-			# Move the image
-			directory = os.path.dirname(imageObj.path)
-			if directory and not os.path.isdir(directory):
-				os.makedirs(directory)
-			try:
-				shutil.copy2(os.path.join(tempdir,tmpPath), imageObj.path)
-			except OSError:
-				shutil.copy(os.path.join(tempdir, tmpPath), imageObj.path)
 
 
-		# Remove temporary directory
-		shutil.rmtree(tempdir, True)
+	def writeResource(self, source, context):
+		self.source.write('%s\n%s\n' % (context, source))
 
-
-	def __compileLatex(self, source):
-		"""
-		Compile the LaTeX source
-
-		Arguments:
-		source -- the LaTeX source to compile
-
-		Returns:
-		file object corresponding to the output from LaTeX
-
-		"""
+	def compileSource(self):
 		cwd = os.getcwd()
 
 		# Make a temporary directory to work in
@@ -330,18 +239,12 @@ class ResourceGenerator(object):
 
 		filename = 'resources.tex'
 
-		# Write LaTeX source file
-		if self.config['images']['save-file']:
-			self.source.seek(0)
-			codecs.open(os.path.join(cwd,filename), 'w', self.config['files']['input-encoding']).write(self.source.read())
 		self.source.seek(0)
-		codecs.open(filename, 'w', self.config['files']['input-encoding']).write(self.source.read())
+		codecs.open(filename, 'w', self.document.config['files']['input-encoding']).write(self.source.read())
 
 		# Run LaTeX
 		os.environ['SHELL'] = '/bin/sh'
-		program = self.config['images']['compiler']
-		if not program:
-			program = self.compiler
+		program  = self.compiler
 
 
 		os.system(r"%s %s" % (program, filename))
@@ -366,43 +269,74 @@ class ResourceGenerator(object):
 				output = WorkingFile('resources'+ext, 'rb', tempdir=tempdir)
 				break
 
-		# Change back to original working directory
 		os.chdir(cwd)
 
 		return output
 
-	def writeNode(self,source, context=''):
+
+	def convertOutput(self, output):
+		pass
+
+	def canGenerate(self, source):
+		return True
+
+class ResourceGenerator(BaseResourceGenerator):
+
+
+
+	def __init__(self,document, imagerClass):
+		self.document=document
+		self.imagerClass=imagerClass
+		if getattr(self.imagerClass,'resourceType', None):
+			self.resourceType = self.imagerClass.resourceType
+		else:
+			self.resourceType = self.imagerClass.fileExtension[1:]
+
+
+
+	#Given a document and a set of sources generate a map of source -> map of type to plastex image obj
+	def generateResources(self, document, resourcesets):
 		"""
-		Write LaTeX source for the image
-
-		Arguments:
-		filename -- the name of the file that will be generated
-		code -- the LaTeX code of the image
-		context -- the LaTeX code of the context of the image
-
+		The first pass collects the latex source for each of the
+		provided nodes.  A latex file is generated from the collected source and compiled.  The compiled latex
+		is passed to the imager and the the list of generated images are returned.  The images are stored on disk
+	    in the path provided by the resource set and noted as appropriate
 		"""
-		self.source.write('%s\n\\begin{plasTeXimage}{%s}\n%s\n\\end{plasTeXimage}\n' % (context, source,source))
+
+		generatableResources=[rset for rset in resourcesets if self.canGenerate(rset.source)]
+
+		#create a new imager
+		imager=self.imagerClass(document)
+
+		images=[]
+
+		for rset in generatableResources:
+			#TODO newImage completely ignores the concept of imageoverrides
+			images.append(imager.newImage(rset.source))
+
+		imager.close()
 
 
 
-	def __writePreamble(self, document):
-		""" Write any necessary code to the preamble of the document """
-		self.source.write(document.preamble.source)
-		self.source.write('\\makeatletter\\oddsidemargin -0.25in\\evensidemargin -0.25in\n')
+		for rset, image in zip(generatableResources, images):
+			name=os.path.basename(image.path)
+			newPath=os.path.join(rset.path, name)
+			copy(image.path, newPath)
+			image.filename=name
+			image.path=newPath
+			rset.resources[self.resourceType]=image
 
-#		self.source.write('\\tracingoutput=1\n')
-#		self.source.write('\\tracingonline=1\n')
-#		self.source.write('\\showboxbreadth=\maxdimen\n')
-#		self.source.write('\\showboxdepth=\maxdimen\n')
-#		self.source.write('\\newenvironment{plasTeXimage}[1]{\\def\\@current@file{#1}\\thispagestyle{empty}\\def\\@eqnnum{}\\setbox0=\\vbox\\bgroup}{\\egroup\\typeout{imagebox:\\@current@file(\\the\\ht0+\\the\\dp0)}\\box0\\newpage}')
 
-		self.source.write('\\@ifundefined{plasTeXimage}{'
-						  '\\newenvironment{plasTeXimage}[1]{' +
-						  '\\vfil\\break\\plasTeXregister' +
-						  '\\thispagestyle{empty}\\def\\@eqnnum{}\\def\\tagform@{\\@gobble}' +
-						  '\\ignorespaces}{}}{}\n')
-		self.source.write('\\@ifundefined{plasTeXregister}{' +
-						  '\\def\\plasTeXregister{\\parindent=-0.5in\\ifhmode\\hrule' +
-						  '\\else\\vrule\\fi height 2pt depth 0pt ' +
-						  'width 2pt\\hskip2pt}}{}\n')
+
+
+def copy(source, dest):
+	if not os.path.exists(os.path.dirname(dest)):
+		os.makedirs(os.path.dirname(dest))
+	try:
+		shutil.copy2(source, dest)
+	except OSError:
+		shutil.copy(source, dest)
+
+
+
 

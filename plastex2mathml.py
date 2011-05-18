@@ -28,6 +28,7 @@ class plastex2mathml(object):
 		mathNodes = document.getElementsByTagName('math')
 		mathNodes.extend(document.getElementsByTagName('displaymath'))
 
+
 		#Get elements by tag name seems to return some duplicates
 		mathNodes = list(set(mathNodes))
 

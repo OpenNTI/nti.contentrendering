@@ -38,7 +38,7 @@ def _size(page,key):
 def _scale(input, output, scale):
 	# Use IM to scale. Must be top-level to pickle
 	#scale is 1x, 2x, 4x
-	return os.system( 'convert %s -resize %d%% %s' % (input, 100*(scale/4.0) , output) )
+	return os.system( 'convert %s -resize %d%% PNG32:%s' % (input, 100*(scale/4.0) , output) )
 
 class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 	""" Imager that uses gs to convert pdf to png, using PDFCROP to handle the scaling """
@@ -98,160 +98,226 @@ def _invert(input, output):
 
 Imager = GSPDFPNG2
 
+copy=resources.copy
+
 class ResourceGenerator(resources.ResourceGenerator):
-	extension='png'
-	resourceType='png'
+
+	scales=[1, 2, 4]
+	shouldInvert=True
+
 	def __init__(self, document):
-		super(ResourceGenerator, self).__init__(document, Imager(document, ''))
+		super(ResourceGenerator, self).__init__(document, Imager)
 
+	def generateResources(self, document, resourcesets):
+		generatableResources=[rset for rset in resourcesets if self.canGenerate(rset.source)]
 
-	def convert(self, output, resourcesets):
-		imager=self.imager
+		for rset in generatableResources:
+			if not self.resourceType in rset.resources:
+				rset.resources[self.resourceType]={'orig': {}, 'inverted': {}}
 
-		if not imager:
-			log.warning('No imager command is configured.  ' +
-						'No images will be created.')
-			return []
+		for scale in self.scales:
+			#This can probably happen in parallel
+			self.generateResourcesWithScale(document, generatableResources, scale)
 
-		cwd = os.getcwd()
-
-		# Make a temporary directory to work in
-		baseTemp = tempfile.mkdtemp()
-		os.chdir(baseTemp)
-
-		# Execute converter
-
-		scaledImages={1:None, 2:None, 4:None}
-
-		tmpLocations={}
-
-		for scale in scaledImages.keys():
-
-			subTempDir=tempfile.mkdtemp(dir=baseTemp)
-			tmpLocations[scale]=subTempDir
-			os.chdir(subTempDir)
-			output.seek(0)
-			scaledImages[scale]=self.__generateWithScaleFactor(output, resourcesets, scale)
-			os.chdir(baseTemp)
-
-		invertedImages={1:None, 2:None, 4:None}
-
-
-		for scale in scaledImages.keys():
-			os.chdir(tmpLocations[scale])
-
-			sources = scaledImages[scale]
-			dests=[]
-			for img in sources:
-				root, ext = os.path.splitext(img)
-				dests.append('%s_invert%s'%(root, ext))
+		sources=[]
+		dests=[]
+		if self.shouldInvert:
+			for rset in generatableResources:
+				for scale in self.scales:
+					sources.append(rset.resources[self.resourceType]['orig'][scale].path)
+					dests.append(rset.resources[self.resourceType]['inverted'][scale].path)
 
 			with ProcessPoolExecutor() as executor:
 				for i in executor.map(_invert, sources, dests):
 					pass
 
-			invertedImages[scale]=dests
-			os.chdir(baseTemp)
+
+	def generateResourcesWithScale(self, document, resourcesets, scale):
+		imager=self.imagerClass(document)
+		imager.scaleFactor=scale
+		images=[]
+
+		for rset in resourcesets:
+			#TODO newImage completely ignores the concept of imageoverrides
+			images.append(imager.newImage(rset.source))
+
+		imager.close()
 
 
 
-		if PILImage is None:
-			log.warning('PIL (Python Imaging Library) is not installed.	 ' +
-						'Images will not be cropped.')
+		for rset, image in zip(resourcesets, images):
+			origName, origExt=os.path.splitext(os.path.basename(image.path))
+			newName='%s_%dx%s'%(origName, scale, origExt)
+			invertedName='%s_%dx_inverted%s'%(origName, scale, origExt)
 
-		#Create an inverted images to go with it
+			newPath=os.path.join(rset.path, newName)
+			invertedPath=os.path.join(rset.path, invertedName)
 
+			copy(image.path, newPath)
+			image.filename=newName
+			image.path=newPath
 
+			rset.resources[self.resourceType]['orig'][scale]=image
 
+			invertedImage = Image(invertedName, None)
+			invertedImage.path=invertedPath
+			invertedImage.width=image.width
+			invertedImage.height=image.height
+			invertedImage.depth=image.depth
+			invertedImage._cropped=image._cropped
 
-		os.chdir(cwd)
-
-
-
-		# Move images to their final location and create img objects to return
-		for scale in scaledImages.keys():
-			tempdir=tmpLocations[scale]
-			for tmpPath, tmpPathInverted, resourceset in zip(scaledImages[scale], invertedImages[scale], resourcesets):
-
-				imageObj = self.__createImageObject(resourceset, tmpPath, '%sx'%scale)
-
-				imageObjInv = self.__createImageObject(resourceset, tmpPathInverted, '%sx'%scale)
-
-				if not self.resourceType in  resourceset.resources:
-					resourceset.resources[self.resourceType]={}
-
-				resourceset.resources[self.resourceType][scale]=(imageObj, imageObjInv)
-
-				self.__moveImage(os.path.join(tempdir, tmpPath), imageObj.path)
-				self.__moveImage(os.path.join(tempdir, tmpPathInverted), imageObjInv.path)
+			rset.resources[self.resourceType]['inverted'][scale]=invertedImage
 
 
 
-		# Remove temporary directory
-		shutil.rmtree(baseTemp, True)
 
-	def __moveImage(self, source, dest):
-		#print 'Moving %s to %s' % (source, dest)
-		# Move the image
-		directory = os.path.dirname(dest)
-		if directory and not os.path.isdir(directory):
-			os.makedirs(dest)
-		try:
-			shutil.copy2(source, dest)
-		except OSError:
-			shutil.copy(source, dest)
+	## def convert(self, output, resourcesets):
+	## 	imager=self.imager
 
+	## 	if not imager:
+	## 		log.warning('No imager command is configured.  ' +
+	## 					'No images will be created.')
+	## 		return []
 
-	def __generateWithScaleFactor(self,output, resourcesets, factor):
-		imager=self.imager
-		imager.scaleFactor=factor
+	## 	cwd = os.getcwd()
 
-		rc, images = imager.executeConverter(output)
-		if rc:
-			log.warning('Image converter did not exit properly.	 ' +
-						'Images may be corrupted or missing.')
-		#print "Converted images are"
-		#print images
+	## 	# Make a temporary directory to work in
+	## 	baseTemp = tempfile.mkdtemp()
+	## 	os.chdir(baseTemp)
 
-		# Get a list of all of the image files
-		if images is None:
-			images = [f for f in os.listdir('.')
-							if re.match(r'^img\d+\.\w+$', f)]
-		if len(images) != len(resourcesets):
- 			log.warning('The number of images generated (%d) and the number of images requested (%d) is not the same.' % (len(images), len(nodes)))
+	## 	# Execute converter
 
-		# Sort by creation date
-		#images.sort(lambda a,b: cmp(os.stat(a)[9], os.stat(b)[9]))
+	## 	scaledImages={1:None, 2:None, 4:None}
 
-		images.sort(lambda a,b: cmp(int(re.search(r'(\d+)\.\w+$',a).group(1)),
-									int(re.search(r'(\d+)\.\w+$',b).group(1))))
+	## 	tmpLocations={}
 
-		return images
+	## 	for scale in scaledImages.keys():
+
+	## 		subTempDir=tempfile.mkdtemp(dir=baseTemp)
+	## 		tmpLocations[scale]=subTempDir
+	## 		os.chdir(subTempDir)
+	## 		output.seek(0)
+	## 		scaledImages[scale]=self.__generateWithScaleFactor(output, resourcesets, scale)
+	## 		os.chdir(baseTemp)
+
+	## 	invertedImages={1:None, 2:None, 4:None}
 
 
+	## 	for scale in scaledImages.keys():
+	## 		os.chdir(tmpLocations[scale])
 
-	def __createImageObject(self, resourceset, orig, fname):
-		#Create a dest for the image
-		finalPath = os.path.join(resourceset.path, orig)
+	## 		sources = scaledImages[scale]
+	## 		dests=[]
+	## 		for img in sources:
+	## 			root, ext = os.path.splitext(img)
+	## 			dests.append('%s_invert%s'%(root, ext))
+
+	## 		with ProcessPoolExecutor() as executor:
+	## 			for i in executor.map(_invert, sources, dests):
+	## 				pass
+
+	## 		invertedImages[scale]=dests
+	## 		os.chdir(baseTemp)
 
 
-		if os.path.exists(finalPath):
-			name, ext=os.path.splitext(orig)
-			finalPath=os.path.join(os.path.dirname(finalPath),('%s_%s%s'%(name, fname, ext)))
 
-		print 'Moving image for %s to %s' % (resourceset.source, finalPath)
+	## 	if PILImage is None:
+	## 		log.warning('PIL (Python Imaging Library) is not installed.	 ' +
+	## 					'Images will not be cropped.')
 
-		imageObj = Image(finalPath, self.config['images'])
+	## 	#Create an inverted images to go with it
 
-				# Populate image attrs that will be bound later
-		if self.imageAttrs:
-			tmpl = string.Template(self.imageAttrs)
-			vars = {'filename':filename}
-			for name in ['height','width','depth']:
-				if getattr(img, name) is None:
-					vars['attr'] = name
-					value = DimensionPlaceholder(tmpl.substitute(vars))
-					value.imageUnits = self.imageUnits
-					setattr(img, name, value)
 
-		return imageObj
+
+
+	## 	os.chdir(cwd)
+
+
+
+	## 	# Move images to their final location and create img objects to return
+	## 	for scale in scaledImages.keys():
+	## 		tempdir=tmpLocations[scale]
+	## 		for tmpPath, tmpPathInverted, resourceset in zip(scaledImages[scale], invertedImages[scale], resourcesets):
+
+	## 			imageObj = self.__createImageObject(resourceset, tmpPath, '%sx'%scale)
+
+	## 			imageObjInv = self.__createImageObject(resourceset, tmpPathInverted, '%sx'%scale)
+
+	## 			if not self.resourceType in  resourceset.resources:
+	## 				resourceset.resources[self.resourceType]={}
+
+	## 			resourceset.resources[self.resourceType][scale]=(imageObj, imageObjInv)
+
+	## 			self.__moveImage(os.path.join(tempdir, tmpPath), imageObj.path)
+	## 			self.__moveImage(os.path.join(tempdir, tmpPathInverted), imageObjInv.path)
+
+
+
+	## 	# Remove temporary directory
+	## 	shutil.rmtree(baseTemp, True)
+
+	## def __moveImage(self, source, dest):
+	## 	#print 'Moving %s to %s' % (source, dest)
+	## 	# Move the image
+	## 	directory = os.path.dirname(dest)
+	## 	if directory and not os.path.isdir(directory):
+	## 		os.makedirs(dest)
+	## 	try:
+	## 		shutil.copy2(source, dest)
+	## 	except OSError:
+	## 		shutil.copy(source, dest)
+
+
+	## def __generateWithScaleFactor(self,output, resourcesets, factor):
+	## 	imager=self.imager
+	## 	imager.scaleFactor=factor
+
+	## 	rc, images = imager.executeConverter(output)
+	## 	if rc:
+	## 		log.warning('Image converter did not exit properly.	 ' +
+	## 					'Images may be corrupted or missing.')
+	## 	#print "Converted images are"
+	## 	#print images
+
+	## 	# Get a list of all of the image files
+	## 	if images is None:
+	## 		images = [f for f in os.listdir('.')
+	## 						if re.match(r'^img\d+\.\w+$', f)]
+	## 	if len(images) != len(resourcesets):
+ 	## 		log.warning('The number of images generated (%d) and the number of images requested (%d) is not the same.' % (len(images), len(nodes)))
+
+	## 	# Sort by creation date
+	## 	#images.sort(lambda a,b: cmp(os.stat(a)[9], os.stat(b)[9]))
+
+	## 	images.sort(lambda a,b: cmp(int(re.search(r'(\d+)\.\w+$',a).group(1)),
+	## 								int(re.search(r'(\d+)\.\w+$',b).group(1))))
+
+	## 	return images
+
+
+
+	## def __createImageObject(self, resourceset, orig, fname):
+	## 	#Create a dest for the image
+	## 	finalPath = os.path.join(resourceset.path, orig)
+
+
+	## 	if os.path.exists(finalPath):
+	## 		name, ext=os.path.splitext(orig)
+	## 		finalPath=os.path.join(os.path.dirname(finalPath),('%s_%s%s'%(name, fname, ext)))
+
+	## 	print 'Moving image for %s to %s' % (resourceset.source, finalPath)
+
+	## 	imageObj = Image(finalPath, self.config['images'])
+
+	## 			# Populate image attrs that will be bound later
+	## 	if self.imageAttrs:
+	## 		tmpl = string.Template(self.imageAttrs)
+	## 		vars = {'filename':filename}
+	## 		for name in ['height','width','depth']:
+	## 			if getattr(img, name) is None:
+	## 				vars['attr'] = name
+	## 				value = DimensionPlaceholder(tmpl.substitute(vars))
+	## 				value.imageUnits = self.imageUnits
+	## 				setattr(img, name, value)
+
+	## 	return imageObj

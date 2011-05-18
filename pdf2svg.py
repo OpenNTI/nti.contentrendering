@@ -65,7 +65,5 @@ class PDF2SVG(plasTeX.Imagers.VectorImager):
 Imager = PDF2SVG
 
 class ResourceGenerator(resources.ResourceGenerator):
-	extension='svg'
-	resourceType='svg'
 	def __init__(self, document):
-		super(ResourceGenerator, self).__init__(document, Imager(document, ''))
+		super(ResourceGenerator, self).__init__(document, Imager)

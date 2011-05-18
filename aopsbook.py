@@ -337,23 +337,19 @@ class math(Math.math):
 
 from plasTeX.Packages.graphicx import *
 
+includegraphics.resourceTypes=['png', 'svg']
 
-class myIncludeGraphics(includegraphics):
-	resourceTypes = ['png', 'svg']
-
-class rightpic(myIncludeGraphics):
+class rightpic(includegraphics):
 	" For our purposes, exactly the same as an includegraphics command. "
 	packageName = 'aopsbook'
-	macroName = None
 
 class leftpic(rightpic):
 	pass
 
 ## Parpic takes more arguments than rightpic/includegraphics does. If we don't
 ## parse them, we get yick in the DOM/HTML
-class parpic(myIncludeGraphics):
+class parpic(includegraphics):
 	args = '* [ options:dict ] file:str'
-
 
 
 class fig(Base.figure):
