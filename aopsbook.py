@@ -337,6 +337,8 @@ class math(Math.math):
 
 from plasTeX.Packages.graphicx import *
 
+from plasTeX.Packages.amsmath import *
+
 includegraphics.resourceTypes=['png', 'svg']
 
 class rightpic(includegraphics):
@@ -453,7 +455,7 @@ def ProcessOptions( options, document ):
 
 	# AoPS uses fully qualified image names, so we don't want to
 	# search for multiple extensions; that really slows things down
-	# since it spawns an external program (1 min vs 20 secs)
+	# since it spawns an external program (1 mi nvs 20 secs)
 	document.userdata.setPath( 'packages/graphicx/extensions',
 							   [] )
 	document.userdata.setPath( 'packages/aopsbook/extensions', [])
