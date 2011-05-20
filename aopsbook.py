@@ -358,6 +358,8 @@ from plasTeX.Packages.graphicx import *
 
 from plasTeX.Packages.amsmath import *
 
+from plasTeX.Packages.multicol import *
+
 includegraphics.resourceTypes=['png', 'svg']
 
 class rightpic(includegraphics):
