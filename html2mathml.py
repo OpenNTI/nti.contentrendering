@@ -26,13 +26,14 @@ class ResourceGenerator(resources.BaseResourceGenerator):
 		dom = self.buildMathMLDOM(output)
 		mathmls = dom.getElementsByTagName('math')
 		i = 0
-		resources=[]
+		resourceNames=[]
+		cwd=os.getcwd()
 		for mathml in mathmls:
 			resource='%s_%s%s'%(self.resourceType, i, self.fileExtension)
 			i=i+1
 			codecs.open(resource, 'w',self.document.config['files']['output-encoding']).write(mathml.toxml())
-			resources.append(resource)
-		return resources
+			resourceNames.append(resource)
+		return [resources.Resource(os.path.join(cwd, name)) for name in resourceNames]
 
 	def canGenerate(self, source):
 		for command in self.illegalCommands:

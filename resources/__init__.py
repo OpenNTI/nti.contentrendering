@@ -11,7 +11,7 @@ import subprocess
 import shlex
 import plasTeX.Imagers
 from plasTeX.Imagers import WorkingFile, Image
-
+import copy as cp
 
 log = getLogger()
 depthlog = getLogger('render.images.depth')
@@ -27,14 +27,13 @@ except ImportError:
 from collections import defaultdict
 
 class Resource(object):
-	def __init__(self, filename):
-		self.filename=filename
-		self.path = os.path.join(os.getcwd(), self.filename)
+	def __init__(self, path):
+		self.path=path
 		self.checksum=None
 
 class ResourceSet(object):
-	def __init__(self, path, source):
-		self.path=path
+	def __init__(self, source):
+		self.path=str(uuid.uuid1())
 		self.resources={}
 		self.source=source
 	def getTypes(self):
@@ -45,7 +44,7 @@ class ResourceSet(object):
 import uuid
 class ResourceDB(object):
 
-	types = {'svg': 'pdf2svg', 'png': 'gspdfpng2', 'mathml': 'html2mathml'}
+	types = {'mathjax': 'tex2html' , 'svg': 'pdf2svg', 'png': 'gspdfpng2', 'mathml': 'html2mathml'}
 
 	"""
 	Manages external resources (images, mathml, videos, etc..) for a document
@@ -56,7 +55,7 @@ class ResourceDB(object):
 		if not path:
 			path = 'resources'
 
-		self.__dbpath=os.path.join(path, self.__document.userdata['jobname'])
+		self.__dbpath=os.path.join(os.getcwd(),os.path.join(path, self.__document.userdata['jobname']))
 
 		if not os.path.isdir(self.__dbpath):
 			os.makedirs(self.__dbpath)
@@ -65,11 +64,13 @@ class ResourceDB(object):
 
 		self.__indexPath = os.path.join(self.__dbpath, 'resources.index')
 
-		self.__loadResourceDB()
+		self.__db = {}
+
+#		self.__loadResourceDB()
 
 		self.__generateResourceSets()
 
-		self.__saveResourceDB()
+#		self.__saveResourceDB()
 
 	def __str__(self):
 		return '%s'%self.__db
@@ -87,20 +88,14 @@ class ResourceDB(object):
 
 		#print nodesToGenerate
 
-		#Each unique source gets a resourceset
-		for node in nodesToGenerate:
-			if not node.source in  self.__db:
-				self.__db[node.source]=ResourceSet(os.path.join(self.__dbpath,str(uuid.uuid1())), node.source)
 		#Generate a mapping of types to source  {png: [src2, src5], mathml: [src1, src5]}
 		typesToSource=defaultdict(set)
 
 
 
 		for node in nodesToGenerate:
-			resourceset=self.__db[node.source]
 			for rType in node.resourceTypes:
-				if not rType in resourceset.resources:
-					typesToSource[rType].add(node.source)
+				typesToSource[rType].add(node.source)
 
 		print typesToSource
 
@@ -115,9 +110,7 @@ class ResourceDB(object):
 			return
 
 
-		resourcesets=[rset for rset in self.__db.values() if rset.source in sources]
-
-		generator.generateResources(self.__document, resourcesets)
+		generator.generateResources(self.__document, sources, self)
 
 	def __loadGenerator(self, type):
 		if not type in self.types:
@@ -173,6 +166,38 @@ class ResourceDB(object):
 		pickle.dump(self.__db, open(self.__indexPath,'w'))
 
 
+	def setResource(self, source, keys, resource):
+
+		if not source in self.__db:
+			self.__db[source]=ResourceSet(source)
+
+		rs = self.__db[source]
+
+		resources=rs.resources
+
+		lastKey=keys[-1:][0]
+
+		for key in keys[:-1]:
+			if not key in resources:
+				resources[key]={}
+			resources=resources[key]
+
+		resources[lastKey]=self.__storeResource(rs, keys, resource)
+
+	def __storeResource(self, rs, keys, origResource):
+
+		resource=cp.deepcopy(origResource)
+
+		name='%s%s' % (str(uuid.uuid1()), os.path.splitext(resource.path)[1])
+
+		relativeToDB=os.path.join(rs.path, name)
+		copy(resource.path, os.path.join(self.__dbpath, relativeToDB))
+		resource.path=name
+		resource.filename=name
+		return resource
+
+
+
 
 #We need to add caching so we don't regenerate from run to run.  We also
 #need to key images by source so we don't
@@ -186,20 +211,20 @@ class BaseResourceGenerator(object):
 	def __init__(self,document):
 		self.document=document
 
-	def generateResources(self, document, resourcesets):
+	def generateResources(self, document, sources, db):
 		self.source = StringIO()
 		self.source.write('\\scrollmode\n')
 		self.writePreamble(document)
 		self.source.write('\\begin{document}\n')
 
-		generatableResources=[rset for rset in resourcesets if self.canGenerate(rset.source)]
+		generatableSources=[s for s in sources if self.canGenerate(s)]
 
-		if not len(generatableResources)>0:
+		if not len(s)>0:
 			print 'No resources to generate'
 			return
 
-		for rset in generatableResources:
-			self.writeResource(rset.source, '')
+		for s in generatableSources:
+			self.writeResource(s, '')
 
 		self.source.write('\n\\end{document}\\endinput')
 
@@ -215,10 +240,8 @@ class BaseResourceGenerator(object):
 
 		os.chdir(cwd)
 
-		for resource, rset in zip(resources, generatableResources):
-			finalPath=os.path.join(rset.path, resource)
-			copy(os.path.join(tempdir, resource), os.path.join(rset.path, resource))
-			rset.resources[self.resourceType]=finalPath
+		for resource, s in zip(resources, generatableSources):
+			db.setResource(s, [self.resourceType], resource)
 
 	def writePreamble(self, document):
 		self.source.write(document.preamble.source)
@@ -295,7 +318,7 @@ class ResourceGenerator(BaseResourceGenerator):
 
 
 	#Given a document and a set of sources generate a map of source -> map of type to plastex image obj
-	def generateResources(self, document, resourcesets):
+	def generateResources(self, document, sources, db):
 		"""
 		The first pass collects the latex source for each of the
 		provided nodes.  A latex file is generated from the collected source and compiled.  The compiled latex
@@ -303,33 +326,41 @@ class ResourceGenerator(BaseResourceGenerator):
 	    in the path provided by the resource set and noted as appropriate
 		"""
 
-		generatableResources=[rset for rset in resourcesets if self.canGenerate(rset.source)]
+		generatableSources=[s for s in sources if self.canGenerate(s)]
 
 		#create a new imager
-		imager=self.imagerClass(document)
+		imager=self.createImager(document)
 
 		images=[]
 
-		for rset in generatableResources:
+		for source in generatableSources:
 			#TODO newImage completely ignores the concept of imageoverrides
-			images.append(imager.newImage(rset.source))
+			images.append(imager.newImage(source))
 
 		imager.close()
 
 
 
-		for rset, image in zip(generatableResources, images):
-			name=os.path.basename(image.path)
-			newPath=os.path.join(rset.path, name)
-			copy(image.path, newPath)
-			image.filename=name
-			image.path=newPath
-			rset.resources[self.resourceType]=image
+		for s, image in zip(generatableSources, images):
+			db.setResource(s, [self.resourceType] ,image)
 
 
+	def createImager(self, document):
+		imager=self.imagerClass(document)
+
+		#create a tempdir for the imager to right images to
+		tempdir=tempfile.mkdtemp()
+		imager.newFilename=Filenames(os.path.join(tempdir, 'img-$num(4)'), extension=imager.fileExtension)
+
+		imager._filecache=os.path.join(os.path.join(tempdir, '.cache'), imager.__class__.__name__+'.images')
+
+		return imager
 
 
 def copy(source, dest):
+
+	print 'Copying %s to %s' % (source, dest)
+
 	if not os.path.exists(os.path.dirname(dest)):
 		os.makedirs(os.path.dirname(dest))
 	try:

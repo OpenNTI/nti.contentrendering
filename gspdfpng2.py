@@ -108,65 +108,59 @@ class ResourceGenerator(resources.ResourceGenerator):
 	def __init__(self, document):
 		super(ResourceGenerator, self).__init__(document, Imager)
 
-	def generateResources(self, document, resourcesets):
-		generatableResources=[rset for rset in resourcesets if self.canGenerate(rset.source)]
+	def generateResources(self, document, sources, db):
+		generatableSources=[s for s in sources if self.canGenerate(sources)]
 
-		for rset in generatableResources:
-			if not self.resourceType in rset.resources:
-				rset.resources[self.resourceType]={'orig': {}, 'inverted': {}}
 
 		for scale in self.scales:
-			#This can probably happen in parallel
-			self.generateResourcesWithScale(document, generatableResources, scale)
-
-		sources=[]
-		dests=[]
-		if self.shouldInvert:
-			for rset in generatableResources:
-				for scale in self.scales:
-					sources.append(rset.resources[self.resourceType]['orig'][scale].path)
-					dests.append(rset.resources[self.resourceType]['inverted'][scale].path)
-
-			with ProcessPoolExecutor() as executor:
-				for i in executor.map(_invert, sources, dests):
-					pass
+			self.generateResourcesWithScale(document, generatableSources, scale, db)
 
 
-	def generateResourcesWithScale(self, document, resourcesets, scale):
-		imager=self.imagerClass(document)
+
+	def __invertedNameFromOrig(self, name):
+		dir, base=os.path.split(name)
+		fname, ext = os.path.splitext(base)
+
+		return os.path.join(dir, '%s_inverted%s' %(fname, ext))
+
+	def createImager(self, document, scale):
+		imager = super(ResourceGenerator, self).createImager(document)
 		imager.scaleFactor=scale
+		return imager
+
+	def generateResourcesWithScale(self, document, sources, scale, db):
+		imager=self.createImager(document, scale)
 		images=[]
 
-		for rset in resourcesets:
+		for source in sources:
 			#TODO newImage completely ignores the concept of imageoverrides
-			images.append(imager.newImage(rset.source))
+			images.append(imager.newImage(source))
 
 		imager.close()
 
 
+		for source, original in zip(sources, images):
+			db.setResource(source, [self.resourceType, 'orig', scale], original)
 
-		for rset, image in zip(resourcesets, images):
-			origName, origExt=os.path.splitext(os.path.basename(image.path))
-			newName='%s_%dx%s'%(origName, scale, origExt)
-			invertedName='%s_%dx_inverted%s'%(origName, scale, origExt)
+		if self.shouldInvert:
+			origNames=[orig.path for orig in images]
 
-			newPath=os.path.join(rset.path, newName)
-			invertedPath=os.path.join(rset.path, invertedName)
+			invertedNames = [self.__invertedNameFromOrig(orig.path) for orig in images]
 
-			copy(image.path, newPath)
-			image.filename=newName
-			image.path=newPath
+			with ProcessPoolExecutor() as executor:
+				for i in executor.map(_invert, origNames, invertedNames):
+					pass
 
-			rset.resources[self.resourceType]['orig'][scale]=image
+			for invertedName, original, source in zip(invertedNames, images, sources):
+				invertedImage = Image(os.path.basename(invertedName), None)
+				invertedImage.path=invertedName
+				invertedImage.width=original.width
+				invertedImage.height=original.height
+				invertedImage.depth=original.depth
+				invertedImage._cropped=original._cropped
+#				pdb.set_trace()
+				db.setResource(source, [self.resourceType, 'inverted', scale], invertedImage)
 
-			invertedImage = Image(invertedName, None)
-			invertedImage.path=invertedPath
-			invertedImage.width=image.width
-			invertedImage.height=image.height
-			invertedImage.depth=image.depth
-			invertedImage._cropped=image._cropped
-
-			rset.resources[self.resourceType]['inverted'][scale]=invertedImage
 
 
 
