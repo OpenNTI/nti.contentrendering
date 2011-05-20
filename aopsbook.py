@@ -351,8 +351,8 @@ class challhard(Base.subsection):
 	args = ''
 
 from plasTeX.Base import Math
-class math(Math.math):
-	resourceTypes = ['svg', 'mathml', 'mathjax']
+
+Math.math.resourceTypes=['svg', 'mathml', 'mathjax']
 
 from plasTeX.Packages.graphicx import *
 
