@@ -148,10 +148,29 @@ class rlin(Base.Command):
  	def invoke( self, tex ):
 		return super(rlin,self).invoke( tex )
 
-# Citations
-class MathCounts(_Ignored):
-	#TODO: How to represent this?
-	pass
+# Attributions
+class attribution(Base.Command):
+	#No reason to have an invoke method, not doing anything special here.
+	#def invoke( self, tex ):
+	#	super(attribution, self).invoke( tex )
+
+	def toXML(self):
+		xml = "<nti:attribution "
+		xml += "nti:type='" + self.attribution_type + "'"
+		if 'value' in self.attributes and self.attributes['value']:
+			xml += " nti:value='" + `self.attributes['value']` + "' ";
+		xml += "/>"
+		return xml
+
+class MathCounts(attribution):
+	attribution_type = "MathCounts"
+
+class MOEMS(attribution):
+	attribution_type = "MOEMS"
+
+class AMC(attribution):
+	args='{value:int}'
+	attribution_type = "AMC"
 
 # Counters
 class partnum(Base.Command):
