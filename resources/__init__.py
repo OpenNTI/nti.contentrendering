@@ -27,9 +27,13 @@ except ImportError:
 from collections import defaultdict
 
 class Resource(object):
+
+	resourceSet=None
+	url=None
 	def __init__(self, path):
 		self.path=path
 		self.checksum=None
+
 
 class ResourceSet(object):
 	def __init__(self, source):
@@ -46,17 +50,23 @@ class ResourceDB(object):
 
 	types = {'mathjax': 'tex2html' , 'svg': 'pdf2svg', 'png': 'gspdfpng2', 'mathml': 'html2mathml'}
 
+
 	"""
 	Manages external resources (images, mathml, videos, etc..) for a document
 	"""
 	def __init__(self, document, path=None):
 		self.__document=document
 		self.__config=self.__document.config
+
+
+
+
 		if not path:
 			path = 'resources'
 
-		self.__dbpath=os.path.join(os.getcwd(),os.path.join(path, self.__document.userdata['jobname']))
 
+		self.__dbpath=os.path.join(path, self.__document.userdata['jobname'])
+		self.baseURL=self.__dbpath
 		if not os.path.isdir(self.__dbpath):
 			os.makedirs(self.__dbpath)
 
@@ -66,11 +76,8 @@ class ResourceDB(object):
 
 		self.__db = {}
 
-#		self.__loadResourceDB()
+		self.__loadResourceDB()
 
-		self.__generateResourceSets()
-
-#		self.__saveResourceDB()
 
 	def __str__(self):
 		return '%s'%self.__db
@@ -81,7 +88,7 @@ class ResourceDB(object):
 		else:
 			return None
 
-	def __generateResourceSets(self):
+	def generateResourceSets(self):
 
 		#set of all nodes we need to generate resources for
 		nodesToGenerate=self.__findNodes(self.__document)
@@ -95,32 +102,39 @@ class ResourceDB(object):
 
 		for node in nodesToGenerate:
 			for rType in node.resourceTypes:
-				typesToSource[rType].add(node.source)
+
+				#We don't want to regenerate for source that already esists
+				if not node.source in self.__db or not rType in self.__db[node.source].resources:
+					typesToSource[rType].add(node.source)
 
 		print typesToSource
 
 		for rType, sources in typesToSource.items():
+
+
 			self.__generateResources(rType, sources)
 
-	def __generateResources(self, type, sources):
+		self.saveResourceDB()
+
+	def __generateResources(self, resourceType, sources):
 		#Load a resource generate
-		generator=self.__loadGenerator(type)
+		generator=self.__loadGenerator(resourceType)
 
 		if not generator:
 			return
 
-
+		print 'Generating %s resources' % resourceType
 		generator.generateResources(self.__document, sources, self)
 
-	def __loadGenerator(self, type):
-		if not type in self.types:
-			log.warn('No generator specified for resource type %s' % type)
+	def __loadGenerator(self, resourceType):
+		if not resourceType in self.types:
+			log.warn('No generator specified for resource type %s' % resourceType)
 			return None
 		try:
-			exec('from %s import ResourceGenerator' % self.types[type])
+			exec('from %s import ResourceGenerator' % self.types[resourceType])
 			return ResourceGenerator(self.__document)
 		except ImportError, msg:
-			log.warning("Could not load custom imager '%s' because '%s'" % (type, msg))
+			log.warning("Could not load custom imager '%s' because '%s'" % (resourceType, msg))
 			return None
 
 
@@ -149,8 +163,8 @@ class ResourceDB(object):
 			try:
 				self.__db = pickle.load(open(self.__indexPath, 'r'))
 				for key, value in self.__db.items():
-					if not os.path.exists(value.path):
-						print 'Deleting resources for %s %s'% (key, value.path)
+					if not os.path.exists(os.path.join(self.__dbpath,value.path)):
+						print 'Deleting resources for %s %s'% (key, os.path.join(self.__dbpath,value.path))
 						del self.__db[key]
 						continue
 			except ImportError:
@@ -160,7 +174,7 @@ class ResourceDB(object):
 		else:
 			self.__db={}
 
-	def __saveResourceDB(self):
+	def saveResourceDB(self):
 		if not os.path.isdir(os.path.dirname(self.__indexPath)):
 			os.makedirs(os.path.dirname(self.__indexPath))
 		pickle.dump(self.__db, open(self.__indexPath,'w'))
@@ -194,10 +208,22 @@ class ResourceDB(object):
 		copy(resource.path, os.path.join(self.__dbpath, relativeToDB))
 		resource.path=name
 		resource.filename=name
+		resource.resourceSet=rs
+
+
+		resource.url=None
+		resource.url=self.urlForResource(resource)
+
 		return resource
 
+	def urlForResource(self, resource):
+		if self.baseURL and not self.baseURL.endswith('/'):
+			self.baseURL='%s/'%self.baseURL
 
+		if not self.baseURL:
+			self.baseURL=''
 
+		return '%s%s/%s'% (self.baseURL, resource.resourceSet.path, resource.path)
 
 #We need to add caching so we don't regenerate from run to run.  We also
 #need to key images by source so we don't
@@ -346,6 +372,24 @@ class ResourceGenerator(BaseResourceGenerator):
 
 
 	def createImager(self, document):
+
+		#Imagers rely on Imagers.Image objects to track a number of properties
+		#pertaining to size, location, url, etc..
+		#By default url is a property built from paths.  Rendering currently relies on
+		#a url property on the image so we need to be able to set that.  Monkey patch a new
+		#property for url if needed
+
+		if not hasattr(Image, '_url'): # Not already patched
+			Image._url=None
+			def seturl(self, value):
+				self._url=value
+
+			def geturl(self):
+				return self._url
+
+			Image.url=property(geturl, seturl)
+
+
 		imager=self.imagerClass(document)
 
 		#create a tempdir for the imager to right images to

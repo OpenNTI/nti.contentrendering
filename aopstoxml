@@ -66,6 +66,7 @@ def main(argv):
 		db = generateImages(document)
 
 
+
 	if outFormat == 'xhtml':
 		document.config['files']['split-level'] = 0
 		render( document, jobname, 'XHTML' )
@@ -192,6 +193,7 @@ def generateImages(document):
 	### Generates required images ###
 
 	db = ResourceDB(document)
+	db.generateResourceSets()
 
 	return db;
 

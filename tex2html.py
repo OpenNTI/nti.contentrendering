@@ -37,6 +37,10 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 
 		generatableSources=[s for s in sources if self.canGenerate(s)]
 
+		if not len(generatableSources) > 0:
+			print 'No sources to generate'
+			return
+
 		for s in generatableSources:
 			self.writeResource(s, '')
 
@@ -46,26 +50,36 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 
 
 
-		maths = [math.strip().decode('utf-8') for math in output.split('\n') if math.strip()][:-1]
-
-		if len(maths) != len(generatableSources):
-			print 'WARNING.  expected %d maths but got %d' % (len(generatableSources), len(maths))
-
-
 		tempdir = tempfile.mkdtemp()
 
 		cwd=os.getcwd()
 
 		os.chdir(tempdir)
 
+		files = self.convert(output)
+
+		if len(files) != len(generatableSources):
+			print 'WARNING.  Expected %s files but only generated %s' % (len(generatableSource), len(files))
+
+		os.chdir(cwd)
+
+		for fname, source in zip(files, generatableSources):
+			db.setResource(source, [self.resourceType], resources.Resource(os.path.join(tempdir, fname)))
+
+
+	def convert(self, output):
+		maths = [math.strip().decode('utf-8') for math in output.split('\n') if math.strip()][:-1]
+
+
 		i = 1
-		for math, source in zip(maths, generatableSources):
+		files=[]
+		for math in maths:
 			fname='math_%s.xml'%i
 			i=i+1
 			codecs.open(fname, 'w', 'utf-8').write(math)
-			db.setResource(source, [self.resourceType], resources.Resource(os.path.join(tempdir, fname)))
+			files.append(fname)
 
-		os.chdir(cwd)
+		return files
 
 	def writePreamble(self, document):
 		self.source.write('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\
