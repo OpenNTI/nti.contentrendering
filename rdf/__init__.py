@@ -1,8 +1,8 @@
-from rdflib.graph import Graph
+from rdflib.graph import Graph, ConjunctiveGraph
 from rdflib.term import URIRef, Literal, BNode
-from rdflib.namespace import Namespace, RDF
+from rdflib.namespace import Namespace, RDF, RDFS
 
-store = Graph()
+store = ConjunctiveGraph()
 
 # Bind a few prefix, namespace pairs.
 store.bind("dc", "http://http://purl.org/dc/elements/1.1/")
@@ -13,35 +13,30 @@ store.bind( "aops", "http://nextthought.com/xml/v1/aops/prealgebra/" )
 DC = Namespace(  "http://http://purl.org/dc/elements/1.1/" )
 NTI = Namespace( "http://nextthought.com/xml/v1/" )
 AOPS = Namespace( "http://nextthought.com/xml/v1/aops/prealgebra/" )
-
-# Create an identifier to use as the subject for Donna.
-donna = BNode()
-
-# Add triples using store's add method.
-#store.add((donna, RDF.type, FOAF["Person"]))
-#store.add((donna, FOAF["nick"], Literal("donna", lang="foo")))
-#store.add((donna, FOAF["name"], Literal("Donna Fales")))
+#FOAF = Namespace( "http://xmlns.com/foaf/0.1/" )
 
 chapter = None
 chapterName = None
 section = None
 
 def parseRequires( macroName, chapter, section ):
+	name = line[len( macroName + '{'):-1]
 	addTo = None
 	if section: addTo = section
-	else: addTo = chapter
+	elif chapter: addTo = chapter
+	else: return AOPS[name]
 
-	name = line[len( macroName + '{'):-1]
+
 	store.add( (addTo, NTI[macroName[1:].title()], AOPS[name]) )
+	store.add( (AOPS[name], RDFS.label, Literal(name)))
 	return AOPS[name]
 
 def parseNode( macroName ):
-#	chapter = BNode()
 	name = line[len( macroName + '{'):-1]
 	chapter = AOPS[name]
-#	store.add( (chapter, RDF.ID, AOPS[name] ) )
 	store.add( (chapter, RDF.type, NTI[macroName[1:].title()]) )
 	store.add( (chapter, DC["Title"], Literal(name)) )
+	store.add( (chapter, RDFS.label, Literal(name)) )
 	return (chapter,name)
 
 with open( "PrealgebraMetadata.txt" ) as f:
@@ -58,13 +53,20 @@ with open( "PrealgebraMetadata.txt" ) as f:
 			store.add( (section, NTI['sectionOf'], chapter))
 			for requires in holdForSection:
 				store.add( (section, NTI['Require'], requires) )
-			holdForSection = []
-		elif line.startswith( "\require" ):
-			requires = parseRequires( "\require", chapter, section )
-			if not section:				holdForSection.append( requires )
+			#holdForSection = []
+		elif line.startswith( "\\require" ):
+			requires = parseRequires( "\\require", chapter, section )
+			if not section:
+				holdForSection.append( requires )
 		elif line.startswith( "\provide"):
 			value = parseRequires( "\provide", chapter, section )
 			if chapter:
 				store.add( (chapter, NTI['Provide'], value ) )
 
 print store.serialize(format="pretty-xml")
+
+#s = NTI['Require']
+#v = AOPS['integer.arithmetic']
+
+#for i in store.transitive_subjects( s, v ):
+#	print i
