@@ -3,7 +3,16 @@ if (phantom.state.length === 0) {
     phantom.open(phantom.args[0]);
 } else {
     MathJax.Hub.Queue(function(){
-		console.log(document.body.innerHTML)
-		phantom.exit()
+jQuery.fn.outerhtml=function outerHTML(){
+	return jQuery("&lt;p&gt;").append(this.eq(0).clone()).html();
+}
+						  $(".tex2jax_process").each(function(){
+								span = $(this);
+    													 span.children("script").remove();
+																	   console.log( jQuery("<p>").append(span.eq(0).clone()).html());
+						  });
+		phantom.exit();
 	})
 }
+
+

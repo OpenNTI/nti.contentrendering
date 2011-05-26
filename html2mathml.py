@@ -36,6 +36,9 @@ class ResourceGenerator(resources.BaseResourceGenerator):
 		return [resources.Resource(os.path.join(cwd, name)) for name in resourceNames]
 
 	def canGenerate(self, source):
+		if not self.illegalCommands:
+			return True
+
 		for command in self.illegalCommands:
 			if re.search(command, source):
 				return False

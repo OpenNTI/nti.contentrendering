@@ -35,6 +35,8 @@ class Resource(object):
 		self.checksum=None
 
 
+
+
 class ResourceSet(object):
 	def __init__(self, source):
 		self.path=str(uuid.uuid1())
@@ -48,7 +50,7 @@ class ResourceSet(object):
 import uuid
 class ResourceDB(object):
 
-	types = {'mathjax': 'tex2html' , 'svg': 'pdf2svg', 'png': 'gspdfpng2', 'mathml': 'html2mathml'}
+	types = {'mathjax_inline': 'tex2html' , 'mathjax_display': 'displaymath2html' , 'svg': 'pdf2svg', 'png': 'gspdfpng2', 'mathml': 'html2mathml'}
 
 
 	"""
@@ -58,7 +60,15 @@ class ResourceDB(object):
 		self.__document=document
 		self.__config=self.__document.config
 
+		if not hasattr(Image, '_url'): # Not already patched
+			Image._url=None
+			def seturl(self, value):
+				self._url=value
 
+			def geturl(self):
+				return self._url
+
+			Image.url=property(geturl, seturl)
 
 
 		if not path:
@@ -88,6 +98,17 @@ class ResourceDB(object):
 		else:
 			return None
 
+	def contentsAsString(self, resource):
+		resourceLoc = os.path.join(os.path.join(self.__dbpath, resource.resourceSet.path), resource.path)
+
+		resource = codecs.open(resourceLoc, 'r', 'utf-8')
+
+		rString=resource.read()
+
+		resource.close()
+
+		return rString
+
 	def generateResourceSets(self):
 
 		#set of all nodes we need to generate resources for
@@ -110,8 +131,6 @@ class ResourceDB(object):
 		print typesToSource
 
 		for rType, sources in typesToSource.items():
-
-
 			self.__generateResources(rType, sources)
 
 		self.saveResourceDB()
@@ -174,9 +193,13 @@ class ResourceDB(object):
 		else:
 			self.__db={}
 
+		print 'Loaded %s keys' % len(self.__db.keys())
+
 	def saveResourceDB(self):
 		if not os.path.isdir(os.path.dirname(self.__indexPath)):
 			os.makedirs(os.path.dirname(self.__indexPath))
+
+		print 'saving %s keys.' % len(self.__db.keys())
 		pickle.dump(self.__db, open(self.__indexPath,'w'))
 
 
@@ -379,15 +402,7 @@ class ResourceGenerator(BaseResourceGenerator):
 		#a url property on the image so we need to be able to set that.  Monkey patch a new
 		#property for url if needed
 
-		if not hasattr(Image, '_url'): # Not already patched
-			Image._url=None
-			def seturl(self, value):
-				self._url=value
 
-			def geturl(self):
-				return self._url
-
-			Image.url=property(geturl, seturl)
 
 
 		imager=self.imagerClass(document)

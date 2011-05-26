@@ -352,7 +352,16 @@ class challhard(Base.subsection):
 
 from plasTeX.Base import Math
 
-Math.math.resourceTypes=['svg', 'mathml', 'mathjax']
+inlineMathTypes=['svg', 'mathml', 'mathjax_inline']
+displayMathTypes=['svg', 'mathjax_display']
+
+Math.math.resourceTypes=inlineMathTypes
+Math.ensuremath.resourceTypes=inlineMathTypes
+
+Math.displaymath.resourceTypes=displayMathTypes
+Math.equation.resourceTypes=displayMathTypes
+Math.eqnarray.resourceTypes=displayMathTypes
+Math.EqnarrayStar.resourceTypes=displayMathTypes
 
 from plasTeX.Packages.graphicx import *
 

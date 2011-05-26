@@ -17,8 +17,9 @@ import html2mathml
 class ResourceGenerator(html2mathml.ResourceGenerator):
 
 	htmlfile='math.html'
-	resourceType='mathjax'
+	resourceType='mathjax_inline'
 
+	illegalCommands=None
 
 	def __init__(self, document):
 		super(ResourceGenerator, self).__init__(document)
@@ -59,16 +60,17 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 		files = self.convert(output)
 
 		if len(files) != len(generatableSources):
-			print 'WARNING.  Expected %s files but only generated %s' % (len(generatableSource), len(files))
+			print 'WARNING.  Expected %s files but only generated %s' % (len(generatableSources), len(files))
 
 		os.chdir(cwd)
 
 		for fname, source in zip(files, generatableSources):
+			print '%s  -- %s' % (source, fname)
 			db.setResource(source, [self.resourceType], resources.Resource(os.path.join(tempdir, fname)))
 
 
 	def convert(self, output):
-		maths = [math.strip().decode('utf-8') for math in output.split('\n') if math.strip()][:-1]
+		maths = [math.strip().decode('utf-8') for math in output.split('\n') if math.strip()]
 
 
 		i = 1
@@ -95,12 +97,14 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 		  messageStyle: "none",\
 		  TeX: {\
 			Macros: {\
-						rlin: [ \'\\overleftrightarrow{#1}\', 1],\
-						vv: [ \'\\overrightarrow{#1}\', 1]\
+						rlin: [ \'\\\\overleftrightarrow{#1}\', 1],\
+						vv: [ \'\\\\overrightarrow{#1}\', 1]\
 				}\
 		}\
 		})\
 		</script>\
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>\
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js"></script>\
 		</head>\
 		<body>')
 
