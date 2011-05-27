@@ -352,20 +352,33 @@ class challhard(Base.subsection):
 
 from plasTeX.Base import Math
 
-inlineMathTypes=['svg', 'mathml', 'mathjax_inline']
+inlineMathTypes=['svg',  'mathjax_inline']
 displayMathTypes=['svg', 'mathjax_display']
 
 Math.math.resourceTypes=inlineMathTypes
-Math.ensuremath.resourceTypes=inlineMathTypes
+#Math.ensuremath.resourceTypes=inlineMathTypes
 
 Math.displaymath.resourceTypes=displayMathTypes
-Math.equation.resourceTypes=displayMathTypes
-Math.eqnarray.resourceTypes=displayMathTypes
-Math.EqnarrayStar.resourceTypes=displayMathTypes
+#Math.equation.resourceTypes=displayMathTypes
+#Math.eqnarray.resourceTypes=displayMathTypes
+#Math.EqnarrayStar.resourceTypes=displayMathTypes
+
+
+#TODO this xymatrix junk is not right but it allows us to get past it for now
+class xymatrix(Base.Command):
+	args='text:str'
+
 
 from plasTeX.Packages.graphicx import *
 
 from plasTeX.Packages.amsmath import *
+
+align.resourceTypes=displayMathTypes
+AlignStar.resourceTypes=displayMathTypes
+alignat.resourceTypes=displayMathTypes
+AlignatStar.resourceTypes=displayMathTypes
+gather.resourceTypes=displayMathTypes
+GatherStar.resourceTypes=displayMathTypes
 
 from plasTeX.Packages.multicol import *
 

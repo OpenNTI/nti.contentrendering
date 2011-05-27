@@ -25,6 +25,9 @@ def main(argv):
 
 	# Create document instance that output will be put into
 	document = plasTeX.TeXDocument()
+	#setup config options we want
+	document.config['files']['split-level']=1
+	document.config['general']['theme']='AoPS'
 
 	# Instantiate the TeX processor
 	tex = TeX(document, file=file)
@@ -33,9 +36,7 @@ def main(argv):
 	jobname = document.userdata['jobname'] = tex.jobname
 	cwd = document.userdata['working-dir'] = os.getcwd()
 
-	#setup config options we want
-	document.config['files']['split-level']=4
-	document.config['general']['theme']='AoPS'
+
 
 	# Load aux files for cross-document references
 #	pauxname = '%s.paux' % jobname
@@ -66,13 +67,14 @@ def main(argv):
 	mathml = outFormat == 'mathml'
 	transform( document, mathml )
 
+
+
 	if outFormat == 'images' or outFormat == 'xhtml':
 		db = generateImages(document)
 
 
 
 	if outFormat == 'xhtml':
-		document.config['files']['split-level'] = 0
 		render( document, jobname, 'XHTML', db )
 
 	if outFormat == 'xml' or mathml:
