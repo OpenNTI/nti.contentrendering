@@ -287,6 +287,10 @@ class BaseResourceGenerator(object):
 
 		resources=self.convertOutput(output)
 
+		if len(resources) != len(generatableSources):
+			log.error('Number of generated resources (%s) does not equal the number requested (%s)' % (len(resources), len(generatableSources)))
+			raise Exception
+
 		os.chdir(cwd)
 
 		for resource, s in zip(resources, generatableSources):
