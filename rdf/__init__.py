@@ -65,8 +65,32 @@ with open( "PrealgebraMetadata.txt" ) as f:
 
 print store.serialize(format="pretty-xml")
 
-#s = NTI['Require']
-#v = AOPS['integer.arithmetic']
+def interact():
+	import sys
+	print 'Require? >>> ',
+	line = sys.stdin.readline()
 
-#for i in store.transitive_subjects( s, v ):
-#	print i
+	while line:
+		s = NTI['Require']
+		#v = AOPS['integer.division']
+		v = AOPS[line.strip()]
+		tuples = []
+		for i in store.transitive_subjects( s, v ):
+			label = store.label( i )
+			if not label: label = i
+			of = store.label( store.value( subject=i, predicate=NTI['sectionOf'] ) )
+			tuples.append( (label, of) )
+
+
+		tuples.sort( key=lambda x: x[1])
+		seen = None
+		for i in tuples:
+			if not i[1]:
+				continue
+
+			if seen <> i[1]:
+				seen = i[1]
+				print seen
+			print "\t", i[0]
+		print 'Require? >>> ',
+		line = sys.stdin.readline()
