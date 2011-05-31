@@ -478,7 +478,19 @@ class ntirequires(Base.Command):
 			parentNode = parentNode.parentNode
 		return result
 
+from plasTeX.Base.LaTeX import Index
+###
+### Indexes in math equations turn out to mess up
+### mathjax rendering. Thus we remove them.
+class index(Index.index):
 
+	def invoke(self, tex):
+		result = super(index,self).invoke( tex )
+		if self.ownerDocument.context.isMathMode:
+			self.ownerDocument.userdata['index'].pop()
+			result = []
+			print 'Ignoring index in math!!!'
+		return result
 
 def ProcessOptions( options, document ):
 
