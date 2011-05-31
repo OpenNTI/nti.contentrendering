@@ -352,13 +352,16 @@ class challhard(Base.subsection):
 
 from plasTeX.Base import Math
 
-inlineMathTypes=['svg',  'mathjax_inline']
-displayMathTypes=['svg', 'mathjax_display']
+#inlineMathTypes=['svg',  'mathjax_inline']
+#displayMathTypes=['svg', 'mathjax_display']
 
-Math.math.resourceTypes=inlineMathTypes
+inlineMathTypes = ['mathjax_inline']
+displayMathTypes = ['mathjax_display']
+
+Math.math.resourceTypes = inlineMathTypes
 #Math.ensuremath.resourceTypes=inlineMathTypes
 
-Math.displaymath.resourceTypes=displayMathTypes
+Math.displaymath.resourceTypes = displayMathTypes
 #Math.equation.resourceTypes=displayMathTypes
 #Math.eqnarray.resourceTypes=displayMathTypes
 #Math.EqnarrayStar.resourceTypes=displayMathTypes
@@ -382,7 +385,8 @@ GatherStar.resourceTypes=displayMathTypes
 
 from plasTeX.Packages.multicol import *
 
-includegraphics.resourceTypes=['png', 'svg']
+#includegraphics.resourceTypes = ['png', 'svg']
+includegraphics.resourceTypes = ['png']
 
 class rightpic(includegraphics):
 	" For our purposes, exactly the same as an includegraphics command. "
