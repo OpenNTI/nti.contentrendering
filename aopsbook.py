@@ -376,12 +376,12 @@ from plasTeX.Packages.graphicx import *
 
 from plasTeX.Packages.amsmath import *
 
-align.resourceTypes=displayMathTypes
-AlignStar.resourceTypes=displayMathTypes
-alignat.resourceTypes=displayMathTypes
-AlignatStar.resourceTypes=displayMathTypes
-gather.resourceTypes=displayMathTypes
-GatherStar.resourceTypes=displayMathTypes
+align.resourceTypes = displayMathTypes
+AlignStar.resourceTypes = displayMathTypes
+alignat.resourceTypes = displayMathTypes
+AlignatStar.resourceTypes = displayMathTypes
+gather.resourceTypes = displayMathTypes
+GatherStar.resourceTypes = displayMathTypes
 
 from plasTeX.Packages.multicol import *
 
@@ -414,6 +414,8 @@ class hint(Crossref.label):
 		res = super( hint, self ).invoke( tex )
 		return res
 
+class xymatrix(Base.Command):
+	args='source:nox'
 
 class thehints(Base.List):
 	# We keep counters but ignore them
