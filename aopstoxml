@@ -103,7 +103,9 @@ def render(document, jobname, rname, db):
 
 def toXml( document, jobname ):
 	outfile = '%s.xml' % jobname
-	with open(outfile,'w') as f: f.write(document.toXML().encode('utf-8'))
+	with open(outfile,'w') as f:
+		f.write(document.toXML().encode('utf-8'))
+		f.close()
 
 import string
 
@@ -174,6 +176,7 @@ def transform( document, mathml=False ):
 
 	# Transform the remaining plastex math elements to mathml
 	if mathml:
+		# toXml(document, "/tmp/mathml")
 		transform2mathml(document)
 
 	# Chapterauthor and chapterquote need to move down a level, inside
