@@ -65,9 +65,9 @@ def main(argv):
 		os.chdir(outdir)
 
 	mathml = outFormat == 'mathml'
+
+	##Move chapter qoutes into proper location.
 	transform( document, mathml )
-
-
 
 	if outFormat == 'images' or outFormat == 'xhtml':
 		db = generateImages(document)
@@ -112,72 +112,74 @@ import string
 def transform( document, mathml=False ):
 	""" Applies DOM transformations to the document. """
 
-	class _mathnode(plasTeX.Base.Command):
-		resourceTypes=['mathml','svg']
+	##Temporarily disable math transformation.  We have no rendering for them.
 
-		@property
-		def source(self):
-			return self.origMathSource
+	## class _mathnode(plasTeX.Base.Command):
+	## 	resourceTypes=['mathml','svg']
 
-		def toXML(self):
-			return "<%s expr='%s' />" % (self.nodeName, self.expr)
+	## 	@property
+	## 	def source(self):
+	## 		return self.origMathSource
 
-	class mathangle(_mathnode):
-		nodeName = 'mathangle'
+	## 	def toXML(self):
+	## 		return "<%s expr='%s' />" % (self.nodeName, self.expr)
 
-	class mathline(_mathnode):
-		resourceTypes=['svg']
-		nodeName = 'mathline'
+	## class mathangle(_mathnode):
+	## 	nodeName = 'mathangle'
 
-	class mathname(_mathnode):
-		nodeName = 'mathname'
+	## class mathline(_mathnode):
+	## 	resourceTypes=['svg']
+	## 	nodeName = 'mathline'
 
-	document.context['mathangle'] = mathangle
-	document.context['mathname'] = mathname
-	document.context['mathline'] = mathline
+	## class mathname(_mathnode):
+	## 	nodeName = 'mathname'
 
-	# Remove unneeded math elements ($24$) and add semantic
-	# information where we can infer it from the text
-	# ("angle $AB" => <mathangle 'AB'>)
-	for math in document.getElementsByTagName( 'math' ):
-		try:
-			text = math.textContent
-			if not(text):
-				print 'Found empty math node'
-			elif all( [c in string.ascii_letters for c in text] ):
-				r = None
+	## document.context['mathangle'] = mathangle
+	## document.context['mathname'] = mathname
+	## document.context['mathline'] = mathline
 
-				if math.previousSibling:
-					prevText = (math.previousSibling.textContent or '').rstrip()
-					if prevText.lower().endswith( ' angle' ):
-						r = document.createElement( 'mathangle' )
-					elif prevText.lower().endswith( ' line') or prevText == 'Line':
-						r = document.createElement( 'mathline' )
-				if r is None:
-					r = document.createElement( 'mathname' )
-				r.expr = text
-				r.origMathSource=math.source
-				math.parentNode.replaceChild( r, math )
+	## # Remove unneeded math elements ($24$) and add semantic
+	## # information where we can infer it from the text
+	## # ("angle $AB" => <mathangle 'AB'>)
+	## for math in document.getElementsByTagName( 'math' ):
+	## 	try:
+	## 		text = math.textContent
+	## 		if not(text):
+	## 			print 'Found empty math node'
+	## 		elif all( [c in string.ascii_letters for c in text] ):
+	## 			r = None
 
-			else:
-				float(math.textContent)
-				oldparent = math.parentNode
-				math.parentNode.replaceChild( text, math )
-				oldparent.normalize()
+	## 			if math.previousSibling:
+	## 				prevText = (math.previousSibling.textContent or '').rstrip()
+	## 				if prevText.lower().endswith( ' angle' ):
+	## 					r = document.createElement( 'mathangle' )
+	## 				elif prevText.lower().endswith( ' line') or prevText == 'Line':
+	## 					r = document.createElement( 'mathline' )
+	## 			if r is None:
+	## 				r = document.createElement( 'mathname' )
+	## 			r.expr = text
+	## 			r.origMathSource=math.source
+	## 			math.parentNode.replaceChild( r, math )
 
-		except UnicodeEncodeError, e:
-			pass
-		except ValueError, e:
-			pass
-		except plasTeX.DOM.NotFoundErr, e:
-			print 'Unable to replace ', math.textContent
-			import traceback
-			traceback.print_exc()
+	## 		else:
+	## 			float(math.textContent)
+	## 			oldparent = math.parentNode
+	## 			math.parentNode.replaceChild( text, math )
+	## 			oldparent.normalize()
 
-	# Transform the remaining plastex math elements to mathml
-	if mathml:
-		# toXml(document, "/tmp/mathml")
-		transform2mathml(document)
+	## 	except UnicodeEncodeError, e:
+	## 		pass
+	## 	except ValueError, e:
+	## 		pass
+	## 	except plasTeX.DOM.NotFoundErr, e:
+	## 		print 'Unable to replace ', math.textContent
+	## 		import traceback
+	## 		traceback.print_exc()
+
+	## # Transform the remaining plastex math elements to mathml
+	## if mathml:
+	## 	# toXml(document, "/tmp/mathml")
+	## 	transform2mathml(document)
 
 	# Chapterauthor and chapterquote need to move down a level, inside
 	# their respective chapters. NOTE: They use the same
