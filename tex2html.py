@@ -60,7 +60,7 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 		files = self.convert(output)
 
 		if len(files) != len(generatableSources):
-			print 'WARNING.  Expected %s files but only generated %s' % (len(generatableSources), len(files))
+			print 'WARNING.	 Expected %s files but only generated %s' % (len(generatableSources), len(files))
 
 		os.chdir(cwd)
 
@@ -95,6 +95,11 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 		MathJax.Hub.Config({\
 		  showProcessingMessages: false,\
 		  messageStyle: "none",\
+		  "HTML-CSS": { \
+			  preferredFont: "STIX",\
+			  availableFonts: ["STIX"],\
+			  webFont: null,\
+			  imageFont: null},\
 		  TeX: {\
 			Macros: {\
 						rlin: [ \'\\\\overleftrightarrow{#1}\', 1],\
@@ -124,7 +129,7 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 
 		# Run LaTeX
 		os.environ['SHELL'] = '/bin/sh'
-		program  = self.compiler
+		program	 = self.compiler
 
 		command = '%s %s' % (self.compiler, self.htmlfile)
 		print 'executing %s' %command
@@ -139,8 +144,8 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 		return stdout
 
 def findfile(path):
-    for dirname in sys.path:
-        possible = os.path.join(dirname, path)
-        if os.path.isfile(possible):
-            return possible
-    return None
+	for dirname in sys.path:
+		possible = os.path.join(dirname, path)
+		if os.path.isfile(possible):
+			return possible
+	return None
