@@ -255,8 +255,8 @@ class _BasePicProblem(Base.Environment):
 	counter = 'probnum'
 	def invoke(self,tex):
 		res = super(_BasePicProblem,self).invoke( tex )
-		if self.macroMode != Base.Environment.MODE_END:
-			self.refstepcounter(tex)
+		#if self.macroMode != Base.Environment.MODE_END:
+		#	self.refstepcounter(tex)
 		# Move from the argument into the DOM
 		if 'pic' in self.attributes:
 			self.appendChild( self.attributes['pic'] )
@@ -274,10 +274,14 @@ class problem(Base.Environment):
 	args = ' [unknown] '
 	counter = 'probnum'
 	def invoke( self, tex ):
-		if self.macroMode != Base.Environment.MODE_END:
-			self.refstepcounter(tex)
-		super(problem,self).invoke( tex )
+		#if self.macroMode != Base.Environment.MODE_END:
+		#	self.refstepcounter(tex)
+
+
+		res = super(problem,self).invoke( tex )
 		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
+		return res
+
 
 
 def _digestAndCollect( self, tokens, until ):
@@ -385,25 +389,27 @@ class revprob(Base.subsection):
 	counter = 'probnum'
 
 	def invoke( self, tex ):
+		res = super(revprob,self).invoke( tex )
 		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
-		return super(revprob,self).invoke( tex )
-
+		return res
 
 class chall(Base.subsection):
 	args = ''
 	counter = 'probnum'
 
 	def invoke( self, tex ):
+		res = super(chall,self).invoke( tex )
 		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
-		return super(chall,self).invoke( tex )
+		return res
 
 class challhard(Base.subsection):
 	args = ''
 	counter = 'probnum'
 
 	def invoke( self, tex ):
+		res = super(challhard,self).invoke( tex )
 		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
-		return super(challhard,self).invoke( tex )
+		return res
 
 from plasTeX.Base import Math
 
@@ -561,7 +567,7 @@ def ProcessOptions( options, document ):
 
 	# used in \begin{problem}.
 	# TODO: Get this to reset in chapters (probably not important)
-	document.context.newcounter( 'probnum' )
+	document.context.newcounter( 'probnum' , resetby='chapter')
 
 	# With customising the paths, we could use absolotue paths and fix
 	# the temporary directory issue? Really only important for direct
