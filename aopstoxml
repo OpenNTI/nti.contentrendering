@@ -105,7 +105,6 @@ def toXml( document, jobname ):
 	outfile = '%s.xml' % jobname
 	with open(outfile,'w') as f:
 		f.write(document.toXML().encode('utf-8'))
-		f.close()
 
 import string
 
