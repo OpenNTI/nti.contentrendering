@@ -335,20 +335,75 @@ class solution( Base.Environment ):
 # If we don't override the args attribute, these consume one letter of text
 class reviewprobs(Base.section):
 	args = ''
-	counter = 'probnum'
+	#counter = 'probnum'
+
+	def invoke(self, tex):
+		print 'Invoking review progs'
+		#pdb.set_trace();
+		#Attach a title to this "section"
+		docFragment = self.ownerDocument.createDocumentFragment();
+		docFragment.appendText(["Review Problems"]);
+		self.title=docFragment;
+
+		#Save the probnum counter b/c it gets reset in the super
+		self.ownerDocument.context.counters['saveprobnum'].setcounter(
+			self.ownerDocument.context.counters['probnum'] )
+
+		res = super(reviewprobs, self).invoke(tex);
+
+		#Restore the probnum counter
+		self.ownerDocument.context.counters['probnum'].setcounter(
+			self.ownerDocument.context.counters['saveprobnum'] )
+
+		return res;
 
 class challengeprobs(Base.section):
 	args = ''
-	counter = 'probnum'
+	#counter = 'probnum'
+	def invoke(self, tex):
+		print 'Invoking chall progs'
+		#pdb.set_trace()
+		docFragment = self.ownerDocument.createDocumentFragment();
+		docFragment.appendText(["Challenge Problems"]);
+		self.title=docFragment;
+
+		#Save the probnum counter b/c it gets reset in the super
+		self.ownerDocument.context.counters['saveprobnum'].setcounter(
+			self.ownerDocument.context.counters['probnum'] )
+
+		res = super(challengeprobs, self).invoke(tex);
+
+		#Restore the probnum counter
+		self.ownerDocument.context.counters['probnum'].setcounter(
+			self.ownerDocument.context.counters['saveprobnum'] )
+
+		return res;
+
 
 class revprob(Base.subsection):
 	args = ''
+	counter = 'probnum'
+
+	def invoke( self, tex ):
+		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
+		return super(revprob,self).invoke( tex )
+
 
 class chall(Base.subsection):
 	args = ''
+	counter = 'probnum'
+
+	def invoke( self, tex ):
+		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
+		return super(chall,self).invoke( tex )
 
 class challhard(Base.subsection):
 	args = ''
+	counter = 'probnum'
+
+	def invoke( self, tex ):
+		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
+		return super(challhard,self).invoke( tex )
 
 from plasTeX.Base import Math
 
@@ -525,6 +580,8 @@ def ProcessOptions( options, document ):
 	document.context.newcounter( 'hintnum' )
 
 	document.context.newcounter('sectionprobsnotused')
+	document.context.newcounter('challprobsnotused');
+	document.context.newcounter('reviewprobsnotused')
 
 
 
