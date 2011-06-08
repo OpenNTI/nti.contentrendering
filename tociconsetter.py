@@ -13,14 +13,16 @@ def main(args):
 	toc = dom.getElementsByTagName("toc");
 	if (toc):
 		current = 0
+		modified = False
 		for node in toc[0].childNodes:
 			if (node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic'):
 				current += 1
-				handleTopic(node, current)
+				modified = handleTopic(node, current) | modified
 				
-		tempfile = toXml(dom)
-		os.remove(file)
-		os.rename(tempfile, file)
+		if (modified):
+			tempfile = toXml(dom)
+			os.remove(file)
+			os.rename(tempfile, file)
 
 def handleTopic(topic, current):
 	attributes = topic.attributes
@@ -28,6 +30,8 @@ def handleTopic(topic, current):
 		if (not hasIcon(attributes)):
 			s = 'C' + str(current) + '.png' 
 			attributes['icon'] = 'icons/chapters/' + s
+			return True
+	return False
 		
 def hasIcon(attributes):
 	return (attributes and attributes.get('icon'))
