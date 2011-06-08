@@ -11,19 +11,22 @@ def main(args):
 	file = args.pop(0)
 	dom = parse(file)
 	toc = dom.getElementsByTagName("toc");
-	if (toc):
-		current = 0
-		modified = False
-		for node in toc[0].childNodes:
-			if (node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic'):
-				current += 1
-				modified = handleTopic(node, current) or modified
-				
-		if (modified):
-			tempfile = toXml(dom)
-			os.remove(file)
-			os.rename(tempfile, file)
+	if (toc and handleToc(toc[0])):
+		tempfile = toXml(dom)
+		os.remove(file)
+		os.rename(tempfile, file)
 
+def handleToc(toc):
+	current = 0
+	modified = False
+	for node in toc.childNodes:
+		if (node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic'):
+			current += 1
+			modified = handleTopic(node, current) or modified
+			
+	return modified;
+
+	
 def handleTopic(topic, current):
 	attributes = topic.attributes
 	if (isChapter(attributes)):
