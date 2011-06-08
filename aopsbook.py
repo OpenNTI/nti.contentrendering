@@ -1,4 +1,6 @@
 from plasTeX import Base
+import re
+
 
 class _OneText(Base.Command):
 	args = 'text:str'
@@ -243,7 +245,26 @@ class game(Base.Environment):
 class sidebar(Base.Environment):
 	pass
 
+titlepattern = re.compile(r'/Title\s+\((?P<title>.*?)\)\s+/Author\s+\((?P<authors>.*?)\).*')
 
+class pdfinfo(Base.Command):
+	args = 'info:str'
+
+	#we want to do something intelligent with the argument to pdfinfo
+	#For now we set the title of the document, but we may also want
+	#to do something intelligent with the author
+	def invoke(self, tex):
+		res = super(pdfinfo, self).invoke( tex )
+
+		if 'info' in self.attributes:
+			match = titlepattern.match(self.attributes['info'])
+			title = match.group('title')
+			authors = match.group('authors')
+
+			self.ownerDocument.userdata['title']=title
+			self.ownerDocument.userdata['authors']=authors
+
+		return res;
 
 from plasTeX.Base import Crossref
 
