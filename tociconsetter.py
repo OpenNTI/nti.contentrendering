@@ -17,7 +17,7 @@ def main(args):
 		for node in toc[0].childNodes:
 			if (node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic'):
 				current += 1
-				modified = handleTopic(node, current) | modified
+				modified = handleTopic(node, current) or modified
 				
 		if (modified):
 			tempfile = toXml(dom)
