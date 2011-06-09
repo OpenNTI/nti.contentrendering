@@ -220,6 +220,16 @@ class exer(Base.subsubsection):
 	args = ''
 	counter='exnumber'
 
+	def postParse(self, tex):
+		super(exer, self).postParse(tex)
+
+		#Because we are a subsubsection our deep section level causes the ref
+		#attribute to not be set in the super.  In a section with a lower sec number
+		#(I.E. subsection, section, chapter...) the super would also set a captionName attribute
+		self.ref = self.ownerDocument.createElement('the'+self.counter).expand(tex)
+		self.captionName = self.ownerDocument.createElement(self.counter+'name').expand(tex)
+
+
 
 class exerhard(exer):
 	pass
@@ -582,7 +592,7 @@ class index(Index.index):
 
 def ProcessOptions( options, document ):
 
-	document.context.newcounter( 'exnumber' )
+	document.context.newcounter( 'exnumber' , resetby='chapter')
 
 	document.context.newcounter( 'partnum' )
 
