@@ -18,62 +18,60 @@ def main(args):
 		
 	dom = parse(file)
 	toc = dom.getElementsByTagName("toc");
-	if (toc and __handleToc__(toc[0], chapterPath)):
-		tempfile = __toXml__(dom)
+	if toc and handleToc(toc[0], chapterPath):
+		tempfile = toXml(dom)
 		os.remove(file)
 		os.rename(tempfile, file)
 
-def __handleToc__(toc, chapterPath):
+def handleToc(toc, chapterPath):
 	current = 0
 	modified = False
 	for node in toc.childNodes:
-		if (node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic'):
+		if node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic':
 			current += 1
-			modified = __handleTopic__(node, current, chapterPath) or modified
+			modified = handleTopic(node, current, chapterPath) or modified
 			
 	return modified;
 
 	
-def __handleTopic__(topic, current, chapterPath):
+def handleTopic(topic, current, chapterPath):
 	attributes = topic.attributes
 	result = False
-	if (__isChapter__(attributes)):
+	if isChapter(attributes):
 		imageName = 'C' + str(current) + '.png' 
-		if (not __hasIcon__(attributes)):
+		if not hasIcon(attributes):
 			attributes['icon'] = 'icons/chapters/' + imageName
 			result = True
 			
-		if (chapterPath):
-			chapterFile = __getChapterFileName__(attributes)
-			if (chapterFile):
+		if chapterPath:
+			chapterFile = getChapterFileName(attributes)
+			if chapterFile:
 				sourceFile = chapterPath + '/' + chapterFile.value
-				__setBackgroundImage__(sourceFile, imageName, current)
+				setBackgroundImage(sourceFile, imageName, current)
 				
 	return result
 		
-def __getChapterFileName__(attributes):
+def getChapterFileName(attributes):
 	return (attributes and attributes.get('href'))
 
-def __hasIcon__(attributes):
+def hasIcon(attributes):
 	return (attributes and attributes.get('icon'))
 
-def __isChapter__(attributes):
-	if (attributes):
+def isChapter(attributes):
+	if attributes:
 		label = attributes.get('label',None)
 		return (label and label.value !='Index')
 	return False
 		
-def __toXml__( document ):	
+def toXml( document ):	
 	outfile = '%s/temp-toc-file.%s.xml' % (tempfile.gettempdir(), os.getpid())
 	with open(outfile,"w") as f:
 		document.writexml(f)		
 	return outfile;
 		
-def __setBackgroundImage__(sourceFile, imageName, current):
+def setBackgroundImage(sourceFile, imageName, current):
 	
-	if (not os.path.exists(sourceFile) or
-		not os.access(sourceFile, os.O_RDWR)):
-		
+	if not os.path.exists(sourceFile) or not os.access(sourceFile, os.O_RDWR):
 		return False
 	
 	outfile = '%s/temp-ch-file.%s.%s.html' % (tempfile.gettempdir(),  os.getpid(), current)
@@ -87,14 +85,14 @@ def __setBackgroundImage__(sourceFile, imageName, current):
 				s = source.read(buffer_size)
 				if (not s): break;
 				
-				if (not bodyFound):
+				if not bodyFound:
 					buffer += s;
 					idx = buffer.find("<body");
 					bodyFound = (idx != -1)
-					if (bodyFound):
+					if bodyFound:
 						
 						# search closing tag
-						while ( buffer.find(">", idx) == -1):
+						while buffer.find(">", idx) == -1:
 							s = source.read(1)
 							if (not s): raise IOError("Unexpected EOF")
 							buffer += s;
@@ -105,7 +103,7 @@ def __setBackgroundImage__(sourceFile, imageName, current):
 						eidx = buffer.find(">", idx);	
 						s = buffer[idx:eidx+1]
 						
-						if (s.find("style") == -1):
+						if s.find("style") == -1:
 							s = (
 									buffer[:(idx+5)] +
 									" style=\"background: url(\'images/chapters/" + imageName + "')\" " +
@@ -117,7 +115,7 @@ def __setBackgroundImage__(sourceFile, imageName, current):
 				else: 
 					out.write(s);
 					
-	if (modified):
+	if modified:
 		os.remove(sourceFile)
 		os.rename(outfile, sourceFile)
 	else:
