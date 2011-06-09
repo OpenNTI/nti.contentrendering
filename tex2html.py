@@ -16,24 +16,30 @@ import html2mathml
 
 class ResourceGenerator(html2mathml.ResourceGenerator):
 
-	htmlfile='math.html'
-	resourceType='mathjax_inline'
+	htmlfile = 'math.html'
+	resourceType = 'mathjax_inline'
+
+	javascript = '%s/tex2html.js'%(os.path.dirname(__file__))
+
+	mathjaxconfigname = 'mathjaxconfig.js'
+	mathjaxconfigfile = '%s/../renderers/Themes/AoPS/js/%s'%(os.path.dirname(__file__), mathjaxconfigname)
 
 	illegalCommands=None
 
 	def __init__(self, document):
 		super(ResourceGenerator, self).__init__(document)
 
-		script = findfile('tex2html.js')
+		script = self.javascript
 
 		if script:
 			self.compiler = 'phantomjs %s'% (script)
 		else:
-			print 'Unable to fine tex2html.js'
+			print 'Unable to find tex2html.js'
 
 
 	def generateResources(self, document, sources, db):
 		self.source = StringIO()
+
 		self.writePreamble(document)
 
 		generatableSources=[s for s in sources if self.canGenerate(s)]
@@ -87,28 +93,15 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 		self.source.write('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\
 		<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">\
 		<head>\
-		<meta name="generator" content="plasTeX" />\
-		<meta content="text/html; charset=utf-8" http-equiv="content-type" />\
 		<link rel="stylesheet" href="styles/styles.css" />\
-		<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>\
-		<script>\
-		MathJax.Hub.Config({\
-		  showProcessingMessages: false,\
-		  messageStyle: "none",\
-		  "HTML-CSS": { \
-			  preferredFont: "STIX",\
-			  availableFonts: ["STIX"],\
-			  webFont: null,\
-			  imageFont: null},\
-		  TeX: {\
-			Macros: {\
-						rlin: [ \'\\\\overleftrightarrow{#1}\', 1],\
-						vv: [ \'\\\\overrightarrow{#1}\', 1]\
-				}\
-		}\
-		})\
-		</script>\
-		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>\
+		<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>')
+
+		if self.mathjaxconfigfile:
+			self.source.write('<script type="text/javascript" src="%s"></script>' % self.mathjaxconfigname)
+		else:
+			print 'Mathjax config has not been provided.'
+
+		self.source.write('<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>\
 		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js"></script>\
 		</head>\
 		<body>')
@@ -123,6 +116,9 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 		tempdir = tempfile.mkdtemp()
 		os.chdir(tempdir)
 
+
+		#We need to copy the mathjaxconfig file and then reference the relative path
+		copy(self.mathjaxconfigfile, os.path.join(tempdir, self.mathjaxconfigname))
 
 		self.source.seek(0)
 		codecs.open(self.htmlfile, 'w', 'utf-8').write(self.source.read())
@@ -139,13 +135,26 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 		print 'error'
 		print stderr
 
+		os.remove(self.mathjaxconfigname)
+
 		os.chdir(cwd)
 
 		return stdout
 
-def findfile(path):
-	for dirname in sys.path:
-		possible = os.path.join(dirname, path)
+def findfile(file, searchPaths):
+	for dirname in searchPaths:
+		possible = os.path.join(dirname, file)
 		if os.path.isfile(possible):
 			return possible
 	return None
+
+def copy(source, dest):
+
+	print 'Copying %s to %s' % (source, dest)
+
+	if not os.path.exists(os.path.dirname(dest)):
+		os.makedirs(os.path.dirname(dest))
+	try:
+		shutil.copy2(source, dest)
+	except OSError:
+		shutil.copy(source, dest)
