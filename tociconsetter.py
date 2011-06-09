@@ -11,18 +11,21 @@ buffer_size = 100
 def main(args):
 	""" Main program routine """
 
-	file = args.pop(0)
+	tocFile = args.pop(0)
 	chapterPath = None
 	if (args):
 		chapterPath = args.pop();
 		
-	dom = parse(file)
+	transform(tocFile, chapterPath)
+
+def transform(tocFile, chapterPath=None):
+	dom = parse(tocFile)
 	toc = dom.getElementsByTagName("toc");
 	if toc and handleToc(toc[0], chapterPath):
 		tempfile = toXml(dom)
 		os.remove(file)
-		os.rename(tempfile, file)
-
+		os.rename(tempfile, tocFile)
+		
 def handleToc(toc, chapterPath):
 	current = 0
 	modified = False
