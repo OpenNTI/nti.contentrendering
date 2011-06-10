@@ -43,9 +43,12 @@ def handleToc(toc, chapterPath):
 
 	
 def handleTopic(topic, current, chapterPath):
-	attributes = topic.attributes
+	
 	modified = False
+	attributes = topic.attributes
+
 	if isChapter(attributes):
+		
 		imageName = 'C' + str(current) + '.png' 
 		if not hasIcon(attributes):
 			attributes['icon'] = 'icons/chapters/' + imageName
@@ -55,18 +58,27 @@ def handleTopic(topic, current, chapterPath):
 			patt = re.compile("<meta.*content=\"(.*)\".*name=\"NTIID\"")
 			chapterFile = getChapterFileName(attributes)
 			if chapterFile:
+				
 				sourceFile = chapterPath + '/' + chapterFile.value
+				
+				# set the body background image
 				setBackgroundImage(sourceFile, imageName)
+				
+				# set the ntiid for the chapter
 				ntiid = getNTIID(sourceFile, patt)
 				if ntiid:
 					attributes["ntiid"]= ntiid
 					modified = True
 				
+			# modify the sub-topics
 			modified = handleSubTopics(topic, chapterPath, patt) or modified
 			
 	return modified
 		
 def handleSubTopics(topic, chapterPath, patt):
+	"""
+	Set the NTIID for all sub topics
+	"""
 	
 	modified = False
 	
@@ -77,6 +89,10 @@ def handleSubTopics(topic, chapterPath, patt):
 	return modified
 	
 def setNTIID(topic, chapterPath, patt):
+	"""
+	Set the NTTID for the specifed topic
+	"""
+	
 	modified = False
 	attributes = topic.attributes
 	chapterFile = getChapterFileName(attributes)
@@ -90,6 +106,9 @@ def setNTIID(topic, chapterPath, patt):
 	return modified 	
 
 def getNTIID(sourceFile, patt):
+	"""
+	Return the NTTID from the specified file 
+	"""
 	
 	if os.path.exists(sourceFile):
 		s = ''
