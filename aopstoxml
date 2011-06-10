@@ -9,6 +9,8 @@ from plasTeX.ConfigManager import *
 
 log = getLogger()
 
+
+
 def main(argv):
 	""" Main program routine """
 
@@ -81,6 +83,16 @@ def main(argv):
 		toXml( document, jobname )
 
 
+def nextID(self):
+	ntiid = getattr(self, 'NTIID',-1)
+
+	ntiid = ntiid + 1
+
+	setattr(self, 'NTIID', ntiid)
+
+	return 'aops-%s-%s' % (self.userdata['jobname'], ntiid)
+
+plasTeX.TeXDocument.nextNTIID=nextID
 
 def render(document, jobname, rname, db):
 
