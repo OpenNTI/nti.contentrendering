@@ -23,7 +23,7 @@ def transform(tocFile, chapterPath=None):
 	toc = dom.getElementsByTagName("toc");
 	if toc and handleToc(toc[0], chapterPath):
 		tempfile = toXml(dom)
-		os.remove(file)
+		os.remove(tocFile)
 		os.rename(tempfile, tocFile)
 		
 def handleToc(toc, chapterPath):
@@ -50,7 +50,7 @@ def handleTopic(topic, current, chapterPath):
 			chapterFile = getChapterFileName(attributes)
 			if chapterFile:
 				sourceFile = chapterPath + '/' + chapterFile.value
-				setBackgroundImage(sourceFile, imageName, current)
+				setBackgroundImage(sourceFile, imageName)
 				
 	return result
 		
@@ -72,7 +72,7 @@ def toXml( document ):
 		document.writexml(f)		
 	return outfile;
 		
-def setBackgroundImage(sourceFile, imageName, current):
+def setBackgroundImage(sourceFile, imageName):
 	
 	if not os.path.exists(sourceFile) or not os.access(sourceFile, os.O_RDWR):
 		return False
