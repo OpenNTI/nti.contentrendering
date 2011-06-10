@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
-import sys
+
 import os
+import re
+import sys
 import tempfile
 from xml.dom.minidom import parse
 from xml.dom.minidom import Node
@@ -42,21 +44,63 @@ def handleToc(toc, chapterPath):
 	
 def handleTopic(topic, current, chapterPath):
 	attributes = topic.attributes
-	result = False
+	modified = False
 	if isChapter(attributes):
 		imageName = 'C' + str(current) + '.png' 
 		if not hasIcon(attributes):
 			attributes['icon'] = 'icons/chapters/' + imageName
-			result = True
+			modified = True
 			
 		if chapterPath:
+			patt = re.compile("<meta.*content=\"(.*)\".*name=\"NTIID\"")
 			chapterFile = getChapterFileName(attributes)
 			if chapterFile:
 				sourceFile = chapterPath + '/' + chapterFile.value
 				setBackgroundImage(sourceFile, imageName)
+				ntiid = getNTIID(sourceFile, patt)
+				if ntiid:
+					attributes["ntiid"]= ntiid
+					modified = True
 				
-	return result
+			modified = handleSubTopics(topic, chapterPath, patt) or modified
+			
+	return modified
 		
+def handleSubTopics(topic, chapterPath, patt):
+	
+	modified = False
+	
+	for node in topic.childNodes:
+		if node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic':
+			modified = setNTIID(node, chapterPath, patt) or modified
+			
+	return modified
+	
+def setNTIID(topic, chapterPath, patt):
+	modified = False
+	attributes = topic.attributes
+	chapterFile = getChapterFileName(attributes)
+	if chapterFile:
+		sourceFile = chapterPath + '/' + chapterFile.value
+		ntiid = getNTIID(sourceFile, patt)
+		if ntiid:
+			attributes["ntiid"]= ntiid
+			modified = True
+										
+	return modified 	
+
+def getNTIID(sourceFile, patt):
+	
+	if os.path.exists(sourceFile):
+		s = ''
+		with open(sourceFile, "r") as f:
+			s = f.read()
+		
+		m = patt.search(s, re.M|re.I)
+		if m: return m.groups()[0]
+					
+	return None 
+
 def getChapterFileName(attributes):
 	return (attributes and attributes.get('href'))
 
@@ -94,4 +138,5 @@ if __name__ == '__main__':
 		main(args)
 	else:
 		print("Specify a toc file [chapter path]")
+
 
