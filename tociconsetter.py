@@ -109,7 +109,7 @@ def setBackgroundImage(sourceFile, imageName, current):
 						if s.find("style") == -1:
 							s = (
 									buffer[:(idx+5)] +
-									" style=\"background: url(\'images/chapters/" + imageName + "')\" " +
+									" style=\"background: url(\'images/chapters/" + imageName + "') no-repeat\" " +
 									buffer[(idx+5):] 
 								)
 							out.write(s);
