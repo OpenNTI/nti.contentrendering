@@ -77,54 +77,13 @@ def setBackgroundImage(sourceFile, imageName, current):
 	if not os.path.exists(sourceFile) or not os.access(sourceFile, os.O_RDWR):
 		return False
 	
-	outfile = '%s/temp-ch-file.%s.%s.html' % (tempfile.gettempdir(),  os.getpid(), current)
+	replace = r"<body style=\"background: url('images\/chapters\/" + imageName + r"') no-repeat\">"
+	command = "sed -i .bkp \"s/<body.*>/" + replace + "/g\" ";
 	
-	modified = False
-	with open(outfile,"w") as out:
-		with open(sourceFile, 'r') as source:
-			buffer = ''
-			bodyFound = False
-			while True:
-				s = source.read(buffer_size)
-				if (not s): break;
-				
-				if not bodyFound:
-					buffer += s;
-					idx = buffer.find("<body");
-					bodyFound = (idx != -1)
-					if bodyFound:
-						
-						# search closing tag
-						while buffer.find(">", idx) == -1:
-							s = source.read(1)
-							if (not s): raise IOError("Unexpected EOF")
-							buffer += s;
-					
-						
-						#check for style
-						
-						eidx = buffer.find(">", idx);	
-						s = buffer[idx:eidx+1]
-						
-						if s.find("style") == -1:
-							s = (
-									buffer[:(idx+5)] +
-									" style=\"background: url(\'images/chapters/" + imageName + "') no-repeat\" " +
-									buffer[(idx+5):] 
-								)
-							out.write(s);
-							modified = True
-				# body found		
-				else: 
-					out.write(s);
-					
-	if modified:
-		os.remove(sourceFile)
-		os.rename(outfile, sourceFile)
-	else:
-		os.remove(outfile)
-
-	return modified;
+	os.popen(command + sourceFile)
+	os.remove(sourceFile + ".bkp")
+	
+	return True;
 
 if __name__ == '__main__':	
 	args = sys.argv[1:]
@@ -132,3 +91,4 @@ if __name__ == '__main__':
 		main(args)
 	else:
 		print("Specify a toc file [chapter path]")
+
