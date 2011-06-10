@@ -6,8 +6,6 @@ import tempfile
 from xml.dom.minidom import parse
 from xml.dom.minidom import Node
 
-buffer_size = 100
-
 def main(args):
 	""" Main program routine """
 
