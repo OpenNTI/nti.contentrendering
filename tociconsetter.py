@@ -28,13 +28,18 @@ def transform(tocFile, chapterPath=None):
 		
 def handleToc(toc, chapterPath):
 	current = 0
-	modified = False
+	
+	attributes = toc.attributes
+	attributes['href'] = "index.html"
+	attributes['icon'] = "icons/chapters/PreAlgebra-cov-icon.png" 
+	attributes['label'] = "Prealgebra" 
+	
 	for node in toc.childNodes:
 		if node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic':
 			current += 1
-			modified = handleTopic(node, current, chapterPath) or modified
+			handleTopic(node, current, chapterPath)
 			
-	return modified;
+	return True;
 
 	
 def handleTopic(topic, current, chapterPath):
