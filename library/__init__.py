@@ -8,6 +8,7 @@ def main( args ):
 
 	online = { 'icon': '/prealgebra/icons/chapters/PreAlgebra-cov.png',
 			   'href': '/prealgebra/index.html',
+			   'root': '/prealgebra/',
 			   'index': '/prealgebra/eclipse-toc.xml',
 			   'title': 'Prealgebra',
 			   'installable': True,
@@ -17,6 +18,7 @@ def main( args ):
 	other = { 'icon': '/prealgebra/icons/chapters/Cat.tif',
 			   'href': '/prealgebra/DNE.html',
 			   #'index': '/prealgebra/eclipse-toc.xml',
+			  'root': '/prealgebra/',
 			   'title': 'Introduction to Catculus',
 			   'installable': True,
 			   'version': '1.0',
