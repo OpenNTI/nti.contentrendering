@@ -28,30 +28,38 @@ from collections import defaultdict
 
 class Resource(object):
 
-	resourceSet=None
 	url=None
+	resourceSet=None
+	
 	def __init__(self, path):
 		self.path=path
 		self.checksum=None
 
-
+	def __str__(self):
+		return '%s' % self.path
 
 
 class ResourceSet(object):
+	
 	def __init__(self, source):
 		self.path=str(uuid.uuid1())
 		self.resources={}
 		self.source=source
+	
 	def getTypes(self):
 		return resources.keys()
+	
 	def __str__(self):
 		return '%s' % self.resources
 
 import uuid
 class ResourceDB(object):
 
-	types = {'mathjax_inline': 'tex2html' , 'mathjax_display': 'displaymath2html' , 'svg': 'pdf2svg', 'png': 'gspdfpng2', 'mathml': 'html2mathml'}
-
+	types = {'mathjax_inline': 'tex2html',\
+			 'mathjax_display': 'displaymath2html',\
+			 'svg': 'pdf2svg',\
+			 'png': 'gspdfpng2',\
+			 'mathml': 'html2mathml'}
 
 	"""
 	Manages external resources (images, mathml, videos, etc..) for a document
@@ -204,7 +212,7 @@ class ResourceDB(object):
 
 
 	def setResource(self, source, keys, resource):
-
+		
 		if not source in self.__db:
 			self.__db[source]=ResourceSet(source)
 
@@ -299,9 +307,6 @@ class BaseResourceGenerator(object):
 	def writePreamble(self, document):
 		self.source.write(document.preamble.source)
 		self.source.write('\\makeatletter\\oddsidemargin -0.25in\\evensidemargin -0.25in\n')
-
-
-
 
 	def writeResource(self, source, context):
 		self.source.write('%s\n%s\n' % (context, source))
