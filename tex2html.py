@@ -126,12 +126,6 @@ class SetGenerator():
 	
 #End SetGenerator
 		
-def _processBatchSource(generator, sourceConfigPath):
-	if generator.size() > 0:
-		return generator.processSource(sourceConfigPath);
-	else:
-		return ()
-
 class ResourceGenerator(html2mathml.ResourceGenerator):
 
 	concurrency = 4
@@ -203,6 +197,12 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 		pass
 	
 #End ResourceGenerator		
+	
+def _processBatchSource(generator, sourceConfigPath):
+	if generator.size() > 0:
+		return generator.processSource(sourceConfigPath);
+	else:
+		return ()
 			
 def findfile(file, searchPaths):
 	for dirname in searchPaths:
