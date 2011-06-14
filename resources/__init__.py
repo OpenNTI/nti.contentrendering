@@ -216,18 +216,17 @@ class ResourceDB(object):
 		if not source in self.__db:
 			self.__db[source]=ResourceSet(source)
 
-		rs = self.__db[source]
-
-		resources=rs.resources
+		resourceSet = self.__db[source]
+		resources= resourceSet.resources
 
 		lastKey=keys[-1:][0]
-
+		
 		for key in keys[:-1]:
 			if not key in resources:
 				resources[key]={}
 			resources=resources[key]
-
-		resources[lastKey]=self.__storeResource(rs, keys, resource)
+			
+		resources[lastKey]=self.__storeResource(resourceSet, keys, resource)
 
 	def __storeResource(self, rs, keys, origResource):
 
