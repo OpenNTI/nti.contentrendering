@@ -12,7 +12,7 @@ from concurrent.futures import ProcessPoolExecutor
 
 _debug = False
 
-class SetGenerator():
+class ResourceSetGenerator():
 	
 	htmlfile = 'math.html'
 	
@@ -124,7 +124,7 @@ class SetGenerator():
 
 		return files
 	
-#End SetGenerator
+#End ResourceSetGenerator
 		
 class ResourceGenerator(html2mathml.ResourceGenerator):
 
@@ -162,7 +162,7 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 			
 		generators = list()
 		for i in range(self.concurrency):
-			g = SetGenerator(self.compiler, i)	
+			g = ResourceSetGenerator(self.compiler, i)	
 			generators.append(g);	
 			g.writePreamble(document, configName)
 				
