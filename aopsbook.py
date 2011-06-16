@@ -35,13 +35,17 @@ class picskip(Base.Command):
 	def digest( self, tokens ):
 		return super(picskip,self).digest( tokens )
 
-class newline(_Ignored):
-	macroName = '\\'
+## class newline(Base.Command):
+## 	macroName = '\\'
+
+## 	def toXML(self):
+## 		return '<newline/>'
 
 def digestUntilNextTextSize(self, tokens):
 	return _digestAndCollect( self, tokens, Base.FontSelection.TextSizeDeclaration )
 
 Base.FontSelection.TextSizeDeclaration.digest=digestUntilNextTextSize
+
 
 
 class rule(Base.Boxes.rule):
@@ -481,6 +485,7 @@ Math.displaymath.resourceTypes = displayMathTypes
 class xymatrix(Base.Command):
 	args='text:str'
 
+from plasTeX.Packages.fancybox import *
 
 from plasTeX.Packages.graphicx import *
 
