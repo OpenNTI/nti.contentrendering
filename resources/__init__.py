@@ -362,8 +362,6 @@ class BaseResourceGenerator(object):
 
 class ResourceGenerator(BaseResourceGenerator):
 
-
-
 	def __init__(self,document, imagerClass):
 		self.document=document
 		self.imagerClass=imagerClass
@@ -371,7 +369,6 @@ class ResourceGenerator(BaseResourceGenerator):
 			self.resourceType = self.imagerClass.resourceType
 		else:
 			self.resourceType = self.imagerClass.fileExtension[1:]
-
 
 
 	#Given a document and a set of sources generate a map of source -> map of type to plastex image obj
@@ -389,14 +386,11 @@ class ResourceGenerator(BaseResourceGenerator):
 		imager=self.createImager(document)
 
 		images=[]
-
 		for source in generatableSources:
 			#TODO newImage completely ignores the concept of imageoverrides
 			images.append(imager.newImage(source))
 
 		imager.close()
-
-
 
 		for s, image in zip(generatableSources, images):
 			db.setResource(s, [self.resourceType] ,image)
@@ -410,9 +404,6 @@ class ResourceGenerator(BaseResourceGenerator):
 		#a url property on the image so we need to be able to set that.  Monkey patch a new
 		#property for url if needed
 
-
-
-
 		imager=self.imagerClass(document)
 
 		#create a tempdir for the imager to right images to
@@ -424,9 +415,10 @@ class ResourceGenerator(BaseResourceGenerator):
 		return imager
 
 
-def copy(source, dest):
+def copy(source, dest, debug=True):
 
-	print 'Copying %s to %s' % (source, dest)
+	if debug:
+		print 'Copying %s to %s' % (source, dest)
 
 	if not os.path.exists(os.path.dirname(dest)):
 		os.makedirs(os.path.dirname(dest))
