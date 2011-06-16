@@ -38,6 +38,11 @@ class picskip(Base.Command):
 class newline(_Ignored):
 	macroName = '\\'
 
+def digestUntilNextTextSize(self, tokens):
+	return _digestAndCollect( self, tokens, Base.FontSelection.TextSizeDeclaration )
+
+Base.FontSelection.TextSizeDeclaration.digest=digestUntilNextTextSize
+
 
 class rule(Base.Boxes.rule):
 	""" Rules have no place in this DOM, except in math mode, where their presentation
@@ -99,8 +104,21 @@ class Defnoindex(_OneText):
 	args = 'text'
 
 class text(Base.BoxCommand):
+
+	args = '{self}'
+
+	def __init__(self):
+		#pdb.set_trace()
+		self.arguments[0].options['stripLeadingWhitespace']=True
+		print self.arguments
+
 	def invoke( self, tex ):
 		return super(text,self).invoke( tex )
+
+#TODO does this get handled like ^
+class textsuperscript(Base.Command):
+	args = 'text:str'
+	pass
 
 #We would like to be able to normalize math mode
 #at parse time such that expressions like $24$ automatically
@@ -302,7 +320,7 @@ class picsecprob(_BasePicProblem):
 import pdb
 
 class problem(Base.Environment):
-	args = ' [unknown] '
+	args = '[unknown]'
 	counter = 'probnum'
 	def invoke( self, tex ):
 		#if self.macroMode != Base.Environment.MODE_END:
@@ -339,7 +357,7 @@ class picproblemspec(_BasePicProblem):
 	pass
 
 class secprob(problem):
-	args = ''
+	pass
 
 class nomoresectionproblems( Base.Command ):
 
