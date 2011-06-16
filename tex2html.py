@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import codecs, os, shutil, time
+import codecs, os, time
 import resources
 import tempfile
 from StringIO import StringIO
@@ -12,11 +12,9 @@ from concurrent.futures import ProcessPoolExecutor
 
 _debug = False
 
-class ResourceSetGenerator():
+class ResourceSetGenerator(object):
 	
 	htmlfile = 'math.html'
-	
-	illegalCommands=None
 		
 	def __init__(self, compiler, batch):
 		self.batch = batch
@@ -90,7 +88,7 @@ class ResourceSetGenerator():
 		configOutFile = os.path.join(tempdir, configName)
 		try:
 			configOutFile = os.path.join(tempdir, configName)
-			copy(sourceConfigPath, configOutFile)
+			resources.copy(sourceConfigPath, configOutFile, _debug)
 			
 			program	 = self.compiler
 			command = '%s "%s"' % (program, htmlOutFile)
@@ -129,6 +127,7 @@ class ResourceSetGenerator():
 class ResourceGenerator(html2mathml.ResourceGenerator):
 
 	concurrency = 4
+	illegalCommands=None
 	resourceType = 'mathjax_inline'
 	javascript = '%s/tex2html.js'%(os.path.dirname(__file__))
 	mathjaxconfigname = 'mathjaxconfig.js'
@@ -211,14 +210,3 @@ def findfile(file, searchPaths):
 			return possible
 	return None
 
-def copy(source, dest):
-
-	if _debug:
-		print 'Copying %s to %s' % (source, dest)
-
-	if not os.path.exists(os.path.dirname(dest)):
-		os.makedirs(os.path.dirname(dest))
-	try:
-		shutil.copy2(source, dest)
-	except OSError:
-		shutil.copy(source, dest)
