@@ -1,20 +1,29 @@
-import codecs, os, re, pdb, shutil, sys
-import resources
-import xml.sax
-import tempfile
-from xml.sax.xmlreader import InputSource
-from xml.dom import minidom
-from StringIO import StringIO
-import subprocess
-from xml.dom import minidom
-import cgi
-from plasTeX.Imagers import *
-import resources
-import tex2html
+#!/usr/bin/env python
 
+import cgi
+import tex2html
+from plasTeX.Imagers import *
+
+class ResourceSetGenerator(tex2html.ResourceSetGenerator):
+	
+	def writeResource(self, source, context):
+		self.writer.write('%s<span class="mathjax math tex2jax_process mathquill-embedded-latex">%s</span>\n\n' %\
+						 (context , cgi.escape(source)))
+
+#End ResourceSetGenerator
+		
 class ResourceGenerator(tex2html.ResourceGenerator):
 
-	resourceType='mathjax_display'
+	def createSetGenerator(self, compiler='', batch = 0):
+		return ResourceSetGenerator(self.compiler, batch)
+	
+#End ResourceGenerator		
+	
+def _processBatchSource(generator, sourceConfigPath):
+	if generator.size() > 0:
+		return generator.processSource(sourceConfigPath);
+	else:
+		return ()
 
-	def writeResource(self, source, context):
-		self.source.write('%s<span class="mathjax math tex2jax_process mathquill-embedded-latex">%s</span>\n\n' % (context , cgi.escape(source)))
+
+		

@@ -143,7 +143,9 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 		else:
 			print 'Unable to find tex2html.js'
 
-
+	def createSetGenerator(self, compiler='', batch = 0):
+		return ResourceSetGenerator(self.compiler, batch)
+		
 	def generateResources(self, document, sources, db):
 		
 		generatableSources=[s for s in sources if self.canGenerate(s)]
@@ -161,7 +163,7 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 			
 		generators = list()
 		for i in range(self.concurrency):
-			g = ResourceSetGenerator(self.compiler, i)	
+			g = self.createSetGenerator(self.compiler, i)	
 			generators.append(g);	
 			g.writePreamble(document, configName)
 				
