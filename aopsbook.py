@@ -107,6 +107,12 @@ class Def(_OneText):
 class Defnoindex(_OneText):
 	args = 'text'
 
+class cancel(Base.Command):
+	args = 'text'
+
+class cancelto(Base.Command):
+	args = 'to text'
+
 class text(Base.BoxCommand):
 
 	args = '{self}'
