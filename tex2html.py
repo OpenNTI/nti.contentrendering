@@ -204,11 +204,5 @@ def _processBatchSource(generator, sourceConfigPath):
 		return generator.processSource(sourceConfigPath);
 	else:
 		return ()
-			
-def findfile(file, searchPaths):
-	for dirname in searchPaths:
-		possible = os.path.join(dirname, file)
-		if os.path.isfile(possible):
-			return possible
-	return None
+
 
