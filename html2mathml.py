@@ -1,40 +1,126 @@
 #!/usr/bin/env python
 
-import codecs, os, re, pdb, shutil
+import codecs, os, re, sys
 import resources
 import xml.sax
-import tempfile
 from xml.sax.xmlreader import InputSource
 from xml.dom import minidom
-from StringIO import StringIO
-
 from plasTeX.Imagers import *
-import resources
+from concurrent.futures import ProcessPoolExecutor
 
+def findfile(path):
+	for dirname in sys.path:
+		possible = os.path.join(dirname, path)
+		if os.path.isfile(possible):
+			return possible
+	return None
 
+#End findfile
 
-class ResourceGenerator(resources.BaseResourceGenerator):
-	compiler = 'ttm'
-	fileExtension='.xml'
-	resourceType='mathml'
-	illegalCommands=['\\\\overleftrightarrow', '\\\\vv', '\\\\smash', '\\\\rlin', '\\\\textregistered']
+class MyEntityResolver(xml.sax.handler.EntityResolver):
+	
+	def resolveEntity(self, p, s):
 
-	def convertOutput(self, output):
+		name = s.split('/')[-1:][0]
 
+		print 'looking for local source %s'%name
+		local = findfile(name)
 
+		if local:
+			print 'Using local source'
+			return InputSource(local)
 
+		return InputSource(s)
+
+#End MyEntityResolver
+
+_RESOURCE_TYPE = 'mathml'
+
+class ResourceSetGenerator(resources.BaseResourceSetGenerator):
+			
+	fileExtension 	='.xml'
+	resourceType  	= _RESOURCE_TYPE
+					
+	def convert(self, output, workdir):
+		
+		i = 0
+		resourceNames = []
 		dom = self.buildMathMLDOM(output)
 		mathmls = dom.getElementsByTagName('math')
-		i = 0
-		resourceNames=[]
-		cwd=os.getcwd()
+		
 		for mathml in mathmls:
-			resource='%s_%s%s'%(self.resourceType, i, self.fileExtension)
-			i=i+1
-			codecs.open(resource, 'w',self.document.config['files']['output-encoding']).write(mathml.toxml())
+			resource = '%s_%s%s'%(self.resourceType, i, self.fileExtension)
+			fpath = os.path.join(workdir, resource)
+			codecs.open(fpath,\
+					 	'w',\
+					 	self.encoding).write(mathml.toxml())
 			resourceNames.append(resource)
-		return [resources.Resource(os.path.join(cwd, name)) for name in resourceNames]
+			i=i+1
+			
+		return [resources.Resource(os.path.join(workdir, name)) for name in resourceNames]
+	
+	def buildMathMLDOM(self, output):
+		# Load up the results into a dom
+		parser = xml.sax.make_parser()
+		parser.setEntityResolver(MyEntityResolver())
 
+		return minidom.parse(output, parser)
+
+#End ResourceSetGenerator
+
+class ResourceGenerator(resources.BaseResourceGenerator):
+	
+	debug			= False
+	
+	concurrency		= 1
+	compiler		= 'ttm'
+	resourceType  	= _RESOURCE_TYPE
+	illegalCommands	= [	'\\\\overleftrightarrow',\
+					 	'\\\\vv',\
+					 	'\\\\smash',\
+					 	'\\\\rlin',\
+					 	'\\\\textregistered']
+
+	def createResourceSetGenerator(self, compiler='', encoding ='utf-8', batch = 0):
+		return ResourceSetGenerator(compiler, encoding, batch)
+	
+	def generateResources(self, document, sources, db):
+		
+		generatableSources=[s for s in sources if self.canGenerate(s)]
+
+		size = len(generatableSources)
+		if not size > 0:
+			print 'No sources to generate'
+			return
+		else:
+			print 'Generating %s sources' % size
+			
+		encoding = document.config['files']['output-encoding']
+		generators = list()
+		for i in range(self.concurrency):
+			g = self.createResourceSetGenerator(self.compiler, encoding, i)	
+			generators.append(g);	
+			g.writePreamble(document)
+				
+		i = 0
+		for s in generatableSources:
+			g = generators[i]
+			g.addResource(s, '')
+			i = i+1 if (i+1) < self.concurrency else 0
+
+		for g in generators:
+			g.writePostamble(document)
+
+		if self.concurrency > 1:
+			#Process batches in parallel,
+			params = [True]*self.concurrency
+			with ProcessPoolExecutor() as executor:
+				for tuples in executor.map(_processBatchSource, generators, params):
+					self.storeResources(tuples, db, self.debug)
+		else:
+			g = generators[0]
+			self.storeResources(g.processSource(), db, self.debug)
+					
 	def canGenerate(self, source):
 		if not self.illegalCommands:
 			return True
@@ -43,34 +129,14 @@ class ResourceGenerator(resources.BaseResourceGenerator):
 			if re.search(command, source):
 				return False
 		return True
+	
+#End ResourceGenerator
 
-	def buildMathMLDOM(self, output):
-		#Load up the results into a dom
-		parser = xml.sax.make_parser()
-		parser.setEntityResolver(MyEntityResolver())
+def _processBatchSource(generator, params):
+	if generator.size() > 0:
+		return generator.processSource()
+	else:
+		return ()
+	
+#End _processBatchSource
 
-		return minidom.parse(output, parser)
-
-
-class MyEntityResolver(xml.sax.handler.EntityResolver):
-	def resolveEntity(self, p, s):
-
-		name = s.split('/')[-1:][0]
-
-		print 'looking for local source %s'%name
-		local=findfile(name)
-
-		if local:
-			print 'Using local source'
-			return InputSource(local)
-
-		return InputSource(s)
-
-import os, sys
-
-def findfile(path):
-    for dirname in sys.path:
-        possible = os.path.join(dirname, path)
-        if os.path.isfile(possible):
-            return possible
-    return None

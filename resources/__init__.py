@@ -259,75 +259,70 @@ class ResourceDB(object):
 #need to key images by source so we don't
 #generate duplicate images
 
-class BaseResourceGenerator(object):
-
-	compiler = ''
-
-
-	def __init__(self,document):
-		self.document=document
-
-	def generateResources(self, document, sources, db):
-		self.source = StringIO()
-		self.source.write('\\scrollmode\n')
-		self.writePreamble(document)
-		self.source.write('\\begin{document}\n')
-
-		generatableSources=[s for s in sources if self.canGenerate(s)]
-
-		if not len(s)>0:
-			print 'No resources to generate'
-			return
-
-		for s in generatableSources:
-			self.writeResource(s, '')
-
-		self.source.write('\n\\end{document}\\endinput')
-
-		output = self.compileSource()
-
-		cwd = os.getcwd()
-
-		# Make a temporary directory to work in
-		tempdir = tempfile.mkdtemp()
-		os.chdir(tempdir)
-
-		resources=self.convertOutput(output)
-
-		if len(resources) != len(generatableSources):
-			log.error('Number of generated resources (%s) does not equal the number requested (%s)' % (len(resources), len(generatableSources)))
-			raise Exception
-
-		os.chdir(cwd)
-
-		for resource, s in zip(resources, generatableSources):
-			db.setResource(s, [self.resourceType], resource)
-
+class BaseResourceSetGenerator(object):
+		
+	def __init__(self, compiler='', encoding = '', batch=0):
+		self.batch = batch
+		self.writer = StringIO()
+		self.compiler = compiler
+		self.encoding = encoding
+		self.generatables = list()
+		
+	def size(self):
+		return len(self.generatables)
+			
 	def writePreamble(self, document):
-		self.source.write(document.preamble.source)
-		self.source.write('\\makeatletter\\oddsidemargin -0.25in\\evensidemargin -0.25in\n')
-
+		self.write('\\scrollmode\n')
+		self.write(document.preamble.source)
+		self.write('\\makeatletter\\oddsidemargin -0.25in\\evensidemargin -0.25in\n')
+		self.write('\\begin{document}\n')
+					
+	def writePostamble(self, document):
+		self.write('\n\\end{document}\\endinput')
+	
+	def addResource(self, s, context=''):
+		self.generatables.append(s)
+		self.writeResource(s, context)
+		
 	def writeResource(self, source, context):
-		self.source.write('%s\n%s\n' % (context, source))
-
+		self.write('%s\n%s\n' % (context, source))
+		
+	def processSource(self):
+		
+		start = time.time()
+		
+		(output, workdir) = self.compileSource()
+		
+		resources = self.convert(output, workdir)
+		nresources = len(resources)
+		
+		if nresources != len(self.generatables):
+			print 'WARNING.	Expected %s files but only generated %s for batch %s' %\
+				  (len(self.generatables), nresources, self.batch)
+		
+		elapsed = time.time() - start
+		print "%s resources generated in %sms for batch %s" % (nresources, elapsed, self.batch)
+			
+		return zip(self.generatables, resources)
+	
 	def compileSource(self):
-		cwd = os.getcwd()
-
+	
 		# Make a temporary directory to work in
 		tempdir = tempfile.mkdtemp()
-		os.chdir(tempdir)
+		
+		filename = os.path.join(tempdir,'resources.tex')
 
-		filename = 'resources.tex'
-
-		self.source.seek(0)
-		codecs.open(filename, 'w', self.document.config['files']['input-encoding']).write(self.source.read())
+		self.source().seek(0)
+		codecs.open(filename,\
+					'w',\
+					 self.encoding).write(self.source().read())
 
 		# Run LaTeX
 		os.environ['SHELL'] = '/bin/sh'
-		program  = self.compiler
-
+		program = self.compiler
 
 		os.system(r"%s %s" % (program, filename))
+		
 		#JAM: This does not work. Fails to read input
 		# cmd = str('%s %s' % (program, filename))
 		# print shlex.split(cmd)
@@ -345,34 +340,131 @@ class BaseResourceGenerator(object):
 
 		output = None
 		for ext in ['.dvi','.pdf','.ps','.xml']:
-			if os.path.isfile('resources'+ext):
-				output = WorkingFile('resources'+ext, 'rb', tempdir=tempdir)
+			fpath = os.path.join(tempdir,'resources' + ext)
+			if os.path.isfile(fpath):
+				output = WorkingFile('resources' + ext, 'rb', tempdir=tempdir)
 				break
 
-		os.chdir(cwd)
+		return (output, tempdir)
+			
+	def convert(self, output, workdir):
+		"""
+		Convert output to resources
+		"""
+		return []
+	
+	def source(self):
+		return self.writer
+	
+	def writer(self):
+		return self.writer
+	
+	def write(self, data):
+		if data:
+			self.writer.write(data)
+	
+#End BaseResourceSetGenerator
 
-		return output
+class BaseResourceGenerator(object):
 
+	compiler = ''
+	debug	 = False
+	
+	def __init__(self, document):
+		self.document = document
+		
+	def storeKeys(self):
+		return [self.resourceType]
+	
+	def context(self):
+		return ''
+	
+	def createResourceSetGenerator(self, compiler='', encoding ='utf-8', batch = 0):
+		return BaseResourceSetGenerator(compiler, encoding, batch)
+	
+	def generateResources(self, document, sources, db):
+		
+		generatableSources=[s for s in sources if self.canGenerate(s)]
 
-	def convertOutput(self, output):
-		pass
+		size = len(generatableSources)
+		if not size > 0:
+			print 'No sources to generate'
+			return
+		else:
+			print 'Generating %s sources for %s' % (size, self.resourceType)
+			
+		encoding = document.config['files']['input-encoding']
+		generator = self.createResourceSetGenerator(self.compiler, encoding)
+		generator.writePreamble(document)
+		for s in generatableSources:
+			generator.addResource(s, self.context())
+		generator.writePostamble(document)
 
+		self.storeResources(generator.processSource(), db, self.debug)
+		
+	def storeResources(self, tuples, db, debug=False):
+		for source, resource in tuples:
+			if debug:
+				print "%s -- %s" % (source, resource)
+			db.setResource(source, self.storeKeys(), resource)
+			
 	def canGenerate(self, source):
 		return True
 
+#End BaseResourceSetGenerator
+
+class ImagerResourceSetGenerator(BaseResourceSetGenerator):
+		
+	def __init__(self, imager, batch=0):
+		super(ImagerResourceSetGenerator, self).__init__('', '', batch)
+		self.imager = imager
+			
+	def writePreamble(self):
+		pass
+					
+	def writePostamble(self):
+		pass
+			
+	def writeResource(self, source, context):
+		pass
+		
+	def processSource(self):
+		
+		images=[]
+		for source in self.generatables:
+			#TODO newImage completely ignores the concept of imageoverrides
+			images.append(self.imager.newImage(source))
+			
+		return zip(self.generatables, images)
+	
+	def compileSource(self):
+		return (None, None)
+			
+	def convert(self, output, workdir):
+		return []
+	
+#End ImagerResourceSetGenerator
+		
 class ResourceGenerator(BaseResourceGenerator):
 
-	def __init__(self,document, imagerClass):
-		self.document=document
-		self.imagerClass=imagerClass
+	imager = None
+	concurrency = 1
+	
+	def __init__(self, document, imagerClass):
+		super(ResourceGenerator, self).__init__(document)
+		
+		self.imagerClass = imagerClass
 		if getattr(self.imagerClass,'resourceType', None):
 			self.resourceType = self.imagerClass.resourceType
 		else:
 			self.resourceType = self.imagerClass.fileExtension[1:]
 
-
+	def createResourceSetGenerator(self, compiler='', encoding ='', batch = 0):
+		return ImagerResourceSetGenerator(self.imager, batch)
+	
 	#Given a document and a set of sources generate a map of source -> map of type to plastex image obj
 	def generateResources(self, document, sources, db):
+		
 		"""
 		The first pass collects the latex source for each of the
 		provided nodes.  A latex file is generated from the collected source and compiled.  The compiled latex
@@ -380,22 +472,13 @@ class ResourceGenerator(BaseResourceGenerator):
 	    in the path provided by the resource set and noted as appropriate
 		"""
 
-		generatableSources=[s for s in sources if self.canGenerate(s)]
-
-		#create a new imager
-		imager=self.createImager(document)
-
-		images=[]
-		for source in generatableSources:
-			#TODO newImage completely ignores the concept of imageoverrides
-			images.append(imager.newImage(source))
-
-		imager.close()
-
-		for s, image in zip(generatableSources, images):
-			db.setResource(s, [self.resourceType] ,image)
-
-
+		# create a new imager
+		self.imager = self.createImager(document)
+		try:
+			super(ResourceGenerator, self).generateResources(self, document, sources, db)
+		finally:
+			self.imager.close()
+			
 	def createImager(self, document):
 
 		#Imagers rely on Imagers.Image objects to track a number of properties
@@ -404,16 +487,19 @@ class ResourceGenerator(BaseResourceGenerator):
 		#a url property on the image so we need to be able to set that.  Monkey patch a new
 		#property for url if needed
 
-		imager=self.imagerClass(document)
+		newImager = self.imagerClass(document)
 
 		#create a tempdir for the imager to right images to
-		tempdir=tempfile.mkdtemp()
-		imager.newFilename=Filenames(os.path.join(tempdir, 'img-$num(4)'), extension=imager.fileExtension)
+		tempdir = tempfile.mkdtemp()
+		newImager.newFilename=Filenames(os.path.join(tempdir, 'img-$num(4)'),\
+									 	extension=newImager.fileExtension)
 
-		imager._filecache=os.path.join(os.path.join(tempdir, '.cache'), imager.__class__.__name__+'.images')
+		newImager._filecache=os.path.join(os.path.join(tempdir, '.cache'),\
+									   	  newImager.__class__.__name__+'.images')
 
-		return imager
+		return newImager
 
+#End ResourceGenerator
 
 def copy(source, dest, debug=True):
 
@@ -426,6 +512,8 @@ def copy(source, dest, debug=True):
 		shutil.copy2(source, dest)
 	except OSError:
 		shutil.copy(source, dest)
+
+#End copy
 
 
 

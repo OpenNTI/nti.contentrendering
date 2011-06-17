@@ -14,14 +14,14 @@ class ResourceSetGenerator(tex2html.ResourceSetGenerator):
 		
 class ResourceGenerator(tex2html.ResourceGenerator):
 
-	def createSetGenerator(self, compiler='', batch = 0):
-		return ResourceSetGenerator(self.compiler, batch)
+	def createResourceSetGenerator(self, compiler='', encoding = 'utf-8', batch = 0):
+		return ResourceSetGenerator(compiler, encoding, batch)
 	
 #End ResourceGenerator		
 	
 def _processBatchSource(generator, sourceConfigPath):
 	if generator.size() > 0:
-		return generator.processSource(sourceConfigPath);
+		return generator.processSource()
 	else:
 		return ()
 
