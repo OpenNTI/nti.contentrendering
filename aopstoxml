@@ -74,14 +74,23 @@ def main(argv):
 	if outFormat == 'images' or outFormat == 'xhtml':
 		db = generateImages(document)
 
-
-
 	if outFormat == 'xhtml':
 		render( document, jobname, 'XHTML', db )
+		postRender(document)
 
 	if outFormat == 'xml' or mathml:
 		toXml( document, jobname )
 
+import tociconsetter
+import contentsizesetter
+
+def postRender(document):
+	print 'Performing post render steps'
+	print 'Adding icons to toc and pages'
+	tociconsetter.transform('eclipse-toc.xml','.')
+
+	print 'Adding content height to toc and pages'
+	contentsizesetter.transform('.')
 
 def nextID(self):
 	ntiid = getattr(self, 'NTIID',-1)
