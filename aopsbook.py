@@ -258,6 +258,8 @@ class exer(Base.subsubsection):
 		self.captionName = self.ownerDocument.createElement(self.counter+'name').expand(tex)
 
 
+class dfrac(Base.Command):
+	args = 'num den'
 
 class exerhard(exer):
 	pass
