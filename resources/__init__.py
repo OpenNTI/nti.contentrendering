@@ -47,7 +47,7 @@ class ResourceSet(object):
 		self.source=source
 	
 	def getTypes(self):
-		return resources.keys()
+		return self.resources.keys()
 	
 	def __str__(self):
 		return '%s' % self.resources
