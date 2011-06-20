@@ -6,6 +6,8 @@ from plasTeX.Imagers import *
 
 class ResourceSetGenerator(tex2html.ResourceSetGenerator):
 	
+	resourceType='mathjax_display'
+	
 	def writeResource(self, source, context):
 		self.writer.write('%s<span class="mathjax math tex2jax_process mathquill-embedded-latex">%s</span>\n\n' %\
 						 (context , cgi.escape(source)))
