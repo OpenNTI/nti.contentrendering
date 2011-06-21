@@ -474,6 +474,9 @@ class challhard(Base.subsection):
 
 from plasTeX.Base import Math
 
+#The math package does not correctly implement the sqrt macro.  It takes two args
+Math.sqrt.args='[root]{arg}'
+
 #inlineMathTypes=['svg',  'mathjax_inline']
 #displayMathTypes=['svg', 'mathjax_display']
 
