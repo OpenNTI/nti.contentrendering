@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, time, tempfile, shutil, re, string, pickle, codecs, pdb
+import os, time, tempfile, shutil, re, string, cPickle, codecs, pdb
 try: from hashlib import md5
 except ImportError: from md5 import new as md5
 from plasTeX.Logging import getLogger
@@ -30,7 +30,7 @@ class Resource(object):
 
 	url=None
 	resourceSet=None
-	
+
 	def __init__(self, path):
 		self.path=path
 		self.checksum=None
@@ -40,20 +40,22 @@ class Resource(object):
 
 
 class ResourceSet(object):
-	
+
 	def __init__(self, source):
 		self.path=str(uuid.uuid1())
 		self.resources={}
 		self.source=source
-	
+
 	def getTypes(self):
 		return self.resources.keys()
-	
+
 	def __str__(self):
 		return '%s' % self.resources
 
 import uuid
 class ResourceDB(object):
+
+	dirty = False
 
 	types = {'mathjax_inline': 'tex2html',\
 			 'mathjax_display': 'displaymath2html',\
@@ -188,7 +190,7 @@ class ResourceDB(object):
 	def __loadResourceDB(self):
 		if os.path.isfile(self.__indexPath):
 			try:
-				self.__db = pickle.load(open(self.__indexPath, 'r'))
+				self.__db = cPickle.load(open(self.__indexPath, 'r'))
 				for key, value in self.__db.items():
 					if not os.path.exists(os.path.join(self.__dbpath,value.path)):
 						print 'Deleting resources for %s %s'% (key, os.path.join(self.__dbpath,value.path))
@@ -207,12 +209,18 @@ class ResourceDB(object):
 		if not os.path.isdir(os.path.dirname(self.__indexPath)):
 			os.makedirs(os.path.dirname(self.__indexPath))
 
+		if not self.dirty:
+			print 'Nothing to save'
+			return
+
 		print 'saving %s keys.' % len(self.__db.keys())
-		pickle.dump(self.__db, open(self.__indexPath,'w'))
+		cPickle.dump(self.__db, open(self.__indexPath,'w'))
 
 
 	def setResource(self, source, keys, resource):
-		
+
+		self.dirty = True
+
 		if not source in self.__db:
 			self.__db[source]=ResourceSet(source)
 
@@ -220,12 +228,12 @@ class ResourceDB(object):
 		resources= resourceSet.resources
 
 		lastKey=keys[-1:][0]
-		
+
 		for key in keys[:-1]:
 			if not key in resources:
 				resources[key]={}
 			resources=resources[key]
-			
+
 		resources[lastKey]=self.__storeResource(resourceSet, keys, resource)
 
 	def __storeResource(self, rs, keys, origResource):
@@ -255,61 +263,58 @@ class ResourceDB(object):
 
 		return '%s%s/%s'% (self.baseURL, resource.resourceSet.path, resource.path)
 
-#We need to add caching so we don't regenerate from run to run.  We also
-#need to key images by source so we don't
-#generate duplicate images
 
 class BaseResourceSetGenerator(object):
-		
+
 	def __init__(self, compiler='', encoding = '', batch=0):
 		self.batch = batch
 		self.writer = StringIO()
 		self.compiler = compiler
 		self.encoding = encoding
 		self.generatables = list()
-		
+
 	def size(self):
 		return len(self.generatables)
-			
+
 	def writePreamble(self, document):
 		self.write('\\scrollmode\n')
 		self.write(document.preamble.source)
 		self.write('\\makeatletter\\oddsidemargin -0.25in\\evensidemargin -0.25in\n')
 		self.write('\\begin{document}\n')
-					
+
 	def writePostamble(self, document):
 		self.write('\n\\end{document}\\endinput')
-	
+
 	def addResource(self, s, context=''):
 		self.generatables.append(s)
 		self.writeResource(s, context)
-		
+
 	def writeResource(self, source, context):
 		self.write('%s\n%s\n' % (context, source))
-		
+
 	def processSource(self):
-		
+
 		start = time.time()
-		
+
 		(output, workdir) = self.compileSource()
-		
+
 		resources = self.convert(output, workdir)
 		nresources = len(resources)
-		
+
 		if nresources != len(self.generatables):
 			print 'WARNING.	Expected %s files but only generated %s for batch %s' %\
 				  (len(self.generatables), nresources, self.batch)
-		
+
 		elapsed = time.time() - start
 		print "%s resources generated in %sms for batch %s" % (nresources, elapsed, self.batch)
-			
+
 		return zip(self.generatables, resources)
-	
+
 	def compileSource(self):
-	
+
 		# Make a temporary directory to work in
 		tempdir = tempfile.mkdtemp()
-		
+
 		filename = os.path.join(tempdir,'resources.tex')
 
 		self.source().seek(0)
@@ -322,7 +327,7 @@ class BaseResourceSetGenerator(object):
 		program = self.compiler
 
 		os.system(r"%s %s" % (program, filename))
-		
+
 		#JAM: This does not work. Fails to read input
 		# cmd = str('%s %s' % (program, filename))
 		# print shlex.split(cmd)
@@ -346,44 +351,44 @@ class BaseResourceSetGenerator(object):
 				break
 
 		return (output, tempdir)
-			
+
 	def convert(self, output, workdir):
 		"""
 		Convert output to resources
 		"""
 		return []
-	
+
 	def source(self):
 		return self.writer
-	
+
 	def writer(self):
 		return self.writer
-	
+
 	def write(self, data):
 		if data:
 			self.writer.write(data)
-	
+
 #End BaseResourceSetGenerator
 
 class BaseResourceGenerator(object):
 
 	compiler = ''
 	debug	 = False
-	
+
 	def __init__(self, document):
 		self.document = document
-		
+
 	def storeKeys(self):
 		return [self.resourceType]
-	
+
 	def context(self):
 		return ''
-	
+
 	def createResourceSetGenerator(self, compiler='', encoding ='utf-8', batch = 0):
 		return BaseResourceSetGenerator(compiler, encoding, batch)
-	
+
 	def generateResources(self, document, sources, db):
-		
+
 		generatableSources=[s for s in sources if self.canGenerate(s)]
 
 		size = len(generatableSources)
@@ -392,7 +397,7 @@ class BaseResourceGenerator(object):
 			return
 		else:
 			print 'Generating %s sources for %s' % (size, self.resourceType)
-			
+
 		encoding = document.config['files']['input-encoding']
 		generator = self.createResourceSetGenerator(self.compiler, encoding)
 		generator.writePreamble(document)
@@ -401,58 +406,58 @@ class BaseResourceGenerator(object):
 		generator.writePostamble(document)
 
 		self.storeResources(generator.processSource(), db, self.debug)
-		
+
 	def storeResources(self, tuples, db, debug=False):
 		for source, resource in tuples:
 			if debug:
 				print "%s -- %s" % (source, resource)
 			db.setResource(source, self.storeKeys(), resource)
-			
+
 	def canGenerate(self, source):
 		return True
 
 #End BaseResourceSetGenerator
 
 class ImagerResourceSetGenerator(BaseResourceSetGenerator):
-		
+
 	def __init__(self, imager, batch=0):
 		super(ImagerResourceSetGenerator, self).__init__('', '', batch)
 		self.imager = imager
-			
+
 	def writePreamble(self):
 		pass
-					
+
 	def writePostamble(self):
 		pass
-			
+
 	def writeResource(self, source, context):
 		pass
-		
+
 	def processSource(self):
-		
+
 		images=[]
 		for source in self.generatables:
 			#TODO newImage completely ignores the concept of imageoverrides
 			images.append(self.imager.newImage(source))
-			
+
 		return zip(self.generatables, images)
-	
+
 	def compileSource(self):
 		return (None, None)
-			
+
 	def convert(self, output, workdir):
 		return []
-	
+
 #End ImagerResourceSetGenerator
-		
+
 class ResourceGenerator(BaseResourceGenerator):
 
 	imager = None
 	concurrency = 1
-	
+
 	def __init__(self, document, imagerClass):
 		super(ResourceGenerator, self).__init__(document)
-		
+
 		self.imagerClass = imagerClass
 		if getattr(self.imagerClass,'resourceType', None):
 			self.resourceType = self.imagerClass.resourceType
@@ -461,10 +466,10 @@ class ResourceGenerator(BaseResourceGenerator):
 
 	def createResourceSetGenerator(self, compiler='', encoding ='', batch = 0):
 		return ImagerResourceSetGenerator(self.imager, batch)
-	
+
 	#Given a document and a set of sources generate a map of source -> map of type to plastex image obj
 	def generateResources(self, document, sources, db):
-		
+
 		"""
 		The first pass collects the latex source for each of the
 		provided nodes.  A latex file is generated from the collected source and compiled.  The compiled latex
@@ -478,7 +483,7 @@ class ResourceGenerator(BaseResourceGenerator):
 			super(ResourceGenerator, self).generateResources(self, document, sources, db)
 		finally:
 			self.imager.close()
-			
+
 	def createImager(self, document):
 
 		#Imagers rely on Imagers.Image objects to track a number of properties
