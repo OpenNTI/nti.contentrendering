@@ -6,28 +6,23 @@ class _Ignored(Base.Command):
 		return []
 
 class problem(Base.Environment):
-	counter = 'probnum'
-	def invoke( self, tex ):
-		res = super(problem,self).invoke( tex )		
-		self.stepcounter(self.counter)
-		self.attributes[self.counter] = self.ownerDocument.context.counters[self.counter].value
-		self.ownerDocument.context.counters['solnum'].setcounter(0)
-		return res
+	pass
 	
 class question(Base.Environment):
 	pass
 
 class solution(Base.Environment):
-	counter = 'solnum'
-	def invoke( self, tex ):
-		res = super(problem,self).invoke( tex )
-		self.stepcounter(self.counter)
-		self.attributes[self.counter] = self.ownerDocument.context.counters[self.counter].value
-		return res
+	pass
+
+class tab(Base.Command):
+	pass
+
+class includegraphics(Base.Command):
+	pass
 
 def ProcessOptions( options, document ):
 	document.context.newcounter( 'probnum')
-	document.context.newcounter( 'solnum' , resetby='problem')
+	document.context.newcounter( 'solnum' )
 
 
 
