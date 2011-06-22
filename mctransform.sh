@@ -4,5 +4,5 @@ MYPATH=`dirname $0`
 export XHTMLTEMPLATES=$MYPATH/../renderers
 export PYTHONPATH=$MYPATH:$MYPATH/../plastex/
 
-${PYTHON:-python2.7} $MYPATH/mathcountstoxml.py $1
+${PYTHON:-python2.7} $MYPATH/mctransform.py $1
 

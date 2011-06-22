@@ -8,7 +8,7 @@ class _Ignored(Base.Command):
 class problem(Base.Environment):
 	counter = 'probnum'
 	def invoke( self, tex ):
-		res = super(problem,self).invoke( tex )
+		res = super(problem,self).invoke( tex )		
 		self.stepcounter(self.counter)
 		self.attributes[self.counter] = self.ownerDocument.context.counters[self.counter].value
 		self.ownerDocument.context.counters['solnum'].setcounter(0)
