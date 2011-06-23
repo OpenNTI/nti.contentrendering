@@ -1,7 +1,6 @@
 #!/usr/bin/env python2.7
 
 import sys
-
 import plistlib
 
 def main( args ):
@@ -36,5 +35,4 @@ def main( args ):
 
 
 if __name__ == '__main__':
-	import sys
 	main( sys.argv[1:] )
