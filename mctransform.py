@@ -1,11 +1,18 @@
 #!/usr/bin/env python
 
 import os, sys
-import httplib
+import urllib2
+from urlparse import urljoin
 from json import JSONEncoder
 import plasTeX
 from plasTeX.TeX import TeX
 
+
+def _getSource(nodelist):
+	for node in nodelist:
+		if node.nodeType == node.ELEMENT_NODE:
+			return node.source
+	return ''
 
 def _parseLaTeX(file):
 	
@@ -53,11 +60,13 @@ def _todict(document, idprefix = ''):
 			break
 			
 		for solution in question.getElementsByTagName("solution"):
-			answers.append(solution.source)
+			t = _getSource(solution.childNodes)
+			answers.append(t)
 			
 		if problemSource and answers:
 			qsid = idprefix + str(questionId)
-			items[qsid] = (qsid, problemSource, answers)
+			item = {'ID' : qsid, 'Text' : problemSource, 'Answers' : answers}
+			items[qsid] = item
 			
 		questionId = questionId + 1
 	
@@ -104,42 +113,35 @@ def transform(file, format='json', outfile = None):
 	else:
 		return None
 	
-def put(file, url):
+def put(file, url, user ='csanchez', password = 'temp001'):
 	"""
 	Put the json representation of the specified LaTeX file in the specified url
 	"""	
 	json = toJSON(file)
-	return _put(json, url)
+	return _put(json, url, user, password)
 
-def _put(json, url):
-	import urllib2
+def _put(json, url, user ='csanchez', password = 'temp001'):
+
+	print "\nConnecting to %s ..." % url
 	
-	opener = urllib2.build_opener(urllib2.HTTPHandler)
+	urllib2.build_opener(urllib2.HTTPHandler)
 	request = urllib2.Request(url, data=json)
 	request.add_header('Content-Type', 'application/json')
 	request.get_method = lambda: 'PUT'
 	
-	return opener.open(request)
-
-def put2(file, url, idprefix = ''):
-	"""
-	Put the json representation of the specified LaTeX file in the specified url
-	"""
-	from urlparse import urlparse
-
-	pr = urlparse(url)
-	return _put2(file, pr.netloc, pr.path, idprefix)
+	auth = urllib2.HTTPPasswordMgrWithDefaultRealm()
+	auth.add_password(None, url, user, password)
+	authendicated = urllib2.HTTPBasicAuthHandler(auth)
 	
-def _put2(file, server, path, idprefix = ''):
-	json = toJSON(file, idprefix)
-	connection =  httplib.HTTPConnection(server)
-	connection.request('PUT', path, json)
-	return connection.getresponse()
+	opener = urllib2.build_opener(authendicated)
+	urllib2.install_opener(opener)
+		
+	return opener.open(request)
 	
 def send2server(file, id, server='http://curie.bacl:8080', path="/dataserver/quizzes/", idprefix = ''):
-	from urlparse import urljoin
 	idpath = urljoin(path, id)
-	_put2(file, server, idpath)
+	url = urljoin(server, idpath)
+	put(file, url)
 
 if __name__ == '__main__':
 	args = sys.argv[1:]
