@@ -160,13 +160,11 @@ class ResourceDB(object):
 			log.warn('No generator specified for resource type %s' % resourceType)
 			return None
 		try:
-			exec('from %s import ResourceGenerator' % self.types[resourceType])
-			return ResourceGenerator(self.__document)
+			m  = __import__(self.types[resourceType])
+			return m.ResourceGenerator(self.__document)
 		except ImportError, msg:
 			log.warning("Could not load custom imager '%s' because '%s'" % (resourceType, msg))
 			return None
-
-
 
 	def __findNodes(self, node):
 		nodes=[]
