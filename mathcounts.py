@@ -5,6 +5,9 @@ class _Ignored(Base.Command):
 	def invoke( self, tex ):
 		return []
 
+class difficulty(Base.Environment):
+	pass
+
 class problem(Base.Environment):
 	pass
 	
