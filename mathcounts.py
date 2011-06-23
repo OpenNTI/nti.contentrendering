@@ -17,6 +17,12 @@ class question(Base.Environment):
 class solution(Base.Environment):
 	pass
 
+class rightpic(Base.Command):
+	pass
+
+class leftpic(Base.Command):
+	pass
+
 class tab(Base.Command):
 	pass
 
