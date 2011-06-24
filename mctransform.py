@@ -138,7 +138,7 @@ def _put(json, url, user ='csanchez', password = 'temp001'):
 		
 	return opener.open(request)
 	
-def send2server(file, id, server='http://curie.bacl:8080', path="/dataserver/quizzes/", idprefix = ''):
+def send2server(file, id, server, path, idprefix = ''):
 	idpath = urljoin(path, id)
 	url = urljoin(server, idpath)
 	put(file, url)
@@ -148,7 +148,7 @@ if __name__ == '__main__':
 	if args:
 		f = lambda a, idx, d: d if len(a) <= idx else a[idx] 
 		id 		= f(args, 1, 'mathcounts-2011-0')
-		server	= f(args, 2, 'http://curie.bacl:8080')
+		server	= f(args, 2, 'http://curie.local:8080')
 		path	= f(args, 3, '/dataserver/quizzes/')
 		idprx	= f(args, 4, '') 
 		send2server(args[0], id, server, path, idprx)
