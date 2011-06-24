@@ -94,7 +94,7 @@ def writeContentSizeToMeta(htmlFile, contentSize):
 		os.remove(htmlFile+'.bkp')
 
 def getContentSize(htmlFile):
-	height = subprocess.Popen( "phantomjs %s %s" % (javascript, htmlFile), shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+	height = subprocess.Popen( "phantomjs %s %s 2>/dev/null" % (javascript, htmlFile), shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
 	return (htmlFile, height)
 
 def findHTMLInTOC(toc, files):
