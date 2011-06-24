@@ -1,5 +1,4 @@
 from plasTeX import Base
-import re
 
 class year(Base.chapter):
 	pass
@@ -16,17 +15,12 @@ class problem(Base.Environment):
 	def invoke(self, tex):
 		res = super(problem, self).invoke(tex)
 		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
+		return res
 
 class question(Base.Environment):
 	pass
 
 class solution(Base.Environment):
-	pass
-
-class rightpic(Base.Command):
-	pass
-
-class leftpic(Base.Command):
 	pass
 
 class tab(Base.Command):
@@ -56,11 +50,10 @@ Math.displaymath.resourceTypes = displayMathTypes
 class xymatrix(Base.Command):
 	args='text:str'
 
-from plasTeX.Packages.fancybox import *
+#from plasTeX.Packages.fancybox import *
 
-from plasTeX.Packages.graphicx import *
-
-from plasTeX.Packages.amsmath import *
+from plasTeX.Packages.graphicx import includegraphics
+from plasTeX.Packages.amsmath import align, AlignStar, alignat, AlignatStar, gather, GatherStar
 
 align.resourceTypes = displayMathTypes
 AlignStar.resourceTypes = displayMathTypes
@@ -69,13 +62,13 @@ AlignatStar.resourceTypes = displayMathTypes
 gather.resourceTypes = displayMathTypes
 GatherStar.resourceTypes = displayMathTypes
 
-from plasTeX.Packages.multicol import *
+#from plasTeX.Packages.multicol import *
 
 #includegraphics.resourceTypes = ['png', 'svg']
 includegraphics.resourceTypes = ['png']
 
 class rightpic(includegraphics):
-	" For our purposes, exactly the same as an includegraphics command. "
+	"For our purposes, exactly the same as an includegraphics command. "
 	packageName = 'mathcounts'
 
 class leftpic(rightpic):
