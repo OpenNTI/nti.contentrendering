@@ -6,7 +6,7 @@ from plasTeX.TeX import TeX
 from plasTeX.Logging import getLogger
 import pdb
 from plasTeX.ConfigManager import *
-
+import datetime
 log = getLogger()
 
 
@@ -37,6 +37,7 @@ def main(argv):
 	# Populate variables for use later
 	jobname = document.userdata['jobname'] = tex.jobname
 	cwd = document.userdata['working-dir'] = os.getcwd()
+	document.userdata['generated_time'] = str(datetime.datetime.now())
 
 
 
