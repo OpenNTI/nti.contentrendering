@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 
 import os, time, tempfile, shutil, re, string, cPickle, codecs, pdb
-try: from hashlib import md5
-except ImportError: from md5 import new as md5
+import subprocess, shlex, uuid
+import copy as cp
+import plasTeX.Imagers
+
+try:
+	from hashlib import md5
+except ImportError: 
+	from md5 import new as md5
+
+from StringIO import StringIO	
 from plasTeX.Logging import getLogger
-from StringIO import StringIO
 from plasTeX.Filenames import Filenames
 from plasTeX.dictutils import ordereddict
-import subprocess
-import shlex
-import plasTeX.Imagers
 from plasTeX.Imagers import WorkingFile, Image
-import copy as cp
 
 log = getLogger()
 depthlog = getLogger('render.images.depth')
@@ -38,11 +41,12 @@ class Resource(object):
 	def __str__(self):
 		return '%s' % self.path
 
-
 class ResourceSet(object):
 
 	def __init__(self, source):
-		self.path=str(uuid.uuid1())
+		m = md5()
+		m.update(str(source))
+		self.path = str(m.hexdigest())
 		self.resources={}
 		self.source=source
 
@@ -52,11 +56,10 @@ class ResourceSet(object):
 	def __str__(self):
 		return '%s' % self.resources
 
-import uuid
 class ResourceDB(object):
 
 	dirty = False
-
+	keydigest = {}
 	types = {'mathjax_inline': 'tex2html',\
 			 'mathjax_display': 'displaymath2html',\
 			 'svg': 'pdf2svg',\
@@ -80,10 +83,8 @@ class ResourceDB(object):
 
 			Image.url=property(geturl, seturl)
 
-
 		if not path:
 			path = 'resources'
-
 
 		self.__dbpath=os.path.join(path, self.__document.userdata['jobname'])
 		self.baseURL=self.__dbpath
@@ -97,7 +98,6 @@ class ResourceDB(object):
 		self.__db = {}
 
 		self.__loadResourceDB()
-
 
 	def __str__(self):
 		return '%s'%self.__db
@@ -129,12 +129,9 @@ class ResourceDB(object):
 		#Generate a mapping of types to source  {png: [src2, src5], mathml: [src1, src5]}
 		typesToSource=defaultdict(set)
 
-
-
 		for node in nodesToGenerate:
 			for rType in node.resourceTypes:
-
-				#We don't want to regenerate for source that already esists
+				# We don't want to regenerate for source that already esists
 				if not node.source in self.__db or not rType in self.__db[node.source].resources:
 					typesToSource[rType].add(node.source)
 
@@ -215,10 +212,13 @@ class ResourceDB(object):
 		cPickle.dump(self.__db, open(self.__indexPath,'w'))
 
 
-	def setResource(self, source, keys, resource):
+	def setResource(self, source, keys, resource, debug = False):
 
 		self.dirty = True
 
+		if debug:
+			print "Saving '%s', keys=%s, resource=.../%s" % (source, keys, str(resource)[-40:])
+			
 		if not source in self.__db:
 			self.__db[source]=ResourceSet(source)
 
@@ -232,24 +232,35 @@ class ResourceDB(object):
 				resources[key]={}
 			resources=resources[key]
 
-		resources[lastKey]=self.__storeResource(resourceSet, keys, resource)
+		resources[lastKey] = self.__storeResource(resourceSet, keys, resource, debug)
+		
+	def __storeResource(self, rs, keys, origResource, debug = False):
 
-	def __storeResource(self, rs, keys, origResource):
+		resource = cp.deepcopy(origResource)
 
-		resource=cp.deepcopy(origResource)
+		dkey = ' '.join(map(str, keys))
+		if not dkey in self.keydigest:
+			m = md5()
+			m.update(dkey)
+			self.keydigest[dkey] = str(m.hexdigest())
+		
+		digest = self.keydigest[dkey]
+		name = '%s%s' % (digest, os.path.splitext(resource.path)[1])
 
-		name='%s%s' % (str(uuid.uuid1()), os.path.splitext(resource.path)[1])
+		relativeToDB = os.path.join(rs.path, name)
+		
+		newpath = os.path.join(self.__dbpath, relativeToDB)
+		copy(resource.path, newpath)
+		resource.path = name
+		resource.filename = name
+		resource.resourceSet = rs
 
-		relativeToDB=os.path.join(rs.path, name)
-		copy(resource.path, os.path.join(self.__dbpath, relativeToDB))
-		resource.path=name
-		resource.filename=name
-		resource.resourceSet=rs
+		resource.url = None
+		resource.url = self.urlForResource(resource)
 
-
-		resource.url=None
-		resource.url=self.urlForResource(resource)
-
+		if debug:
+			print "\t=> url=%s" % resource.url
+			
 		return resource
 
 	def urlForResource(self, resource):
