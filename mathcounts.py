@@ -1,26 +1,26 @@
 from plasTeX import Base
 
-class year(Base.chapter):
+class mathcountsyear(Base.chapter):
 	pass
 
-class worksheet(Base.section):
+class mathcountsworksheet(Base.section):
 	args = Base.section.args + ' NTIID:str'
 	pass
 
-class difficulty(Base.Environment):
+class mathcountsdifficulty(Base.Environment):
 	pass
 
-class problem(Base.Environment):
+class mathcountsproblem(Base.Environment):
 	counter = 'probnum'
 	def invoke(self, tex):
-		res = super(problem, self).invoke(tex)
+		res = super(mathcountsproblem, self).invoke(tex)
 		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
 		return res
 
-class question(Base.Environment):
+class mathcountsquestion(Base.Environment):
 	pass
 
-class solution(Base.Environment):
+class mathcountssolution(Base.Environment):
 	pass
 
 class tab(Base.Command):
