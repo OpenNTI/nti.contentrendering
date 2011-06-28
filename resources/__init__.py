@@ -153,7 +153,7 @@ class ResourceDB(object):
 			return
 
 		print 'Generating %s resources' % resourceType
-		generator.generateResources(self.__document, sources, self)
+		generator.generateResources(sources, self)
 
 	def __loadGenerator(self, resourceType):
 		if not resourceType in self.types:
@@ -274,13 +274,13 @@ class BaseResourceSetGenerator(object):
 	def size(self):
 		return len(self.generatables)
 
-	def writePreamble(self, document):
+	def writePreamble(self, preamble):
 		self.write('\\scrollmode\n')
-		self.write(document.preamble.source)
+		self.write(preamble)
 		self.write('\\makeatletter\\oddsidemargin -0.25in\\evensidemargin -0.25in\n')
 		self.write('\\begin{document}\n')
 
-	def writePostamble(self, document):
+	def writePostamble(self):
 		self.write('\n\\end{document}\\endinput')
 
 	def addResource(self, s, context=''):
@@ -383,9 +383,9 @@ class BaseResourceGenerator(object):
 		return ''
 
 	def createResourceSetGenerator(self, compiler='', encoding ='utf-8', batch = 0):
-		return BaseResourceSetGenerator(compiler, encoding, batch)
+		return BaseResourceSetGenerator(self.document, compiler, encoding, batch)
 
-	def generateResources(self, document, sources, db):
+	def generateResources(self, sources, db):
 
 		generatableSources=[s for s in sources if self.canGenerate(s)]
 
@@ -396,12 +396,12 @@ class BaseResourceGenerator(object):
 		else:
 			print 'Generating %s sources for %s' % (size, self.resourceType)
 
-		encoding = document.config['files']['input-encoding']
+		encoding = self.document.config['files']['input-encoding']
 		generator = self.createResourceSetGenerator(self.compiler, encoding)
-		generator.writePreamble(document)
+		generator.writePreamble(self.document.preamble.source)
 		for s in generatableSources:
 			generator.addResource(s, self.context())
-		generator.writePostamble(document)
+		generator.writePostamble()
 
 		self.storeResources(generator.processSource(), db, self.debug)
 
@@ -422,7 +422,7 @@ class ImagerResourceSetGenerator(BaseResourceSetGenerator):
 		super(ImagerResourceSetGenerator, self).__init__('', '', batch)
 		self.imager = imager
 
-	def writePreamble(self):
+	def writePreamble(self, preamble):
 		pass
 
 	def writePostamble(self):
@@ -432,11 +432,12 @@ class ImagerResourceSetGenerator(BaseResourceSetGenerator):
 		pass
 
 	def processSource(self):
-
 		images=[]
 		for source in self.generatables:
 			#TODO newImage completely ignores the concept of imageoverrides
 			images.append(self.imager.newImage(source))
+
+		self.imager.close()
 
 		return zip(self.generatables, images)
 
@@ -446,15 +447,15 @@ class ImagerResourceSetGenerator(BaseResourceSetGenerator):
 	def convert(self, output, workdir):
 		return []
 
+
 #End ImagerResourceSetGenerator
 
-class ResourceGenerator(BaseResourceGenerator):
+class ImagerResourceGenerator(BaseResourceGenerator):
 
-	imager = None
 	concurrency = 1
 
 	def __init__(self, document, imagerClass):
-		super(ResourceGenerator, self).__init__(document)
+		super(ImagerResourceGenerator, self).__init__(document)
 
 		self.imagerClass = imagerClass
 		if getattr(self.imagerClass,'resourceType', None):
@@ -463,34 +464,11 @@ class ResourceGenerator(BaseResourceGenerator):
 			self.resourceType = self.imagerClass.fileExtension[1:]
 
 	def createResourceSetGenerator(self, compiler='', encoding ='', batch = 0):
-		return ImagerResourceSetGenerator(self.imager, batch)
+		return ImagerResourceSetGenerator(self.createImager(),  batch)
 
-	#Given a document and a set of sources generate a map of source -> map of type to plastex image obj
-	def generateResources(self, document, sources, db):
-
-		"""
-		The first pass collects the latex source for each of the
-		provided nodes.  A latex file is generated from the collected source and compiled.  The compiled latex
-		is passed to the imager and the the list of generated images are returned.  The images are stored on disk
-	    in the path provided by the resource set and noted as appropriate
-		"""
-
-		# create a new imager
-		self.imager = self.createImager(document)
-		try:
-			super(ResourceGenerator, self).generateResources(self, document, sources, db)
-		finally:
-			self.imager.close()
-
-	def createImager(self, document):
-
-		#Imagers rely on Imagers.Image objects to track a number of properties
-		#pertaining to size, location, url, etc..
-		#By default url is a property built from paths.  Rendering currently relies on
-		#a url property on the image so we need to be able to set that.  Monkey patch a new
-		#property for url if needed
-
-		newImager = self.imagerClass(document)
+	def createImager(self):
+		print 'creating imager from %s' % self.imagerClass
+		newImager = self.imagerClass(self.document)
 
 		#create a tempdir for the imager to right images to
 		tempdir = tempfile.mkdtemp()
@@ -502,7 +480,8 @@ class ResourceGenerator(BaseResourceGenerator):
 
 		return newImager
 
-#End ResourceGenerator
+
+#End ImagerResourceGenerator
 
 def copy(source, dest, debug=True):
 

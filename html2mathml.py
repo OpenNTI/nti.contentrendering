@@ -18,7 +18,7 @@ def findfile(path):
 #End findfile
 
 class MyEntityResolver(xml.sax.handler.EntityResolver):
-	
+
 	def resolveEntity(self, p, s):
 
 		name = s.split('/')[-1:][0]
@@ -37,17 +37,17 @@ class MyEntityResolver(xml.sax.handler.EntityResolver):
 _RESOURCE_TYPE = 'mathml'
 
 class ResourceSetGenerator(resources.BaseResourceSetGenerator):
-			
+
 	fileExtension 	='.xml'
 	resourceType  	= _RESOURCE_TYPE
-					
+
 	def convert(self, output, workdir):
-		
+
 		i = 0
 		resourceNames = []
 		dom = self.buildMathMLDOM(output)
 		mathmls = dom.getElementsByTagName('math')
-		
+
 		for mathml in mathmls:
 			resource = '%s_%s%s'%(self.resourceType, i, self.fileExtension)
 			fpath = os.path.join(workdir, resource)
@@ -56,9 +56,9 @@ class ResourceSetGenerator(resources.BaseResourceSetGenerator):
 					 	self.encoding).write(mathml.toxml())
 			resourceNames.append(resource)
 			i=i+1
-			
+
 		return [resources.Resource(os.path.join(workdir, name)) for name in resourceNames]
-	
+
 	def buildMathMLDOM(self, output):
 		# Load up the results into a dom
 		parser = xml.sax.make_parser()
@@ -69,9 +69,9 @@ class ResourceSetGenerator(resources.BaseResourceSetGenerator):
 #End ResourceSetGenerator
 
 class ResourceGenerator(resources.BaseResourceGenerator):
-	
+
 	debug			= False
-	
+
 	concurrency		= 1
 	compiler		= 'ttm'
 	resourceType  	= _RESOURCE_TYPE
@@ -82,10 +82,10 @@ class ResourceGenerator(resources.BaseResourceGenerator):
 					 	'\\\\textregistered']
 
 	def createResourceSetGenerator(self, compiler='', encoding ='utf-8', batch = 0):
-		return ResourceSetGenerator(compiler, encoding, batch)
-	
-	def generateResources(self, document, sources, db):
-		
+		return ResourceSetGenerator(self. compiler, encoding, batch)
+
+	def generateResources(self, sources, db):
+
 		generatableSources=[s for s in sources if self.canGenerate(s)]
 
 		size = len(generatableSources)
@@ -94,14 +94,14 @@ class ResourceGenerator(resources.BaseResourceGenerator):
 			return
 		else:
 			print 'Generating %s sources' % size
-			
-		encoding = document.config['files']['output-encoding']
+
+		encoding = self.document.config['files']['output-encoding']
 		generators = list()
 		for i in range(self.concurrency):
-			g = self.createResourceSetGenerator(self.compiler, encoding, i)	
-			generators.append(g);	
-			g.writePreamble(document)
-				
+			g = self.createResourceSetGenerator(self.compiler, encoding, i)
+			generators.append(g);
+			g.writePreamble(self.document.preamble.source)
+
 		i = 0
 		for s in generatableSources:
 			g = generators[i]
@@ -109,7 +109,7 @@ class ResourceGenerator(resources.BaseResourceGenerator):
 			i = i+1 if (i+1) < self.concurrency else 0
 
 		for g in generators:
-			g.writePostamble(document)
+			g.writePostamble()
 
 		if self.concurrency > 1:
 			#Process batches in parallel,
@@ -120,7 +120,7 @@ class ResourceGenerator(resources.BaseResourceGenerator):
 		else:
 			g = generators[0]
 			self.storeResources(g.processSource(), db, self.debug)
-					
+
 	def canGenerate(self, source):
 		if not self.illegalCommands:
 			return True
@@ -129,7 +129,7 @@ class ResourceGenerator(resources.BaseResourceGenerator):
 			if re.search(command, source):
 				return False
 		return True
-	
+
 #End ResourceGenerator
 
 def _processBatchSource(generator, params):
@@ -137,6 +137,6 @@ def _processBatchSource(generator, params):
 		return generator.processSource()
 	else:
 		return ()
-	
+
 #End _processBatchSource
 

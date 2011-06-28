@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os,tempfile, shutil,re, codecs,pdb
+import os,tempfile, shutil,re, codecs,pdb, tempfile
 from plasTeX.Logging import getLogger
 import plasTeX.Imagers, glob, sys, os
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
@@ -31,14 +31,18 @@ if sys.platform.startswith('win'):
 
 import plasTeX.Imagers.gspdfpng
 
-def _size(page,key):
-	width_in_pt, height_in_pt = subprocess.Popen( "pdfinfo -box -f %d images.out | grep MediaBox | awk '{print $4,$5}'" % (page), shell=True, stdout=subprocess.PIPE).communicate()[0].split()
+## def _size(page,key):
+## 	width_in_pt, height_in_pt = subprocess.Popen( "pdfinfo -box -f %d images.out | grep MediaBox | awk '{print $4,$5}'" % (page), shell=True, stdout=subprocess.PIPE).communicate()[0].split()
+## 	return (key, width_in_pt, height_in_pt)
+
+def _size(key, png):
+	width_in_pt, height_in_pt = subprocess.Popen( "identify %s | awk '{print $3}'" % (png), shell=True, stdout=subprocess.PIPE).communicate()[0].split('x')
 	return (key, width_in_pt, height_in_pt)
 
-def _scale(input, output, scale):
+def _scale(input, output, scale, defaultScale):
 	# Use IM to scale. Must be top-level to pickle
 	#scale is 1x, 2x, 4x
-	return os.system( 'convert %s -resize %d%% PNG32:%s' % (input, 100*(scale/4.0) , output) )
+	return os.system( 'convert %s -resize %d%% PNG32:%s' % (input, 100*(scale/defaultScale) , output) )
 
 class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 	""" Imager that uses gs to convert pdf to png, using PDFCROP to handle the scaling """
@@ -46,25 +50,26 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 			  '-dGraphicsAlphaBits=4 -sOutputFile=img%d.png'
 	compiler = 'pdflatex'
 	fileExtension = '.png'
-	size=256
-	scaleFactor=1
+	size=500
+	scaleFactor = 1
+	defaultScaleFactor = 4.0
 
 	def executeConverter(self, output):
 		open('images.out', 'wb').write(output.read())
 		# Now crop
 		os.system( "pdfcrop --hires --margin 3 images.out images.out" )
-		maxpages = int(subprocess.Popen( "pdfinfo images.out | grep Pages | awk '{print $2}'", shell=True, stdout=subprocess.PIPE).communicate()[0])
+		#maxpages = int(subprocess.Popen( "pdfinfo images.out | grep Pages | awk '{print $2}'", shell=True, stdout=subprocess.PIPE).communicate()[0])
 		# Record the fact that we've cropped them (in parallel, getting the size takes time)
-		with ProcessPoolExecutor() as executor:
-			for the_tuple in executor.map( _size, xrange(1, maxpages + 1 ), self.images.keys() ):
-				img = self.images[the_tuple[0]]
-				img._cropped = True
-				img.width = math.ceil( float(the_tuple[1]) ) * 1.3
-				img.height = math.ceil( float(the_tuple[2]) ) * 1.3
-				img.depth = -3
-			# TODO: This is in points, we want it in pixels; these are
-			# coming in too small
-			# We're arbitrarily assigning a height above baseline to match the margin
+		## with ProcessPoolExecutor() as executor:
+		## 	for the_tuple in executor.map( _size, xrange(1, maxpages + 1 ), self.images.keys() ):
+		## 		img = self.images[the_tuple[0]]
+		## 		img._cropped = True
+		## 		img.width = math.ceil( float(the_tuple[1]) ) * 1.3
+		## 		img.height = math.ceil( float(the_tuple[2]) ) * 1.3
+		## 		img.depth = -3
+		## 	# TODO: This is in points, we want it in pixels; these are
+		## 	# coming in too small
+		## 	# We're arbitrarily assigning a height above baseline to match the margin
 
 		options = ''
 		if self._configOptions:
@@ -74,8 +79,26 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 					value = '"%s"' % value
 				options += '%s %s ' % (opt, value)
 
-		res = os.system('%s -r%d %s%s' % (self.command, 500 ,options, 'images.out')), None
-		self.scaleImages()
+		res = os.system('%s -r%d %s%s' % (self.command, self.size ,options, 'images.out')), None
+
+
+
+
+		if self.scaleFactor != None:
+			self.scaleImages()
+
+		pngs=glob.glob('img*.png')
+		pngs.sort(lambda a,b: cmp(int(re.search(r'(\d+)\.\w+$',a).group(1)),
+									int(re.search(r'(\d+)\.\w+$',b).group(1))))
+
+		# Record the fact that we've cropped them (in parallel, getting the size takes time)
+		with ProcessPoolExecutor() as executor:
+			for the_tuple in executor.map( _size, self.images.keys(), pngs ):
+				img = self.images[the_tuple[0]]
+				img._cropped = True
+				img.width = math.ceil( float(the_tuple[1]) ) / 1.3
+				img.height = math.ceil( float(the_tuple[2]) ) / 1.3
+				img.depth = -3
 
 		return res
 
@@ -89,7 +112,7 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 		" Uses ImageMagick to scale the images in parallel "
 		with ProcessPoolExecutor() as executor:
 			pngs=glob.glob('img*.png')
-			for i in executor.map( _scale, pngs, pngs, [self.scaleFactor for x in pngs]):
+			for i in executor.map( _scale, pngs, pngs, [self.scaleFactor for x in pngs], [self.defaultScaleFactor for x in pngs]):
 				pass
 
 
@@ -100,7 +123,8 @@ Imager = GSPDFPNG2
 
 copy=resources.copy
 
-class ResourceGenerator(resources.ResourceGenerator):
+
+class ResourceGenerator(resources.ImagerResourceGenerator):
 
 	scales=[1, 2, 4]
 	shouldInvert=True
@@ -108,60 +132,103 @@ class ResourceGenerator(resources.ResourceGenerator):
 	def __init__(self, document):
 		super(ResourceGenerator, self).__init__(document, Imager)
 
-	def generateResources(self, document, sources, db):
+	def generateResources(self, sources, db):
 		generatableSources=[s for s in sources if self.canGenerate(sources)]
 
-
-		for scale in self.scales:
-			self.generateResourcesWithScale(document, generatableSources, scale, db)
-
-
-
-	def __invertedNameFromOrig(self, name):
-		dir, base=os.path.split(name)
-		fname, ext = os.path.splitext(base)
-
-		return os.path.join(dir, '%s_inverted%s' %(fname, ext))
-
-	def createImager(self, document, scale):
-		imager = super(ResourceGenerator, self).createImager(document)
-		imager.scaleFactor=scale
-		return imager
-
-	def generateResourcesWithScale(self, document, sources, scale, db):
-		imager=self.createImager(document, scale)
-		images=[]
+		rsg = self.createResourceSetGenerator()
+		rsg.imager.scaleFactor = None  #We scale them on our side
 
 		for source in sources:
 			#TODO newImage completely ignores the concept of imageoverrides
-			images.append(imager.newImage(source))
+			rsg.addResource(source)
 
-		imager.close()
+		processed = rsg.processSource()
+
+		origSources, origImages = zip(*processed)
+
+		#Create a tempdir to work in
+		tempdir = tempfile.mkdtemp()
 
 
-		for source, original in zip(sources, images):
-			db.setResource(source, [self.resourceType, 'orig', scale], original)
 
-		if self.shouldInvert:
-			origNames=[orig.path for orig in images]
+		sourceToScaleToImage = defaultdict(dict)
+		imagesToResizeSource = []
+		imagesToResizeDest = []
 
-			invertedNames = [self.__invertedNameFromOrig(orig.path) for orig in images]
+		allNewImages = []
 
-			with ProcessPoolExecutor() as executor:
-				for i in executor.map(_invert, origNames, invertedNames):
+		for source, image in processed:
+			for scale in self.scales:
+				print '%s %s %s %s' % (image.width, image.height, scale, rsg.imager.defaultScaleFactor)
+			   	newImage = self.makeImage(os.path.join(tempdir, self.__newNameFromOrig(image.path,
+																					  scale,
+																			  False)),
+									  image.width*(scale/rsg.imager.defaultScaleFactor),
+									  image.height*(scale/rsg.imager.defaultScaleFactor), image.depth)
+
+				newImage._scaleFactor = scale
+				newImage._source = source
+
+				allNewImages.append(newImage)
+
+				#Simple copy
+				if newImage._scaleFactor == rsg.imager.defaultScaleFactor:
+					copy(image.path, newImage.path)
+				else:
+					imagesToResizeSource.append(image)
+					imagesToResizeDest.append(newImage)
+
+
+		#Do the resize
+		with ProcessPoolExecutor() as executor:
+				for i in executor.map(_scale, [image.path for image in imagesToResizeSource],
+									  [image.path for image in imagesToResizeDest], [image._scaleFactor for image in imagesToResizeDest],
+									  [rsg.imager.defaultScaleFactor for x in imagesToResizeSource]):
 					pass
 
-			for invertedName, original, source in zip(invertedNames, images, sources):
-				invertedImage = Image(os.path.basename(invertedName), None)
-				invertedImage.path=invertedName
-				invertedImage.width=original.width
-				invertedImage.height=original.height
-				invertedImage.depth=original.depth
-				invertedImage._cropped=original._cropped
-#				pdb.set_trace()
-				db.setResource(source, [self.resourceType, 'inverted', scale], invertedImage)
+		for newImage in allNewImages:
+			db.setResource(newImage._source, [self.resourceType, 'orig', newImage._scaleFactor], newImage)
 
 
+		#Now invert
+		if self.shouldInvert:
+			allInvertedImages = []
+			for origImage in allNewImages:
+				newImage = self.makeImage(os.path.join(tempdir, self.__newNameFromOrig(origImage.path,
+																					  scale,
+																			  True)),
+									  origImage.width, origImage.height, origImage.depth)
+				allInvertedImages.append(newImage)
+
+			with ProcessPoolExecutor() as executor:
+					for i in executor.map(_invert, [image.path for image in allNewImages], [image.path for image in allInvertedImages]):
+						pass
+
+			for origImage, newImage in zip(allNewImages, allInvertedImages):
+				db.setResource(origImage._source, [self.resourceType, 'inverted', origImage._scaleFactor], newImage)
+
+
+	def makeImage(self, path, width, height, depth, cropped=True):
+		image = Image(os.path.basename(path), None)
+		image.path = path
+		image.width = width
+		image.height = height
+		image.depth = depth
+		image._cropped = cropped
+		return image
+
+	def __newNameFromOrig(self, name, size, inverted):
+		dir, base=os.path.split(name)
+		fname, ext = os.path.splitext(base)
+
+		newName = '%s_%dx' % (fname, size)
+
+		if inverted:
+			newName += '_inverted'
+
+		newName += '%s' % ext
+
+		return newName
 
 
 
@@ -171,7 +238,8 @@ class ResourceGenerator(resources.ResourceGenerator):
 	## 	if not imager:
 	## 		log.warning('No imager command is configured.  ' +
 	## 					'No images will be created.')
-	## 		return []
+	## 		return []x
+
 
 	## 	cwd = os.getcwd()
 
