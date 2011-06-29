@@ -185,10 +185,12 @@ class ResourceDB(object):
 	def __loadResourceDB(self, debug = False):
 		if os.path.isfile(self.__indexPath):
 			try:
+				print "Loading resource data from %s" % self.__indexPath
+				
 				self.__db = cPickle.load(open(self.__indexPath, 'r'))
 				for key, value in self.__db.items():
 					if debug:
-						print "Loading %s from %s" % (key, os.path.join(self.__dbpath,value.path))
+						print "Checking key %s at %s" % (key, os.path.join(self.__dbpath,value.path))
 						
 					if not os.path.exists(os.path.join(self.__dbpath,value.path)):
 						print 'Deleting resources for %s %s'% (key, os.path.join(self.__dbpath,value.path))
