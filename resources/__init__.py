@@ -31,12 +31,11 @@ from collections import defaultdict
 
 class Resource(object):
 
-	url=None
-	resourceSet=None
-
-	def __init__(self, path):
-		self.path=path
-		self.checksum=None
+	def __init__(self, path, url=None, resourceSet=None, checksum=None):
+		self.url = url
+		self.path = path
+		self.checksum = checksum
+		self.resourceSet = resourceSet
 
 	def __str__(self):
 		return '%s' % self.path
@@ -46,9 +45,9 @@ class ResourceSet(object):
 	def __init__(self, source):
 		m = md5()
 		m.update(str(source))
+		self.resources = {}
+		self.source = source
 		self.path = str(m.hexdigest())
-		self.resources={}
-		self.source=source
 
 	def getTypes(self):
 		return self.resources.keys()
@@ -259,8 +258,6 @@ class ResourceDB(object):
 		resource.path = name
 		resource.filename = name
 		resource.resourceSet = rs
-
-		resource.url = None
 		resource.url = self.urlForResource(resource)
 
 		if debug:
