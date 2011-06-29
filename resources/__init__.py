@@ -40,25 +40,34 @@ class Resource(object):
 	def __str__(self):
 		return '%s' % self.path
 
+
+def resourceSetDigest(source):
+	m = md5()
+	m.update(str(source))
+	return str(m.hexdigest())
+# resourceSetDigest
+
 class ResourceSet(object):
 
 	def __init__(self, source):
-		m = md5()
-		m.update(str(source))
 		self.resources = {}
 		self.source = source
-		self.path = str(m.hexdigest())
+		self.path = resourceSetDigest(source)
 
 	def getTypes(self):
 		return self.resources.keys()
 
 	def __str__(self):
 		return '%s' % self.resources
+#ResourceSet
 
 class ResourceDB(object):
 
 	dirty = False
+	
+	#key digest cache
 	keydigest = {}
+	
 	types = {'mathjax_inline': 'tex2html',\
 			 'mathjax_display': 'displaymath2html',\
 			 'svg': 'pdf2svg',\
@@ -204,6 +213,29 @@ class ResourceDB(object):
 
 		print 'Loaded %s keys' % len(self.__db.keys())
 
+	def hasResource(self, source, keys):
+		path = self.getResourcePath(source, keys)
+		return True if path else False
+
+	def getResourceContent(self, source, keys):
+		path = self.getResourcePath(source, keys)
+		if path:
+			with open(path, "rb") as f:
+				return f.read()
+		return None
+	
+	def getResourcePath(self, source, keys):
+		if source in self.__db:
+			rsrcSet = self.__db[source]
+			digest = self.__keysDigest(keys)
+			resourcePath = os.path.join(self.__dbpath, rsrcSet.path)
+			
+			for name in os.listdir(resourcePath):
+				if name.startswith(digest):
+					path = os.path.join(resourcePath, name)
+					return path
+		return None
+		
 	def saveResourceDB(self):
 		if not os.path.isdir(os.path.dirname(self.__indexPath)):
 			os.makedirs(os.path.dirname(self.__indexPath))
@@ -241,14 +273,8 @@ class ResourceDB(object):
 	def __storeResource(self, rs, keys, origResource, debug = False):
 
 		resource = cp.deepcopy(origResource)
-
-		dkey = ' '.join(map(str, keys))
-		if not dkey in self.keydigest:
-			m = md5()
-			m.update(dkey)
-			self.keydigest[dkey] = str(m.hexdigest())
 		
-		digest = self.keydigest[dkey]
+		digest = self.__keysDigest(keys)
 		name = '%s%s' % (digest, os.path.splitext(resource.path)[1])
 
 		relativeToDB = os.path.join(rs.path, name)
@@ -273,7 +299,21 @@ class ResourceDB(object):
 			self.baseURL=''
 
 		return '%s%s/%s'% (self.baseURL, resource.resourceSet.path, resource.path)
-
+	
+	def __keysDigest(self, keys, cache = True):
+		skeys = sorted(map(str, keys))
+		dkey = ' '.join(skeys)
+		if not dkey in self.keydigest:
+			m = md5()
+			m.update(dkey)
+			digest = str(m.hexdigest())
+			if cache:
+				self.keydigest[dkey] = digest
+			return digest
+		else:
+			return self.keydigest[dkey]
+		
+#ResourceDB
 
 class BaseResourceSetGenerator(object):
 
