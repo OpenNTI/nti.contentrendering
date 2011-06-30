@@ -77,7 +77,13 @@ class ResourceSet(object):
 		self.source = source
 		self.path = digester.digest(source)
 
-	def setResource(resource, keys):
+	def setResource(self, resource, keys):
+		#FIXME caching relies on being able to tell which resourceTypes
+		#We have already generated.  We used to just be able to inspect
+		#The resources dict keys but now they are md5
+
+		resource.resourceType = keys[0]
+
 		self.resources[digester.digestKeys(keys)] = resource
 
 	def getResource(keys):
@@ -156,8 +162,17 @@ class ResourceDB(object):
 		for node in nodesToGenerate:
 			for rType in node.resourceTypes:
 				# We don't want to regenerate for source that already esists
-				if not node.source in self.__db or not rType in self.__db[node.source].resources:
+				if not node.source in self.__db:
 					typesToSource[rType].add(node.source)
+				else:
+					hasType = False
+					for resourceKey, resource in self.__db[node.source].resources.items():
+						resourceType = getattr(resource, 'resourceType', None)
+						if resourceType == rType:
+							hasType = True
+							break;
+					if not hasType:
+						typesToSource[rType].add(node.source)
 
 		print typesToSource
 
@@ -242,7 +257,7 @@ class ResourceDB(object):
 
 		resourceSet = self.__db[source]
 
-		resourceSet.resources[digester.digestKeys(keys)] = self.__storeResource(resourceSet, keys, resource, debug)
+		resourceSet.setResource(self.__storeResource(resourceSet, keys, resource, debug), keys)
 
 
 
