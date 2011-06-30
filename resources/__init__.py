@@ -222,7 +222,7 @@ class ResourceDB(object):
 			try:
 				print "Loading resource data from %s" % self.__indexPath
 
-				self.__db = cPickle.load(open(self.__indexPath, 'r'))
+				self.__db = cPickle.load(open(self.__indexPath, 'rb'))
 
 				for key, value in self.__db.items():
 					if debug:
@@ -295,7 +295,7 @@ class ResourceDB(object):
 			return
 
 		print 'saving %s keys.' % len(self.__db.keys())
-		cPickle.dump(self.__db, open(self.__indexPath,'w'))
+		cPickle.dump(self.__db, open(self.__indexPath,'wb'))
 
 	def __getResourceSet(self, source):
 		if source in self.__db:
