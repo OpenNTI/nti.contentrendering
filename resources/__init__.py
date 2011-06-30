@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, time, tempfile, shutil, re, string, cPickle, codecs, pdb
+import os, time, tempfile, shutil, re, string, codecs, pdb
 import subprocess, shlex, uuid
 import copy as cp
 import plasTeX.Imagers
@@ -10,6 +10,11 @@ try:
 except ImportError:
 	from md5 import new as md5
 
+try:
+	import cPickle as mPickle 
+except ImportError:
+	import pickle as mPickle
+	
 from StringIO import StringIO
 from plasTeX.Logging import getLogger
 from plasTeX.Filenames import Filenames
@@ -222,7 +227,7 @@ class ResourceDB(object):
 			try:
 				print "Loading resource data from %s" % self.__indexPath
 
-				self.__db = cPickle.load(open(self.__indexPath, 'rb'))
+				self.__db = mPickle.load(open(self.__indexPath, 'rb'))
 
 				for key, value in self.__db.items():
 					if debug:
@@ -295,7 +300,7 @@ class ResourceDB(object):
 			return
 
 		print 'saving %s keys.' % len(self.__db.keys())
-		cPickle.dump(self.__db, open(self.__indexPath,'wb'))
+		mPickle.dump(self.__db, open(self.__indexPath,'wb'))
 
 	def __getResourceSet(self, source):
 		if source in self.__db:
