@@ -83,15 +83,14 @@ class ResourceSet(object):
 		#The resources dict keys but now they are md5
 
 		resource.resourceType = keys[0]
-
 		self.resources[digester.digestKeys(keys)] = resource
 
-	def getResource(keys):
-		if hasResource(keys):
+	def getResource(self, keys):
+		if self.hasResource(keys):
 			return self.resources[digester.digestKeys(keys)]
 		return None
 
-	def hasResource(keys):
+	def hasResource(self,keys):
 		return digester.digestKeys(keys) in self.resources
 
 	def __str__(self):
@@ -101,8 +100,6 @@ class ResourceSet(object):
 class ResourceDB(object):
 
 	dirty = False
-
-
 
 	types = {'mathjax_inline': 'tex2html',\
 			 'mathjax_display': 'displaymath2html',\
@@ -166,7 +163,7 @@ class ResourceDB(object):
 					typesToSource[rType].add(node.source)
 				else:
 					hasType = False
-					for resourceKey, resource in self.__db[node.source].resources.items():
+					for resource in self.__db[node.source].resources.values():
 						resourceType = getattr(resource, 'resourceType', None)
 						if resourceType == rType:
 							hasType = True
