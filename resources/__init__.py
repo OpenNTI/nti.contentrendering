@@ -7,10 +7,10 @@ import plasTeX.Imagers
 
 try:
 	from hashlib import md5
-except ImportError: 
+except ImportError:
 	from md5 import new as md5
 
-from StringIO import StringIO	
+from StringIO import StringIO
 from plasTeX.Logging import getLogger
 from plasTeX.Filenames import Filenames
 from plasTeX.dictutils import ordereddict
@@ -41,21 +41,52 @@ class Resource(object):
 		return '%s' % self.path
 
 
-def resourceSetDigest(source):
-	m = md5()
-	m.update(str(source))
-	return str(m.hexdigest())
-# resourceSetDigest
+#key digest cache
+class CachingDigester(object):
+	cachingEnabled = True
+
+	digestCache = {}
+
+
+	def digestKeys(self, toDigests):
+		skeys = sorted(map(str, toDigests))
+		dkey = ' '.join(skeys)
+
+		return self.digest(dkey)
+
+	def digest(self, toDigest):
+
+		if toDigest in self.digestCache:
+			return self.digestCache[toDigest]
+
+		m = md5()
+		m.update(toDigest)
+		digest = str(m.hexdigest())
+
+		if self.cachingEnabled:
+			self.digestCache[toDigest] = digest
+
+		return digest
+
+digester = CachingDigester()
 
 class ResourceSet(object):
 
 	def __init__(self, source):
 		self.resources = {}
 		self.source = source
-		self.path = resourceSetDigest(source)
+		self.path = digester.digest(source)
 
-	def getTypes(self):
-		return self.resources.keys()
+	def setResource(resource, keys):
+		self.resources[digester.digestKeys(keys)] = resource
+
+	def getResource(keys):
+		if hasResource(keys):
+			return self.resources[digester.digestKeys(keys)]
+		return None
+
+	def hasResource(keys):
+		return digester.digestKeys(keys) in self.resources
 
 	def __str__(self):
 		return '%s' % self.resources
@@ -64,10 +95,9 @@ class ResourceSet(object):
 class ResourceDB(object):
 
 	dirty = False
-	
-	#key digest cache
-	keydigest = {}
-	
+
+
+
 	types = {'mathjax_inline': 'tex2html',\
 			 'mathjax_display': 'displaymath2html',\
 			 'svg': 'pdf2svg',\
@@ -99,6 +129,8 @@ class ResourceDB(object):
 		if not os.path.isdir(self.__dbpath):
 			os.makedirs(self.__dbpath)
 
+		print self.__dbpath
+
 		log.info('Using %s as resource db' % self.__dbpath)
 
 		self.__indexPath = os.path.join(self.__dbpath, 'resources.index')
@@ -110,22 +142,6 @@ class ResourceDB(object):
 	def __str__(self):
 		return '%s'%self.__db
 
-	def getResourceSet(self, node):
-		if node.source in self.__db:
-			return self.__db[node.source]
-		else:
-			return None
-
-	def contentsAsString(self, resource):
-		resourceLoc = os.path.join(os.path.join(self.__dbpath, resource.resourceSet.path), resource.path)
-
-		resource = codecs.open(resourceLoc, 'r', 'utf-8')
-
-		rString=resource.read()
-
-		resource.close()
-
-		return rString
 
 	def generateResourceSets(self):
 
@@ -190,16 +206,17 @@ class ResourceDB(object):
 		return list(set(nodes))
 
 
-	def __loadResourceDB(self, debug = False):
+	def __loadResourceDB(self, debug = True):
 		if os.path.isfile(self.__indexPath):
 			try:
 				print "Loading resource data from %s" % self.__indexPath
-				
+
 				self.__db = cPickle.load(open(self.__indexPath, 'r'))
+
 				for key, value in self.__db.items():
 					if debug:
 						print "Checking key %s at %s" % (key, os.path.join(self.__dbpath,value.path))
-						
+
 					if not os.path.exists(os.path.join(self.__dbpath,value.path)):
 						print 'Deleting resources for %s %s'% (key, os.path.join(self.__dbpath,value.path))
 						del self.__db[key]
@@ -213,29 +230,54 @@ class ResourceDB(object):
 
 		print 'Loaded %s keys' % len(self.__db.keys())
 
-	def hasResource(self, source, keys):
-		path = self.getResourcePath(source, keys)
-		return True if path else False
+	def setResource(self, source, keys, resource, debug = False):
 
-	def getResourceContent(self, source, keys):
-		path = self.getResourcePath(source, keys)
-		if path:
-			with open(path, "rb") as f:
-				return f.read()
-		return None
-	
-	def getResourcePath(self, source, keys):
-		if source in self.__db:
-			rsrcSet = self.__db[source]
-			digest = self.__keysDigest(keys)
-			resourcePath = os.path.join(self.__dbpath, rsrcSet.path)
-			
-			for name in os.listdir(resourcePath):
-				if name.startswith(digest):
-					path = os.path.join(resourcePath, name)
-					return path
-		return None
-		
+		self.dirty = True
+
+		if debug:
+			print "Saving '%s', keys=%s, resource=.../%s" % (source, keys, str(resource)[-40:])
+
+		if not source in self.__db:
+			self.__db[source]=ResourceSet(source)
+
+		resourceSet = self.__db[source]
+
+		resourceSet.resources[digester.digestKeys(keys)] = self.__storeResource(resourceSet, keys, resource, debug)
+
+
+
+	def __storeResource(self, rs, keys, origResource, debug = False):
+
+		resource = cp.deepcopy(origResource)
+
+		digest = digester.digestKeys(keys)
+		name = '%s%s' % (digest, os.path.splitext(resource.path)[1])
+
+		relativeToDB = os.path.join(rs.path, name)
+
+		newpath = os.path.join(self.__dbpath, relativeToDB)
+		copy(resource.path, newpath)
+		resource.path = name
+		resource.filename = name
+		resource.resourceSet = rs
+		resource.url = self.urlForResource(resource)
+
+		if debug:
+			print "\t=> url=%s" % resource.url
+
+		return resource
+
+	def urlForResource(self, resource):
+		if self.baseURL and not self.baseURL.endswith('/'):
+			self.baseURL='%s/'%self.baseURL
+
+		if not self.baseURL:
+			self.baseURL=''
+
+		return '%s%s/%s'% (self.baseURL, resource.resourceSet.path, resource.path)
+
+
+
 	def saveResourceDB(self):
 		if not os.path.isdir(os.path.dirname(self.__indexPath)):
 			os.makedirs(os.path.dirname(self.__indexPath))
@@ -247,72 +289,58 @@ class ResourceDB(object):
 		print 'saving %s keys.' % len(self.__db.keys())
 		cPickle.dump(self.__db, open(self.__indexPath,'w'))
 
+	def __getResourceSet(self, source):
+		if source in self.__db:
+			return self.__db[source]
+		return None
 
-	def setResource(self, source, keys, resource, debug = False):
+	def hasResource(self, source, keys):
+		rsrcSet = self.__getResourceSet(source)
 
-		self.dirty = True
+		if not rsrcSet:
+			return None
 
-		if debug:
-			print "Saving '%s', keys=%s, resource=.../%s" % (source, keys, str(resource)[-40:])
-			
-		if not source in self.__db:
-			self.__db[source]=ResourceSet(source)
+		return rsrcSet.hasResource(keys)
 
-		resourceSet = self.__db[source]
-		resources= resourceSet.resources
+	def getResourceContent(self, source, keys):
+		path = self.getResourcePath(source, keys)
+		if path:
+			with codecs.open(path, 'r', 'utf-8') as f:
+				return f.read()
+		return None
 
-		lastKey=keys[-1:][0]
+	def getResource(self, source, keys):
 
-		for key in keys[:-1]:
-			if not key in resources:
-				resources[key]={}
-			resources=resources[key]
+		rsrcSet = self.__db[source]
 
-		resources[lastKey] = self.__storeResource(resourceSet, keys, resource, debug)
-		
-	def __storeResource(self, rs, keys, origResource, debug = False):
+		if rsrcSet == None:
+			return None
 
-		resource = cp.deepcopy(origResource)
-		
-		digest = self.__keysDigest(keys)
-		name = '%s%s' % (digest, os.path.splitext(resource.path)[1])
+		return rsrcSet.resources[digester.digestKeys(keys)]
 
-		relativeToDB = os.path.join(rs.path, name)
-		
-		newpath = os.path.join(self.__dbpath, relativeToDB)
-		copy(resource.path, newpath)
-		resource.path = name
-		resource.filename = name
-		resource.resourceSet = rs
-		resource.url = self.urlForResource(resource)
+	def getResourcePath(self, source, keys):
+		rsrcSet = self.__getResourceSet(source)
 
-		if debug:
-			print "\t=> url=%s" % resource.url
-			
-		return resource
+		if not rsrcSet:
+			return None
 
-	def urlForResource(self, resource):
-		if self.baseURL and not self.baseURL.endswith('/'):
-			self.baseURL='%s/'%self.baseURL
 
-		if not self.baseURL:
-			self.baseURL=''
+		digest = digester.digestKeys(keys)
+		resourcePath = os.path.join(self.__dbpath, rsrcSet.path)
 
-		return '%s%s/%s'% (self.baseURL, resource.resourceSet.path, resource.path)
-	
-	def __keysDigest(self, keys, cache = True):
-		skeys = sorted(map(str, keys))
-		dkey = ' '.join(skeys)
-		if not dkey in self.keydigest:
-			m = md5()
-			m.update(dkey)
-			digest = str(m.hexdigest())
-			if cache:
-				self.keydigest[dkey] = digest
-			return digest
-		else:
-			return self.keydigest[dkey]
-		
+		for name in os.listdir(resourcePath):
+			if name.startswith(digest):
+				path = os.path.join(resourcePath, name)
+				return path
+
+		return None
+
+
+
+
+
+
+
 #ResourceDB
 
 class BaseResourceSetGenerator(object):

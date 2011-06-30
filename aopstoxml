@@ -107,8 +107,7 @@ from resources.ResourceRenderer import createResourceRenderer
 
 def render(document, rname, db):
 	# Apply renderer
-	renderer = createResourceRenderer(rname)
-	renderer.resourcedb=db
+	renderer = createResourceRenderer(rname, db)
 	renderer.render(document)
 
 def toXml( document, jobname ):

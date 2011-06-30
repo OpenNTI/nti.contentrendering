@@ -8,7 +8,7 @@ import os
 log = getLogger()
 import pdb
 
-def createResourceRenderer(baserenderername):
+def createResourceRenderer(baserenderername, resourcedb):
 	# Load renderer
 	try:
 		exec('from plasTeX.Renderers.%s import Renderer' % baserenderername)
@@ -20,6 +20,7 @@ def createResourceRenderer(baserenderername):
 	BaseRenderer.render = renderDocument
 	BaseRenderer.renderableClass = Renderable
 	renderer = Renderer()
+	renderer.resourcedb = resourcedb
 
 
 	return renderer
@@ -80,10 +81,8 @@ def renderDocument(self, document, postProcess=None):
 
 class Renderable(BaseRenderable):
 
-
 	@property
 	def image(self):
-
 
 		return self.getResource(['png', 'orig', 1])
 
@@ -93,25 +92,12 @@ class Renderable(BaseRenderable):
 
 
 	def contents(self, criteria):
-		return self.renderer.resourcedb.contentsAsString(self.getResource(criteria))
+		#print 'getting contents for %s'%self.source
+		return self.renderer.resourcedb.getResourceContent(self.source, criteria)
+
 
 	def getResource(self, criteria):
-		rs = self.getResourceSet()
-
-		resource=None
-
-		if rs:
-			try:
-				resources=rs.resources
-				for crit in criteria:
-					resources=resources[crit]
-
-				resource=resources
-			except KeyError:
-				log.warning('resource for criteria %s does not exist for node %s'%(criteria, self))
-				return None
-		return resource
+		#print 'calling getResource on %s for %s' % (self.source, criteria)
+		return Node.renderer.resourcedb.getResource(self.source, criteria)
 
 
-	def getResourceSet(self):
-		return Node.renderer.resourcedb.getResourceSet(self)
