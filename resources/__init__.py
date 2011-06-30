@@ -47,7 +47,6 @@ class CachingDigester(object):
 
 	digestCache = {}
 
-
 	def digestKeys(self, toDigests):
 		skeys = sorted(map(str, toDigests))
 		dkey = ' '.join(skeys)
@@ -90,7 +89,7 @@ class ResourceSet(object):
 			return self.resources[digester.digestKeys(keys)]
 		return None
 
-	def hasResource(self,keys):
+	def hasResource(self, keys):
 		return digester.digestKeys(keys) in self.resources
 
 	def __str__(self):
@@ -257,7 +256,6 @@ class ResourceDB(object):
 		resourceSet.setResource(self.__storeResource(resourceSet, keys, resource, debug), keys)
 
 
-
 	def __storeResource(self, rs, keys, origResource, debug = False):
 
 		resource = cp.deepcopy(origResource)
@@ -287,8 +285,6 @@ class ResourceDB(object):
 			self.baseURL=''
 
 		return '%s%s/%s'% (self.baseURL, resource.resourceSet.path, resource.path)
-
-
 
 	def saveResourceDB(self):
 		if not os.path.isdir(os.path.dirname(self.__indexPath)):
@@ -346,12 +342,6 @@ class ResourceDB(object):
 				return path
 
 		return None
-
-
-
-
-
-
 
 #ResourceDB
 
@@ -589,7 +579,4 @@ def copy(source, dest, debug=True):
 		shutil.copy(source, dest)
 
 #End copy
-
-
-
 
