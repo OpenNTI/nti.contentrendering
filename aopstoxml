@@ -8,6 +8,7 @@ import pdb
 from plasTeX.ConfigManager import *
 import datetime
 log = getLogger()
+import transforms.xymatrix as transxy
 
 
 
@@ -21,8 +22,6 @@ def main(argv):
 
 	if argv:
 		outFormat = argv.pop(0)
-
-	#Use transperant images
 
 
 	# Create document instance that output will be put into
@@ -52,7 +51,6 @@ def main(argv):
 
 	# Parse the document
 	tex.parse()
-
 	# Set up TEXINPUTS to include the current directory for the renderer
 	os.environ['TEXINPUTS'] = '%s%s%s%s' % (os.getcwd(), os.pathsep,
 										 os.environ.get('TEXINPUTS',''), os.pathsep)
@@ -83,6 +81,7 @@ def main(argv):
 
 import tociconsetter
 import contentsizesetter
+
 
 def postRender(document):
 	print 'Performing post render steps'
@@ -119,6 +118,9 @@ import string
 
 def transform( document, mathml=False ):
 	""" Applies DOM transformations to the document. """
+
+	#Fix up the xymatrix
+	transxy.transform(document)
 
 	##Temporarily disable math transformation.  We have no rendering for them.
 

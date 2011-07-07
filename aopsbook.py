@@ -122,6 +122,9 @@ class text(Base.BoxCommand):
 		self.arguments[0].options['stripLeadingWhitespace']=True
 		print self.arguments
 
+	def parse(self, tex):
+		return super(text, self).parse(tex)
+
 	def invoke( self, tex ):
 		return super(text,self).invoke( tex )
 
@@ -492,10 +495,6 @@ Math.displaymath.resourceTypes = displayMathTypes
 #Math.EqnarrayStar.resourceTypes=displayMathTypes
 
 
-#TODO this xymatrix junk is not right but it allows us to get past it for now
-class xymatrix(Base.Command):
-	args='text:str'
-
 from plasTeX.Packages.fancybox import *
 
 from plasTeX.Packages.graphicx import *
@@ -521,10 +520,14 @@ class rightpic(includegraphics):
 class leftpic(rightpic):
 	pass
 
-## Parpic takes more arguments than rightpic/includegraphics does. If we don't
-## parse them, we get yick in the DOM/HTML
-class parpic(includegraphics):
-	args = '* [ options:dict ] file:str'
+
+class parpic(Base.Command):
+	args = '( size:dimen ) ( offset:dimen ) [Options:str] [Position] {Picture}'
+
+	def invoke(self, tex):
+		res = super( parpic, self).invoke(tex)
+
+		return res
 
 
 class fig(Base.figure):
@@ -539,9 +542,6 @@ class hint(Crossref.label):
 	def invoke( self, tex ):
 		res = super( hint, self ).invoke( tex )
 		return res
-
-class xymatrix(Base.Command):
-	args='source:nox'
 
 class thehints(Base.List):
 	# We keep counters but ignore them
