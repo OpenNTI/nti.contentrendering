@@ -107,6 +107,12 @@ class Def(_OneText):
 class Defnoindex(_OneText):
 	args = 'text'
 
+class defn(Base.Environment):
+	pass
+
+class defns(Base.Environment):
+	pass
+
 class cancel(Base.Command):
 	args = 'text'
 

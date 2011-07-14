@@ -11,10 +11,10 @@ except ImportError:
 	from md5 import new as md5
 
 try:
-	import cPickle as mPickle 
+	import cPickle as mPickle
 except ImportError:
 	import pickle as mPickle
-	
+
 from StringIO import StringIO
 from plasTeX.Logging import getLogger
 from plasTeX.Filenames import Filenames
@@ -136,7 +136,6 @@ class ResourceDB(object):
 		if not os.path.isdir(self.__dbpath):
 			os.makedirs(self.__dbpath)
 
-		print self.__dbpath
 
 		log.info('Using %s as resource db' % self.__dbpath)
 
@@ -175,7 +174,6 @@ class ResourceDB(object):
 					if not hasType:
 						typesToSource[rType].add(node.source)
 
-		print typesToSource
 
 		for rType, sources in typesToSource.items():
 			self.__generateResources(rType, sources)
@@ -189,7 +187,6 @@ class ResourceDB(object):
 		if not generator:
 			return
 
-		print 'Generating %s resources' % resourceType
 		generator.generateResources(sources, self)
 
 	def __loadGenerator(self, resourceType):
@@ -205,9 +202,8 @@ class ResourceDB(object):
 
 	def __findNodes(self, node):
 		nodes=[]
-		#print 'looking at node %s'%node
+
 		if getattr(node, 'resourceTypes', None):
-		#	print '****** Found resource types %s'%node.resourceTypes
 			nodes.append(node)
 
 		if getattr(node, 'attributes', None):
@@ -225,16 +221,12 @@ class ResourceDB(object):
 	def __loadResourceDB(self, debug = True):
 		if os.path.isfile(self.__indexPath):
 			try:
-				print "Loading resource data from %s" % self.__indexPath
 
 				self.__db = mPickle.load(open(self.__indexPath, 'rb'))
 
 				for key, value in self.__db.items():
-					if debug:
-						print "Checking key %s at %s" % (key, os.path.join(self.__dbpath,value.path))
 
 					if not os.path.exists(os.path.join(self.__dbpath,value.path)):
-						print 'Deleting resources for %s %s'% (key, os.path.join(self.__dbpath,value.path))
 						del self.__db[key]
 						continue
 			except ImportError:
@@ -244,14 +236,10 @@ class ResourceDB(object):
 		else:
 			self.__db={}
 
-		print 'Loaded %s keys' % len(self.__db.keys())
 
 	def setResource(self, source, keys, resource, debug = False):
 
 		self.dirty = True
-
-		if debug:
-			print "Saving '%s', keys=%s, resource=.../%s" % (source, keys, str(resource)[-40:])
 
 		if not source in self.__db:
 			self.__db[source]=ResourceSet(source)
@@ -277,8 +265,6 @@ class ResourceDB(object):
 		resource.resourceSet = rs
 		resource.url = self.urlForResource(resource)
 
-		if debug:
-			print "\t=> url=%s" % resource.url
 
 		return resource
 
@@ -296,10 +282,8 @@ class ResourceDB(object):
 			os.makedirs(os.path.dirname(self.__indexPath))
 
 		if not self.dirty:
-			print 'Nothing to save'
 			return
 
-		print 'saving %s keys.' % len(self.__db.keys())
 		mPickle.dump(self.__db, open(self.__indexPath,'wb'))
 
 	def __getResourceSet(self, source):
@@ -479,10 +463,7 @@ class BaseResourceGenerator(object):
 
 		size = len(generatableSources)
 		if not size > 0:
-			print 'No sources to generate'
 			return
-		else:
-			print 'Generating %s sources for %s' % (size, self.resourceType)
 
 		encoding = self.document.config['files']['input-encoding']
 		generator = self.createResourceSetGenerator(self.compiler, encoding)
@@ -495,8 +476,6 @@ class BaseResourceGenerator(object):
 
 	def storeResources(self, tuples, db, debug=False):
 		for source, resource in tuples:
-			if debug:
-				print "%s -- %s" % (source, resource)
 			db.setResource(source, self.storeKeys(), resource)
 
 	def canGenerate(self, source):
@@ -555,7 +534,6 @@ class ImagerResourceGenerator(BaseResourceGenerator):
 		return ImagerResourceSetGenerator(self.createImager(),  batch)
 
 	def createImager(self):
-		print 'creating imager from %s' % self.imagerClass
 		newImager = self.imagerClass(self.document)
 
 		#create a tempdir for the imager to right images to
@@ -572,9 +550,6 @@ class ImagerResourceGenerator(BaseResourceGenerator):
 #End ImagerResourceGenerator
 
 def copy(source, dest, debug=True):
-
-	if debug:
-		print 'Copying %s to %s' % (source, dest)
 
 	if not os.path.exists(os.path.dirname(dest)):
 		os.makedirs(os.path.dirname(dest))
