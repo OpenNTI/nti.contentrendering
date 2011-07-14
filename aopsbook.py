@@ -118,9 +118,7 @@ class text(Base.BoxCommand):
 	args = '{self}'
 
 	def __init__(self):
-		#pdb.set_trace()
 		self.arguments[0].options['stripLeadingWhitespace']=True
-		print self.arguments
 
 	def parse(self, tex):
 		return super(text, self).parse(tex)
@@ -406,7 +404,6 @@ class reviewprobs(Base.section):
 	#counter = 'probnum'
 
 	def invoke(self, tex):
-		print 'Invoking review progs'
 		#pdb.set_trace();
 		#Attach a title to this "section"
 		docFragment = self.ownerDocument.createDocumentFragment();
@@ -429,7 +426,6 @@ class challengeprobs(Base.section):
 	args = ''
 	#counter = 'probnum'
 	def invoke(self, tex):
-		print 'Invoking chall progs'
 		#pdb.set_trace()
 		docFragment = self.ownerDocument.createDocumentFragment();
 		docFragment.appendText(["Challenge Problems"]);
@@ -621,7 +617,6 @@ class index(Index.index):
 		if self.ownerDocument.context.isMathMode:
 			self.ownerDocument.userdata['index'].pop()
 			result = []
-			print 'Ignoring index in math!!!'
 		return result
 
 def ProcessOptions( options, document ):
