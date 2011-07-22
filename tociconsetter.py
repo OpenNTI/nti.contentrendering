@@ -151,8 +151,8 @@ def setBackgroundImage(sourceFile, imageName):
 	if not os.path.exists(sourceFile) or not os.access(sourceFile, os.O_RDWR):
 		return False
 	
-	replace = r"<body style=\"background: url('images\/chapters\/" + imageName + r"') no-repeat\">"
-	command = "sed -i .bkp \"s/<body.*>/" + replace + "/g\" ";
+	replace = r"<body \\1 style=\"background: url('images\/chapters\/" + imageName + r"') no-repeat\">"
+	command = "sed -i .bkp \"s/<body \\(.*\\)>/" + replace + "/g\" ";
 	
 	os.popen(command + sourceFile)
 	os.remove(sourceFile + ".bkp")
