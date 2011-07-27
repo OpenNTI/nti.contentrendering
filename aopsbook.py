@@ -132,6 +132,7 @@ class text(Base.BoxCommand):
 	def invoke( self, tex ):
 		return super(text,self).invoke( tex )
 
+
 #TODO does this get handled like ^
 class textsuperscript(Base.Command):
 	args = 'text:str'
@@ -495,6 +496,44 @@ Math.displaymath.resourceTypes = displayMathTypes
 #Math.equation.resourceTypes=displayMathTypes
 #Math.eqnarray.resourceTypes=displayMathTypes
 #Math.EqnarrayStar.resourceTypes=displayMathTypes
+
+
+#for \nth, \nst, \nrd, etc..
+class nsuperscript(Base.Command):
+	resourceTypes = inlineMathTypes
+	args = 'text'
+
+	#We need to store if we are inside math mode
+	def invoke(self, tex):
+		result = super(nsuperscript, self).invoke( tex )
+	   	self.insideMathElement = self.ownerDocument.context.isMathMode
+		return result
+
+	#We want to be treated as math for resource generation and rendering
+	#so our source needs to make us look like a math element.  if we are
+	#contained in a math element we get that for free.  If not we have to put
+	#ourselves in math mode using $$
+	@property
+	def source(self):
+		mySource = super(nsuperscript, self).source
+
+		if not self.insideMathElement:
+			mySource = '$%s$' % mySource
+
+		return mySource
+
+class nst(nsuperscript):
+	pass
+
+class nnd(nsuperscript):
+	pass
+
+class nrd(nsuperscript):
+	pass
+
+class nth(nsuperscript):
+	pass
+
 
 
 from plasTeX.Packages.fancybox import *
