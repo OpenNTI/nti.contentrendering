@@ -60,6 +60,9 @@ class CachingDigester(object):
 
 	def digest(self, toDigest):
 
+		#FIXME  Is there something else we should be doing here?
+		toDigest = toDigest.encode('ascii', 'ignore')
+
 		if toDigest in self.digestCache:
 			return self.digestCache[toDigest]
 

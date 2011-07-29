@@ -23,6 +23,13 @@ class rindent(_Ignored):
 class vupnud(_Ignored):
 	pass
 
+class Cube(_OneText):
+	resourceTypes = ['png', 'svg']
+	pass
+
+class BlackCube(Cube):
+	pass
+
 class picskip(Base.Command):
 	args = ' {text:int} '
 
@@ -477,6 +484,13 @@ class challhard(Base.subsection):
 		res = super(challhard,self).invoke( tex )
 		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
 		return res
+
+from plasTeX.Base import Arrays
+tabularTypes = ['png', 'svg']
+
+Arrays.tabular.resourceTypes = tabularTypes
+Arrays.TabularStar.resourceTypes = tabularTypes
+Arrays.tabularx.resourceTypes = tabularTypes
 
 from plasTeX.Base import Math
 
