@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 tocFileName='eclipse-toc.xml'
 
-javascript = os.path.join('%s'%(os.path.dirname(__file__)),'getContentHeight.js')
+javascript = os.path.join('%s'%(os.path.dirname(__file__)),'getContentSize.js')
 
 contentSizeName = 'NTIRelativeScrollHeight'
 
@@ -51,7 +51,7 @@ def transform(contentLocation):
 	#Generate sizes for all our pages
 	with ProcessPoolExecutor() as executor:
 			for the_tuple in executor.map( getContentSize, htmlFiles):
-				contentSizes[the_tuple[0]]=the_tuple[1]
+				contentSizes[the_tuple[0]]=(the_tuple[1], the_tuple[2])
 
 	print 'Storing generated content sizes'
 	storeContentSizes(contentSizes, rootTOC, contentLocation)
@@ -61,13 +61,15 @@ def transform(contentLocation):
 	rootTOC.writexml(f)
 	f.close()
 
+	return contentSizes
+
 def storeContentSizes(contentSizes, node, contentLocation):
 
 	htmlFile = os.path.join(contentLocation, node.getAttribute('href'))
-	contentSize = contentSizes[htmlFile]
+	contentWidth = contentSizes[htmlFile][0]
 
-	writeContentSizeToMeta(htmlFile, contentSize)
-	node.attributes[contentSizeName]=contentSize
+	writeContentSizeToMeta(htmlFile, contentWidth)
+	node.attributes[contentSizeName]=str(contentWidth)
 
 	for child in node.childNodes:
 		if getattr(child, 'hasAttributes', None) and child.hasAttribute('href'):
@@ -77,12 +79,12 @@ def storeContentSizes(contentSizes, node, contentLocation):
 
 
 
-def writeContentSizeToMeta(htmlFile, contentSize):
+def writeContentSizeToMeta(htmlFile, contentWidth):
 	if htmlFile.startswith('./'):
 		htmlFile = htmlFile[2:]
 
 	command = 'sed -i .bkp \
-					  \"s/\\(<meta name=\\"NTIRelativeScrollHeight\\" content=\\"\\).*\\(\\" \\/>\\)/\\1%s\\2/\" %s' % (contentSize,htmlFile)
+					  \"s/\\(<meta name=\\"NTIRelativeScrollHeight\\" content=\\"\\).*\\(\\" \\/>\\)/\\1%s\\2/\" %s' % (contentWidth,htmlFile)
 
 	#print command
 
@@ -94,8 +96,8 @@ def writeContentSizeToMeta(htmlFile, contentSize):
 		os.remove(htmlFile+'.bkp')
 
 def getContentSize(htmlFile):
-	height = subprocess.Popen( "phantomjs %s %s 2>/dev/null" % (javascript, htmlFile), shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-	return (htmlFile, height)
+	height, width = subprocess.Popen( "phantomjs %s %s 2>/dev/null" % (javascript, htmlFile), shell=True, stdout=subprocess.PIPE).communicate()[0].strip().split()
+	return (htmlFile, int(height), int(width))
 
 def findHTMLInTOC(toc, files):
 	if toc.hasAttribute('href'):

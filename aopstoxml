@@ -89,7 +89,23 @@ def postRender(document):
 	tociconsetter.transform('eclipse-toc.xml','.')
 
 	print 'Adding content height to toc and pages'
-	contentsizesetter.transform('.')
+	contentSizes = contentsizesetter.transform('.')
+
+	print 'Checking page widths within normal bounds'
+
+	badPages = 0
+
+	maxWidth = 730
+
+	for page, size in contentSizes.items():
+		height, width = size
+
+		if width > maxWidth:
+			badPages += 1
+			print '*** WARNING *** Width of %s is outside of bounds.  Maximum width should be %s but it was %s ' % (page, maxWidth, width)
+
+	if badPages == 0:
+		print 'All page sizes within acceptable range'
 
 def nextID(self):
 	ntiid = getattr(self, 'NTIID',-1)
