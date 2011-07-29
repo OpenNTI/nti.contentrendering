@@ -57,7 +57,10 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 	def executeConverter(self, output):
 		open('images.out', 'wb').write(output.read())
 		# Now crop
-		os.system( "pdfcrop --hires --margin 3 images.out images.out" )
+		# We complain about images being raised above the baseline, yet we have the margin set to 3?
+		#os.system( "pdfcrop --hires --margin 3 images.out images.out" )
+		os.system( "pdfcrop --hires images.out images.out" )
+
 		#maxpages = int(subprocess.Popen( "pdfinfo images.out | grep Pages | awk '{print $2}'", shell=True, stdout=subprocess.PIPE).communicate()[0])
 		# Record the fact that we've cropped them (in parallel, getting the size takes time)
 		## with ProcessPoolExecutor() as executor:
@@ -98,7 +101,7 @@ class GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 				img._cropped = True
 				img.width = math.ceil( float(the_tuple[1]) ) / 1.3
 				img.height = math.ceil( float(the_tuple[2]) ) / 1.3
-				img.depth = -3
+				#img.depth = -3
 
 		return res
 
