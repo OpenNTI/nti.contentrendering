@@ -349,6 +349,8 @@ import pdb
 class problem(Base.Environment):
 	args = '[unknown]'
 	counter = 'probnum'
+	forcePars = True
+
 	def invoke( self, tex ):
 		#if self.macroMode != Base.Environment.MODE_END:
 		#	self.refstepcounter(tex)
@@ -363,8 +365,10 @@ class problem(Base.Environment):
 def _digestAndCollect( self, tokens, until ):
 	self.digestUntil(tokens, until )
 	# Force grouping into paragraphs to eliminate the empties
-	self.paragraphs()
+	if getattr(self, 'forcePars', True):
+		self.paragraphs()
 
+from plasTeX.Base import Node
 class sectionproblems(Base.subsection):
 	counter = 'sectionprobsnotused'
 
@@ -375,6 +379,22 @@ class sectionproblems(Base.subsection):
 
 	def digest(self, tokens):
 		_digestAndCollect( self, tokens, nomoresectionproblems )
+
+		#Adapted from Environment.paragraphs
+		for i in range(len(self)-1, -1, -1):
+			item = self[i]
+			# Filter out any empty paragraphs
+			if item.level == Node.PAR_LEVEL:
+				if len(item) == 0:
+					self.pop(i)
+				elif len(item) == 1 and item[0].isElementContentWhitespace:
+					self.pop(i)
+
+			#Filter out any whitespace text nodes
+			elif item.nodeType == Node.TEXT_NODE:
+				if item.isElementContentWhitespace:
+					self.pop(i)
+
 
 
 class picsecprobspec(_BasePicProblem):
