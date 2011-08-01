@@ -350,6 +350,7 @@ class problem(Base.Environment):
 	args = '[unknown]'
 	counter = 'probnum'
 	forcePars = True
+	blockType = True
 
 	def invoke( self, tex ):
 		#if self.macroMode != Base.Environment.MODE_END:
