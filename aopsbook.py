@@ -43,10 +43,10 @@ class picskip(Base.Command):
 		return super(picskip,self).digest( tokens )
 
 ## class newline(Base.Command):
-## 	macroName = '\\'
+##	macroName = '\\'
 
-## 	def toXML(self):
-## 		return '<newline/>'
+##	def toXML(self):
+##		return '<newline/>'
 
 def digestUntilNextTextSize(self, tokens):
 	return _digestAndCollect( self, tokens, Base.FontSelection.TextSizeDeclaration )
@@ -155,20 +155,20 @@ class textsuperscript(Base.Command):
 class angle(Base.Command):
 
 	def invoke( self, tex ):
-		super(angle, self).invoke(  tex )
+		super(angle, self).invoke(	tex )
 
 
 # The rlin command and the vv command break rendering of
 # vectors, so they are disabled.
 # class rlin(Base.Command):
-# 	""" A presentation command that means overleftrightarrow """
-# 	args = ''
+#	""" A presentation command that means overleftrightarrow """
+#	args = ''
 
-# 	def invoke( self, tex ):
-# 		arrow = self.ownerDocument.createElement( 'overleftrightarrow' )
-# 		expr = tex.readGrouping( '{}', expanded=True, parentNode=arrow)[0]
-# 		arrow += expr
-# 		return [arrow]
+#	def invoke( self, tex ):
+#		arrow = self.ownerDocument.createElement( 'overleftrightarrow' )
+#		expr = tex.readGrouping( '{}', expanded=True, parentNode=arrow)[0]
+#		arrow += expr
+#		return [arrow]
 
 #class vv(Base.Command):
 #	""" A vector from esvect. We simplify to the common overrightarrow """
@@ -184,13 +184,13 @@ class angle(Base.Command):
 
 ## rlin is re-enabled for the sake of mathjax
 class rlin(Base.Command):
- 	""" A presentation command that means overleftrightarrow. However,
+	""" A presentation command that means overleftrightarrow. However,
 	we represent it in the DOM for MathJax--it needs to get the
 	grouping around the text. This corresponds to a custom macro in
 	the default-layout.html AoPS template. """
- 	args = '{text}'
+	args = '{text}'
 
- 	def invoke( self, tex ):
+	def invoke( self, tex ):
 		return super(rlin,self).invoke( tex )
 
 # Attributions
@@ -234,6 +234,28 @@ class parts(Base.List):
 		elif self.macroMode != Base.Environment.MODE_END:
 			self.ownerDocument.context.counters['partnum'].setcounter(0)
 
+	def digest( self, tokens ):
+		#After digesting loop back over the children moving nodes before
+		#the first item into the first item
+		res = super(parts, self).digest(tokens)
+		if self.macroMode != Environment.MODE_END:
+			nodesToMove = []
+
+			for node in self:
+
+				if isinstance(node, Base.List.item):
+					nodesToMove.reverse()
+					for nodeToMove in nodesToMove:
+						self.removeChild(nodeToMove)
+						node.insert(0, nodeToMove)
+					break
+
+				nodesToMove.append(node)
+
+		return res
+
+
+
 
 class part(Base.List.item):
 	#Ordinary list items can accept a value, this may or may not be used in AoPS code
@@ -250,7 +272,7 @@ class part(Base.List.item):
 		super( part, self ).digest( tex )
 
 #Exercises exist at the end of a section and are started with \exercises.  There is
-#no explicit stop.  Exercises end when a new section starts
+#no explicit stop.	Exercises end when a new section starts
 
 class exnumber(Base.Command):
 	unicode = ''
@@ -267,7 +289,7 @@ class exer(Base.subsubsection):
 		super(exer, self).postParse(tex)
 
 		#Because we are a subsubsection our deep section level causes the ref
-		#attribute to not be set in the super.  In a section with a lower sec number
+		#attribute to not be set in the super.	In a section with a lower sec number
 		#(I.E. subsection, section, chapter...) the super would also set a captionName attribute
 		self.ref = self.ownerDocument.createElement('the'+self.counter).expand(tex)
 		self.captionName = self.ownerDocument.createElement(self.counter+'name').expand(tex)
@@ -532,7 +554,7 @@ Arrays.tabularx.resourceTypes = tabularTypes
 
 from plasTeX.Base import Math
 
-#The math package does not correctly implement the sqrt macro.  It takes two args
+#The math package does not correctly implement the sqrt macro.	It takes two args
 Math.sqrt.args='[root]{arg}'
 
 inlineMathTypes=['mathjax_inline']
@@ -558,12 +580,12 @@ class nsuperscript(Base.Command):
 	#We need to store if we are inside math mode
 	def invoke(self, tex):
 		result = super(nsuperscript, self).invoke( tex )
-	   	self.insideMathElement = self.ownerDocument.context.isMathMode
+		self.insideMathElement = self.ownerDocument.context.isMathMode
 		return result
 
 	#We want to be treated as math for resource generation and rendering
 	#so our source needs to make us look like a math element.  if we are
-	#contained in a math element we get that for free.  If not we have to put
+	#contained in a math element we get that for free.	If not we have to put
 	#ourselves in math mode using $$
 	@property
 	def source(self):
