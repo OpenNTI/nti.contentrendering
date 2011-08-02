@@ -353,6 +353,9 @@ class _BasePicProblem(Base.Environment):
 	counter = 'probnum'
 	def invoke(self,tex):
 		res = super(_BasePicProblem,self).invoke( tex )
+
+		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
+
 		#if self.macroMode != Base.Environment.MODE_END:
 		#	self.refstepcounter(tex)
 		# Move from the argument into the DOM
