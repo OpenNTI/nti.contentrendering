@@ -79,34 +79,6 @@ def main(argv):
 	if outFormat == 'xml' or mathml:
 		toXml( document, jobname )
 
-import tociconsetter
-import contentsizesetter
-
-
-def postRender(document):
-	print 'Performing post render steps'
-	print 'Adding icons to toc and pages'
-	tociconsetter.transform('eclipse-toc.xml','.')
-
-	print 'Adding content height to toc and pages'
-	contentSizes = contentsizesetter.transform('.')
-
-	print 'Checking page widths within normal bounds'
-
-	badPages = 0
-
-	maxWidth = 730
-
-	for page, size in contentSizes.items():
-		height, width = size
-
-		if width > maxWidth:
-			badPages += 1
-			print '*** WARNING *** Width of %s is outside of bounds.  Maximum width should be %s but it was %s ' % (page, maxWidth, width)
-
-	if badPages == 0:
-		print 'All page sizes within acceptable range'
-
 def nextID(self):
 	ntiid = getattr(self, 'NTIID',-1)
 
@@ -117,6 +89,44 @@ def nextID(self):
 	return 'aops-%s-%s' % (self.userdata['jobname'], ntiid)
 
 plasTeX.TeXDocument.nextNTIID=nextID
+
+import tociconsetter
+import contentsizesetter
+import outgoinglinkssetter
+from RenderedBook import RenderedBook
+
+def postRender(document, contentLocation='.'):
+	print 'Performing post render steps'
+
+	#This goes first b/c it sets the root node of the toc up
+	print 'Adding icons to toc and pages'
+	tociconsetter.transform(os.path.join(contentLocation, 'eclipse-toc.xml'), contentLocation)
+
+	print 'Fetching page info'
+	book = RenderedBook(contentLocation)
+
+	print 'Storing content height in pages'
+	contentsizesetter.transform(book)
+
+	print 'Adding outoing links to toc'
+	outgoinglinkssetter.transform(book)
+
+	print 'Checking for excessively wide pages'
+	badPages = 0
+
+	maxWidth = 730
+
+	for pageName in book.getPageNames():
+		page = book.getPage(pageName)
+		width = page.pageInfo['scrollWidth']
+
+		if width > maxWidth:
+			badPages += 1
+			print '*** WARNING *** Width of %s is outside of bounds.  Maximum width should be %s but it was %s ' % (pageName, maxWidth, width)
+
+	if badPages == 0:
+		print 'All page sizes within acceptable range'
+
 
 from resources.ResourceRenderer import createResourceRenderer
 

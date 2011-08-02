@@ -8,75 +8,52 @@ from xml.dom.minidom import parse
 from xml.dom.minidom import Node
 import subprocess
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-
-tocFileName='eclipse-toc.xml'
+from RenderedBook import RenderedBook
 
 javascript = os.path.join('%s'%(os.path.dirname(__file__)),'getContentSize.js')
 
 contentSizeName = 'NTIRelativeScrollHeight'
 
 def main(args):
-	""" Main program routine """
+ 	""" Main program routine """
 
 	if not len(args)>0:
 		print "Usage: contentsizesetter.py path/to/content"
 		sys.exit()
 
-	transform(args.pop(0))
+	contentLocation = args.pop(0)
 
-def transform(contentLocation):
+	transform(RenderedBook(contentLocation))
+
+def transform(book):
 	"""
 	Use the toc file to find all the pages in the contentLocation.
 	Use phantomjs and js to render the page and extract the content size.
 	Stuff the contentsize in the page as a meta tag and add it to toc
 	"""
-	tocFile = os.path.join(contentLocation, tocFileName)
 
-	print 'Using %s' % tocFile
+	tocDOM = book.getTOC()
 
-	tocDOM = parse(tocFile)
+	storeContentSizes(book,tocDOM.getElementsByTagName('toc')[0])
 
-	#Build a list of files we need to do
-	rootTOC = tocDOM.getElementsByTagName('toc')[0]
+	book.persistTOC(tocDOM)
 
-	htmlFiles = []
-	findHTMLInTOC(rootTOC, htmlFiles);
+def storeContentSizes(book, node):
 
-	htmlFiles = [os.path.join(contentLocation, f) for f in htmlFiles]
+	page = book.pageForTOCNode(node)
 
-	print 'Finding content size for %s' % htmlFiles
+	if page is None:
+ 		print 'Unknown page for node %s' % node
+		return
 
-	contentSizes = {}
+	contentWidth = page.pageInfo['scrollWidth']
 
-	#Generate sizes for all our pages
-	with ProcessPoolExecutor() as executor:
-			for the_tuple in executor.map( getContentSize, htmlFiles):
-				contentSizes[the_tuple[0]]=(the_tuple[1], the_tuple[2])
-
-	print 'Storing generated content sizes'
-	storeContentSizes(contentSizes, rootTOC, contentLocation)
-
-
-	f = open(tocFile, 'w')
-	rootTOC.writexml(f)
-	f.close()
-
-	return contentSizes
-
-def storeContentSizes(contentSizes, node, contentLocation):
-
-	htmlFile = os.path.join(contentLocation, node.getAttribute('href'))
-	contentWidth = contentSizes[htmlFile][0]
-
-	writeContentSizeToMeta(htmlFile, contentWidth)
+	writeContentSizeToMeta(page.location, contentWidth)
 	node.attributes[contentSizeName]=str(contentWidth)
 
 	for child in node.childNodes:
 		if getattr(child, 'hasAttributes', None) and child.hasAttribute('href'):
-			storeContentSizes(contentSizes,child, contentLocation);
-
-
-
+			storeContentSizes(book, child);
 
 
 def writeContentSizeToMeta(htmlFile, contentWidth):
@@ -95,16 +72,6 @@ def writeContentSizeToMeta(htmlFile, contentWidth):
 	if os.path.exists(backupFile):
 		os.remove(htmlFile+'.bkp')
 
-def getContentSize(htmlFile):
-	height, width = subprocess.Popen( "phantomjs %s %s 2>/dev/null" % (javascript, htmlFile), shell=True, stdout=subprocess.PIPE).communicate()[0].strip().split()
-	return (htmlFile, int(height), int(width))
-
-def findHTMLInTOC(toc, files):
-	if toc.hasAttribute('href'):
-		files.append(toc.getAttribute('href'))
-
-	for node in toc.getElementsByTagName('topic'):
-		findHTMLInTOC(node, files);
-
 if __name__ == '__main__':
-	main(sys.argv[1:])
+	main(args)
+
