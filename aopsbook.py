@@ -420,6 +420,15 @@ class beginsol( Base.subsection ):
 	args = ''
 	counter = ''
 
+	def invoke( self, tex ):
+		res = super(solution, self).invoke(tex)
+
+		#We encounter solutions right after the problem therefore our
+		#solutions probnum should be the current value of the probnum counter
+		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
+
+		return res
+
 	def digest( self, tokens ):
 		_digestAndCollect( self, tokens, stopsol )
 
@@ -431,6 +440,14 @@ class solution( Base.Environment ):
 	blockType = True
 	forcePars = True
 
+	def invoke( self, tex ):
+		res = super(solution, self).invoke(tex)
+
+		#We encounter solutions right after the problem therefore our
+		#solutions probnum should be the current value of the probnum counter
+		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
+
+		return res
 
 # FIXME: These counters are not right?
 # If we don't override the args attribute, these consume one letter of text
