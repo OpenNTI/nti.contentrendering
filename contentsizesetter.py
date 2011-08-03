@@ -46,22 +46,22 @@ def storeContentSizes(book, node):
  		print 'Unknown page for node %s' % node
 		return
 
-	contentWidth = page.pageInfo['scrollWidth']
+	contentHeight = page.pageInfo['scrollHeight']
 
-	writeContentSizeToMeta(page.location, contentWidth)
-	node.attributes[contentSizeName]=str(contentWidth)
+	writeContentSizeToMeta(page.location, contentHeight)
+	node.attributes[contentSizeName]=str(contentHeight)
 
 	for child in node.childNodes:
 		if getattr(child, 'hasAttributes', None) and child.hasAttribute('href'):
 			storeContentSizes(book, child);
 
 
-def writeContentSizeToMeta(htmlFile, contentWidth):
+def writeContentSizeToMeta(htmlFile, contentHeight):
 	if htmlFile.startswith('./'):
 		htmlFile = htmlFile[2:]
 
 	command = 'sed -i .bkp \
-					  \"s/\\(<meta name=\\"NTIRelativeScrollHeight\\" content=\\"\\).*\\(\\" \\/>\\)/\\1%s\\2/\" %s' % (contentWidth,htmlFile)
+					  \"s/\\(<meta name=\\"NTIRelativeScrollHeight\\" content=\\"\\).*\\(\\" \\/>\\)/\\1%s\\2/\" %s' % (contentHeight, htmlFile)
 
 	#print command
 
