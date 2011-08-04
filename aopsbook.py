@@ -273,13 +273,35 @@ class part(Base.List.item):
 
 #Exercises exist at the end of a section and are started with \exercises.  There is
 #no explicit stop.	Exercises end when a new section starts
-
 class exnumber(Base.Command):
 	unicode = ''
 
 class exercises(Base.subsection):
 	args = ''
 	counter= ''
+
+	#this is used to emulate a list.  Like parts we need to make sure
+	#that the first child in the list is  an exer or exerhard
+	def digest( self, tokens ):
+		#After digesting loop back over the children moving nodes before
+		#the first item into the first item
+		res = super(exercises, self).digest(tokens)
+		if self.macroMode != Environment.MODE_END:
+
+			nodesToMove = []
+
+			for node in self:
+
+				if isinstance(node, exer):
+					nodesToMove.reverse()
+					for nodeToMove in nodesToMove:
+						self.removeChild(nodeToMove)
+						node.insert(0, nodeToMove)
+					break
+
+				nodesToMove.append(node)
+
+		return res
 
 class exer(Base.subsubsection):
 	args = ''
