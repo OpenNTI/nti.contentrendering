@@ -577,27 +577,28 @@ Math.displaymath.resourceTypes = displayMathTypes
 
 #for \nth, \nst, \nrd, etc..
 class nsuperscript(Base.Command):
-	resourceTypes = inlineMathTypes
 	args = 'text'
 
-	#We need to store if we are inside math mode
-	def invoke(self, tex):
-		result = super(nsuperscript, self).invoke( tex )
-		self.insideMathElement = self.ownerDocument.context.isMathMode
-		return result
+	## #We need to store if we are inside math mode
+	## def invoke(self, tex):
+	## 	result = super(nsuperscript, self).invoke( tex )
+	## 	self.insideMathElement = self.ownerDocument.context.isMathMode
+	## 	return result
 
-	#We want to be treated as math for resource generation and rendering
-	#so our source needs to make us look like a math element.  if we are
-	#contained in a math element we get that for free.	If not we have to put
-	#ourselves in math mode using $$
-	@property
-	def source(self):
-		mySource = super(nsuperscript, self).source
+	## #We want to be treated as math for resource generation and rendering
+	## #so our source needs to make us look like a math element.  if we are
+	## #contained in a math element we get that for free.	If not we have to put
+	## #ourselves in math mode using $$
+	## @property
+	## def source(self):
+	## 	mySource = super(nsuperscript, self).source
 
-		if not self.insideMathElement:
-			mySource = '$%s$' % mySource
+	## 	if not self.insideMathElement:
+	## 		#If we wrap our self in math environment
+	## 		#we need to make sure we don't already contain math
+	## 		mySource = '$%s$' % mySource
 
-		return mySource
+	## 	return mySource
 
 class nst(nsuperscript):
 	pass

@@ -8,8 +8,8 @@ import pdb
 from plasTeX.ConfigManager import *
 import datetime
 log = getLogger()
-import transforms.xymatrix as transxy
-
+import transforms
+from plasTeX.Base import Node
 
 
 def main(argv):
@@ -54,7 +54,6 @@ def main(argv):
 	# Set up TEXINPUTS to include the current directory for the renderer
 	os.environ['TEXINPUTS'] = '%s%s%s%s' % (os.getcwd(), os.pathsep,
 										 os.environ.get('TEXINPUTS',''), os.pathsep)
-
 	 # Change to specified directory to output to
 	outdir = document.config['files']['directory']
 	if outdir:
@@ -64,10 +63,8 @@ def main(argv):
 		log.info('Directing output files to directory: %s.' % outdir)
 		os.chdir(outdir)
 
-	mathml = outFormat == 'mathml'
-
-	##Move chapter qoutes into proper location.
-	transform( document, mathml )
+	#Perform prerender transforms
+	transforms.performTransforms( document )
 
 	if outFormat == 'images' or outFormat == 'xhtml':
 		db = generateImages(document)
@@ -76,7 +73,7 @@ def main(argv):
 		render( document, 'XHTML', db )
 		postRender(document)
 
-	if outFormat == 'xml' or mathml:
+	if outFormat == 'xml':
 		toXml( document, jobname )
 
 def nextID(self):
@@ -142,105 +139,6 @@ def toXml( document, jobname ):
 
 import string
 
-def transform( document, mathml=False ):
-	""" Applies DOM transformations to the document. """
-
-	#Fix up the xymatrix
-	transxy.transform(document)
-
-	##Temporarily disable math transformation.  We have no rendering for them.
-
-	## class _mathnode(plasTeX.Base.Command):
-	## 	resourceTypes=['mathml','svg']
-
-	## 	@property
-	## 	def source(self):
-	## 		return self.origMathSource
-
-	## 	def toXML(self):
-	## 		return "<%s expr='%s' />" % (self.nodeName, self.expr)
-
-	## class mathangle(_mathnode):
-	## 	nodeName = 'mathangle'
-
-	## class mathline(_mathnode):
-	## 	resourceTypes=['svg']
-	## 	nodeName = 'mathline'
-
-	## class mathname(_mathnode):
-	## 	nodeName = 'mathname'
-
-	## document.context['mathangle'] = mathangle
-	## document.context['mathname'] = mathname
-	## document.context['mathline'] = mathline
-
-	## # Remove unneeded math elements ($24$) and add semantic
-	## # information where we can infer it from the text
-	## # ("angle $AB" => <mathangle 'AB'>)
-	## for math in document.getElementsByTagName( 'math' ):
-	## 	try:
-	## 		text = math.textContent
-	## 		if not(text):
-	## 			print 'Found empty math node'
-	## 		elif all( [c in string.ascii_letters for c in text] ):
-	## 			r = None
-
-	## 			if math.previousSibling:
-	## 				prevText = (math.previousSibling.textContent or '').rstrip()
-	## 				if prevText.lower().endswith( ' angle' ):
-	## 					r = document.createElement( 'mathangle' )
-	## 				elif prevText.lower().endswith( ' line') or prevText == 'Line':
-	## 					r = document.createElement( 'mathline' )
-	## 			if r is None:
-	## 				r = document.createElement( 'mathname' )
-	## 			r.expr = text
-	## 			r.origMathSource=math.source
-	## 			math.parentNode.replaceChild( r, math )
-
-	## 		else:
-	## 			float(math.textContent)
-	## 			oldparent = math.parentNode
-	## 			math.parentNode.replaceChild( text, math )
-	## 			oldparent.normalize()
-
-	## 	except UnicodeEncodeError, e:
-	## 		pass
-	## 	except ValueError, e:
-	## 		pass
-	## 	except plasTeX.DOM.NotFoundErr, e:
-	## 		print 'Unable to replace ', math.textContent
-	## 		import traceback
-	## 		traceback.print_exc()
-
-	## # Transform the remaining plastex math elements to mathml
-	## if mathml:
-	## 	# toXml(document, "/tmp/mathml")
-	## 	transform2mathml(document)
-
-	# Chapterauthor and chapterquote need to move down a level, inside
-	# their respective chapters. NOTE: They use the same
-	# macros for the book quote, the first one, which we want to leave alone.
-	for chapterquote in document.getElementsByTagName( 'chapterquote')[1:]:
-		chapterauthor = chapterquote.parentNode.getElementsByTagName( 'chapterauthor' )[0]
-		parent = chapterquote.parentNode
-		# move it up out of containing par and raggedbottom, etc
-		while parent:
-			if parent.nextSibling and parent.nextSibling.nodeName == 'chapter':
-				break
-			parent = parent.parentNode
-
-		if parent and parent.nextSibling:
-			chapterquote.parentNode.removeChild( chapterauthor )
-			chapterquote.parentNode.removeChild( chapterquote )
-			parent.nextSibling.insert( 0, chapterquote )
-			parent.nextSibling.insert( 1, chapterauthor )
-
-from plastex2mathml import plastex2mathml
-
-def transform2mathml(document):
-	mathmlTransform = plastex2mathml()
-
-	mathmlTransform.transform(document)
 
 from resources import ResourceDB
 
