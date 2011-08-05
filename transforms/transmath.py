@@ -6,9 +6,9 @@ import sys, pdb, traceback
 
 class _mathnode(plasTeX.Base.Command):
 
-	@property
-	def unicode(self):
-		return self.attributes['text'] if 'text' in self.attributes else None
+	#@property
+	#def unicode(self):
+	#	return self.attributes['text'] if 'text' in self.attributes else None
 
 	@property
 	def source(self):
