@@ -25,7 +25,7 @@ def findFilesForNode(node):
 
 	return files
 
-javascript = os.path.join('%s'%(os.path.dirname(__file__)),'getPageInfo.js')
+javascript =  os.path.join(os.path.join(os.path.dirname(__file__), '../js'), 'getPageInfo.js')
 def _getPageInfo(htmlFile):
 	#print 'Fetching page info for %s' % htmlFile
 	process = "phantomjs %s %s 2>/dev/null" % (javascript, htmlFile)

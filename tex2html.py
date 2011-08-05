@@ -44,9 +44,23 @@ class ResourceSetGenerator(resources.BaseResourceSetGenerator):
 		</head>\
 		<body>')
 
-	def writeResource(self, source, context):
-		self.write('%s<span class="mathjax math tex2jax_process mathquill-embedded-latex">\(%s\)</span>\n\n' %\
+	def writeResource(self, source, context, wrapInText=False):
+		if wrapInText:
+			self.write('Cras vel metus diam, sed molestie risus. Etiam mattis, nisi sed malesuada luctus, arcu purus euismod velit, \
+			eu luctus felis nisi vitae nulla. Vestibulum euismod leo vel mauris commodo egestas. Nullam eu metus vitae velit euismod \
+			eleifend ac vitae nibh.  consectetur commodo.\
+			Nunc tincidunt, lacus sollicitudin vehicula ultricies, odio libero tempus magna, eget pretium nisi neque egestas est. \
+			Nulla mattis, erat quis accumsan ultrices, mi neque feugiat tellus, sed fermentum elit lorem vel lacus. Pellentesque \
+			in nunc dolor ')
+		self.write('%s<span class="mathjax math tex2jax_process mathquill-embedded-latex">\(%s\)</span>' %\
 					(context , cgi.escape(source[1:-1])))
+		if wrapInText:
+			self.write('. Cras vel metus diam, sed molestie risus. Etiam mattis, nisi sed malesuada luctus, arcu purus euismod velit, \
+			eu luctus felis nisi vitae nulla. Vestibulum euismod leo vel mauris commodo egestas. Nullam eu metus vitae velit euismod \
+			eleifend ac vitae nibh. Phasellus u diam. Suspendisse condimentum consectetur commodo.\
+			Nunc tincidunt, lacus sollicitudin vehicula ultricies, odio libero tempus magna, eget pretium nisi neque egestas est. \
+			Nulla mattis, erat quis accumsan ultrices, mi neque feugiat tellus, sed fermentum elit lorem vel lacus. Pellentesque \
+			in nunc dolor ')
 
 	def writePostamble(self):
 		self.write('</body></html>')
@@ -108,7 +122,7 @@ class ResourceGenerator(html2mathml.ResourceGenerator):
 	concurrency			= 4
 	illegalCommands		= None
 	resourceType		= 'mathjax_inline'
-	javascript 			= '%s/tex2html.js'%(os.path.dirname(__file__))
+	javascript 			= os.path.join(os.path.join(os.path.dirname(__file__), '../js'), 'tex2html.js')
 
 	def __init__(self, document):
 		super(ResourceGenerator, self).__init__(document)
