@@ -11,7 +11,6 @@ log = getLogger()
 import transforms
 from plasTeX.Base import Node
 
-
 def main(argv):
 	""" Main program routine """
 
@@ -37,8 +36,6 @@ def main(argv):
 	jobname = document.userdata['jobname'] = tex.jobname
 	cwd = document.userdata['working-dir'] = os.getcwd()
 	document.userdata['generated_time'] = str(datetime.datetime.now())
-
-
 
 	# Load aux files for cross-document references
 #	pauxname = '%s.paux' % jobname
@@ -89,7 +86,7 @@ plasTeX.TeXDocument.nextNTIID=nextID
 
 import tociconsetter
 import contentsizesetter
-import outgoinglinkssetter
+import relatedlinksetter
 from RenderedBook import RenderedBook
 
 def postRender(document, contentLocation='.'):
@@ -100,26 +97,25 @@ def postRender(document, contentLocation='.'):
 	tociconsetter.transform(os.path.join(contentLocation, 'eclipse-toc.xml'), contentLocation)
 
 	print 'Fetching page info'
-	book = RenderedBook(contentLocation)
+	book = RenderedBook(document, contentLocation)
 
 	print 'Storing content height in pages'
 	contentsizesetter.transform(book)
 
-	print 'Adding outoing links to toc'
-	outgoinglinkssetter.transform(book)
+	print 'Adding related links to toc'
+	relatedlinksetter.transform(book)
 
 	print 'Checking for excessively wide pages'
 	badPages = 0
 
 	maxWidth = 730
 
-	for pageName in book.getPageNames():
-		page = book.getPage(pageName)
+	for pageid, page in book.pages.items():
 		width = page.pageInfo['scrollWidth']
 
 		if width > maxWidth:
 			badPages += 1
-			print '*** WARNING *** Width of %s is outside of bounds.  Maximum width should be %s but it was %s ' % (pageName, maxWidth, width)
+			print '*** WARNING *** Width of %s is outside of bounds.  Maximum width should be %s but it was %s ' % (page.filename, maxWidth, width)
 
 	if badPages == 0:
 		print 'All page sizes within acceptable range'

@@ -32,28 +32,21 @@ def transform(book):
 	Stuff the contentsize in the page as a meta tag and add it to toc
 	"""
 
-	tocDOM = book.getTOC()
+	eclipseTOC = book.getEclipseTOC()
+	for pageid, page in book.pages.items():
+		storeContentSizes(page, eclipseTOC)
 
-	storeContentSizes(book,tocDOM.getElementsByTagName('toc')[0])
+	eclipseTOC.save()
 
-	book.persistTOC(tocDOM)
-
-def storeContentSizes(book, node):
-
-	page = book.pageForTOCNode(node)
-
-	if page is None:
- 		print 'Unknown page for node %s' % node
-		return
+def storeContentSizes(page, eclipseTOC):
 
 	contentHeight = page.pageInfo['scrollHeight']
 
 	writeContentSizeToMeta(page.location, contentHeight)
-	node.attributes[contentSizeName]=str(contentHeight)
 
-	for child in node.childNodes:
-		if getattr(child, 'hasAttributes', None) and child.hasAttribute('href'):
-			storeContentSizes(book, child);
+	pageNode = eclipseTOC.getPageNodeWithNTIID(page.ntiid)
+
+	pageNode.attributes[contentSizeName] = str(contentHeight)
 
 
 def writeContentSizeToMeta(htmlFile, contentHeight):

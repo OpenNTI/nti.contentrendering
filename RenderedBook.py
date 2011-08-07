@@ -4,92 +4,122 @@ import subprocess
 import json
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import os
-
-def pageForTOCEntry(node):
-	if getattr(node, 'hasAttributes', None) and node.hasAttribute('href'):
-		return getPage(os.path.basename(node.getAttribute('href')))
-	return None
 import pdb
-def pages(tocDOM):
-   	files = findFilesForNode(tocDOM.getElementsByTagName('toc')[0])
-   	return [os.path.basename(f) for f in files]
-
-def findFilesForNode(node):
-	files = []
-	if node.hasAttribute('href'):
-		files.append(node.getAttribute('href'))
-
-	for topic in node.getElementsByTagName('topic'):
-		if topic.hasAttribute('href'):
-			files.append(topic.getAttribute('href'))
-
-	return files
 
 javascript =  os.path.join(os.path.join(os.path.dirname(__file__), '../js'), 'getPageInfo.js')
-def _getPageInfo(htmlFile):
+def _getPageInfo(contentLocation, tocNode):
+	htmlFile = os.path.join(contentLocation, tocNode.getAttribute('href'))
 	#print 'Fetching page info for %s' % htmlFile
 	process = "phantomjs %s %s 2>/dev/null" % (javascript, htmlFile)
 	#print process
 	jsonStr = subprocess.Popen(process, shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
 	pageInfo = json.loads(jsonStr)
-	return (htmlFile, pageInfo)
+	return (tocNode, pageInfo)
+
 
 class RenderedBook(object):
 	TOC_FILE_NAME = 'eclipse-toc.xml'
 
+	document = None
 	contentLocation = None
 	tocFile = None
-	pages = {}
 
-	def __init__(self, location):
+	pages = {} #id to ContentPage
+
+	def __init__(self, document, location):
 		self.contentLocation = location
 		self.tocFile = os.path.join(self.contentLocation, self.TOC_FILE_NAME)
-
+		self.document = document
 		self._processPages()
+
+		for pageid, page in self.pages.items():
+			print '%s -> %s' % (pageid, page.ntiid)
 
 
 	def _processPages(self):
-		fullPathForFiles = [os.path.join(self.contentLocation, f) for f in pages(self.getTOC())]
+		eclipseTOC = EclipseTOC(self.tocFile)
+		nodesForPages = eclipseTOC.getPageNodes()
 
 		with ProcessPoolExecutor() as executor:
-			for the_tuple in executor.map( _getPageInfo, fullPathForFiles):
-				self.pages[os.path.basename(the_tuple[0])]=ContentPage(the_tuple[0], the_tuple[1])
+			for the_tuple in executor.map( _getPageInfo, [self.contentLocation for x in nodesForPages if x], nodesForPages):
+				node = the_tuple[0]
+				pageinfo = the_tuple[1]
 
-	def getTOC(self):
-		return parse(self.tocFile)
+				page = ContentPage(os.path.join(self.contentLocation, node.getAttribute('href')), pageinfo, node)
+				self.pages[page.ntiid] = page
 
-	def persistTOC(self, tocDOM, location=None):
-		if location is None:
-			location = self.tocFile
 
-		f = open(location, 'w')
-		tocDOM.writexml(f)
+
+	def getEclipseTOC(self):
+		return EclipseTOC(self.tocFile)
+
+
+
+
+
+class EclipseTOC(object):
+	file = None
+	dom = None
+
+	def __init__(self, f):
+		self.file = f
+		self.dom = parse(self.file)
+
+	def getPageForDocumentNode(self, node):
+		#Walk up the node try untill we find something with an id that matches our label
+		if node is None:
+			return None
+
+		title = None
+		if getattr(node, 'title', None):
+			title = node.title.textContent if hasattr(node.title, 'textContent') else node.title
+		matchedNodes = []
+		if title:
+			matchedNodes = self.getPageNodeWithAttribute('label', title)
+
+		if len(matchedNodes) > 0:
+			return matchedNodes[0]
+
+
+		return self.getPageForDocumentNode(node.parentNode)
+
+	def getPageNodeWithNTIID(self, ntiid, node=None):
+		return self.getPageNodeWithAttribute('ntiid', value = ntiid, node = node)[0]
+
+	def getPageNodeWithAttribute(self, name, value=None, node=None):
+
+		if node is None:
+			node = self.getRootTOCNode()
+
+		nodes = []
+		if (node.nodeName == 'topic' or node.nodeName == 'toc') and \
+			   getattr(node, 'hasAttribute', None) and node.hasAttribute(name):
+			if value is None or node.getAttribute(name) == value:
+				nodes.append(node)
+
+		for child in node.childNodes:
+			nodes.extend(self.getPageNodeWithAttribute(name, value=value, node=child))
+
+		return nodes
+
+	def getRootTOCNode(self):
+		return self.dom.getElementsByTagName('toc')[0]
+
+	def getPageNodes(self):
+		return [x for x in self.getPageNodeWithAttribute('href', node=None) if x.hasAttribute('ntiid')]
+
+	def save(self):
+		f = open(self.file, 'w')
+		self.dom.writexml(f)
 		f.close()
-
-	def pageForTOCNode(self, node):
-		if getattr(node, 'hasAttributes', None) and node.hasAttribute('href'):
-			return self.getPage(node.getAttribute('href'))
-
-		return None
-
-	def getContentInfo(self):
-		if not hasattr(self, '_contentinfo', None):
-			self._contentinfo = ContentInfo(self.getTOC())
-
-		return self._contentinfo
-
-
-	def getPage(self, pageName):
-		return self.pages[pageName]
-
-	def getPageNames(self):
-		return self.pages.keys()
-
 
 
 class ContentPage(object):
 
-	def __init__(self, location, pageInfo):
-		self.location = location #Full path to content file
-		self.name = os.path.basename(self.location)
+	def __init__(self, location, pageInfo, tocNode):
 		self.pageInfo = pageInfo
+		self.filename = tocNode.getAttribute('href')
+		self.ntiid = pageInfo['ntiid']
+		self.title = tocNode.getAttribute('label')
+		self.location = location
+
