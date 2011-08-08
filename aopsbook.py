@@ -2,6 +2,8 @@ from plasTeX import Base
 import re
 
 
+
+
 class _OneText(Base.Command):
 	args = 'text:str'
 
@@ -360,12 +362,33 @@ class pdfinfo(Base.Command):
 			title = match.group('title')
 			authors = match.group('authors')
 
-			self.ownerDocument.userdata['title']=title
-			self.ownerDocument.userdata['authors']=authors
+			self.ownerDocument.userdata['title'] = title
+			self.ownerDocument.userdata['authors'] = authors
 
 		return res;
 
 from plasTeX.Base import Crossref
+
+#TODO do pagerefs even make sense in our dom?
+#Try to find an intelligent page name for the reference
+#so we don't have to render the link text as '3'
+class pageref(Crossref.pageref):
+
+	#we would hope to generate the pagename attribute in
+	#the invoke method but since it is dependent on the page
+	#splits used at render time we define a function to be called
+	#from the page template
+	def getPageNameForRef(self):
+		#Look up the dom tree until we find something
+		#that would create a file
+		fileNode = self.idref['label']
+		while not getattr(fileNode, 'title', None) and getattr(fileNode, 'parentNode', None):
+			fileNode = fileNode.parentNode
+
+		if hasattr(fileNode, 'title'):
+			return getattr(fileNode.title, 'textContent', fileNode.title)
+
+		return None
 
 class probref(Crossref.ref):
 	pass
