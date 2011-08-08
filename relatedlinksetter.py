@@ -68,13 +68,30 @@ def addRelatedBasedOnLinks(eclipseTOC, book):
 	for id, page in book.pages.items():
 		addOutgoingLinks(eclipseTOC, page)
 
+import re
+filere = re.compile('(?P<file>.*?\.html).*')
+def stripToFile(link):
+	file = None
 
+	match = filere.match(link)
+	if match:
+		file = match.group('file')
+
+	return file
 
 def addOutgoingLinks(eclipseTOC, page):
 
-	ntiids = [tocNode.getAttribute('ntiid') for tocNode in eclipseTOC.getPageNodes() if tocNode.getAttribute('href') in page.pageInfo['OutgoingLinks']]
 
-	markRelated(eclipseTOC, page.ntiid, ntiids, 'link')
+	fileNameAndLinkList = [(stripToFile(link), link) for link in page.pageInfo['OutgoingLinks']]
+
+	for fileNameAndLink in fileNameAndLinkList:
+		fileName = fileNameAndLink[0]
+		link = fileNameAndLink[1]
+
+		tocNode = eclipseTOC.getPageNodeWithAttribute('href', fileName)[0]
+
+		if fileName and link:
+			markRelated(eclipseTOC, page.ntiid, tocNode.getAttribute('ntiid'), 'link', qualifier=link)
 
 
 def markRelated(eclipseTOC, relatesTo, relatedTo, reason, qualifier=""):
