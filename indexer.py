@@ -162,6 +162,9 @@ def indexNode(ix, node, contentPath, optimize=False):
 	title = getTitle(node)
 	ntiid = getNTTID(node)
 	
+	if not ntiid:
+		return
+	
 	print "Indexing (%s, %s, %s)" % (fileName, title, ntiid)
 		
 	related = getRelated(node)
