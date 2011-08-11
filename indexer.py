@@ -25,7 +25,7 @@ def getSchema():
 				  	content=TEXT(stored=False))
 	
 	
-def getOrCreateIndex(indexdir, indexname ='prealgebra', recreate = False):
+def getOrCreateIndex(indexdir, indexname ='prealgebra', recreate = True):
 	
 	if not os.path.exists(indexdir):
 		os.makedirs(indexdir)
@@ -198,6 +198,18 @@ def indexNode(ix, node, contentPath, optimize=False):
 	
 ########				
 					
+def getNodes(tocFile):
+	dom = parse(tocFile)
+	result = list()
+	
+	tocs = dom.getElementsByTagName("toc") # index
+	if tocs and len(tocs) > 0:
+		result.append(tocs[0])
+		for topic in dom.getElementsByTagName("topic"):
+			result.append(topic)
+			
+	return result
+	
 def main(tocFile, contentPath, indexdir = None, indexname = "prealgebra"):
 	""" Main program routine """
 	
@@ -205,13 +217,9 @@ def main(tocFile, contentPath, indexdir = None, indexname = "prealgebra"):
 		indexdir = os.path.join(contentPath, "indexdir")
 		
 	idx = getOrCreateIndex(indexdir, indexname)
-	dom = parse(tocFile)
-
-	toc = dom.getElementsByTagName("toc")[0]; # index
-	indexNode(idx, toc, contentPath)
-	
-	for topic in dom.getElementsByTagName("topic"):
-		indexNode(idx, topic, contentPath)
+	nodes = getNodes(tocFile)
+	for node in nodes:
+		indexNode(idx, node, contentPath)
 
 	print "Optimizing index"
 	
