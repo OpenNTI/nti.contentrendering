@@ -25,7 +25,7 @@ def getSchema():
 				  	content=TEXT(stored=False))
 	
 	
-def getOrCreateIndex(indexdir, indexname ='prealgebra', recreate = True):
+def getOrCreateIndex(indexdir, indexname ='prealgebra', recreate = False):
 	
 	if not os.path.exists(indexdir):
 		os.makedirs(indexdir)
