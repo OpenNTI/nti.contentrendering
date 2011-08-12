@@ -8,7 +8,7 @@ from datetime import datetime
 from xml.dom.minidom import parse
 from xml.dom.minidom import Node
 
-from whoosh.fields import Schema, TEXT,ID, KEYWORD, DATETIME, STORED, NGRAM
+from whoosh.fields import Schema, TEXT,ID, KEYWORD, DATETIME, STORED, NGRAM, NUMERIC
 from whoosh import index
 
 ########
@@ -21,6 +21,7 @@ def getSchema():
 				 	quick=NGRAM(maxsize=10),\
 				 	related=STORED(),\
 				 	ref=STORED(),\
+				 	order=NUMERIC(int),\
 				 	snippet=TEXT(stored=True),\
 				  	content=TEXT(stored=False))
 	
@@ -150,7 +151,7 @@ def getSnippet(text):
 			return content
 	return ''
 
-def indexNode(ix, node, contentPath, optimize=False):
+def indexNode(ix, node, contentPath, order = 0, optimize=False):
 	"""
 	Index a the information for a toc node
 	TODO: How to get the keywords
@@ -191,6 +192,7 @@ def indexNode(ix, node, contentPath, optimize=False):
 							snippet=unicode(snippet),\
 							related=related,\
 							ref=ref,\
+							order = order,\
 							lastModified = asTime)
 		
 	except Exception, e:
@@ -221,8 +223,10 @@ def main(tocFile, contentPath, indexdir = None, indexname = "prealgebra"):
 		
 	idx = getOrCreateIndex(indexdir, indexname)
 	nodes = getNodes(tocFile)
+	order = 0
 	for node in nodes:
-		indexNode(idx, node, contentPath)
+		indexNode(idx, node, contentPath, order)
+		order += 1
 
 	print "Optimizing index"
 	
