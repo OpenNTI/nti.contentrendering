@@ -21,12 +21,12 @@ def main(args):
 def transform(tocFile, chapterPath=None):
 	dom = parse(tocFile)
 	toc = dom.getElementsByTagName("toc");
-	if toc and handleToc(toc[0], chapterPath):
-		tempfile = toXml(dom)
+	if toc and handle_toc(toc[0], chapterPath):
+		tempfile = to_xml(dom)
 		os.remove(tocFile)
 		os.rename(tempfile, tocFile)
 		
-def handleToc(toc, chapterPath):
+def handle_toc(toc, chapterPath):
 	current = 0
 	
 	ntiid_pattern = re.compile("<meta.*content=\"(.*)\".*name=\"NTIID\"")
@@ -38,52 +38,51 @@ def handleToc(toc, chapterPath):
 	
 	if chapterPath:
 		sourceFile = chapterPath + '/index.html'
-		ntiid = getNTIID(sourceFile, ntiid_pattern)
+		ntiid = get_ntiid(sourceFile, ntiid_pattern)
 		if ntiid:
 			attributes["ntiid"]= ntiid
 			
 	for node in toc.childNodes:
 		if node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic':
 			current += 1
-			handleTopic(node, current, chapterPath, ntiid_pattern)
+			handle_topic(node, current, chapterPath, ntiid_pattern)
 			
 	return True;
 
-	
-def handleTopic(topic, current, chapterPath, ntiid_pattern):
+def handle_topic(topic, current, chapterPath, ntiid_pattern):
 	
 	modified = False
 	attributes = topic.attributes
 
-	if isChapter(attributes):
+	if is_chapter(attributes):
 		
 		imageName = 'C' + str(current) + '.png' 
-		if not hasIcon(attributes):
+		if not has_icon(attributes):
 			attributes['icon'] = 'icons/chapters/' + imageName
 			modified = True
 			
 		if chapterPath:
 			
-			chapterFile = getChapterFileName(attributes)
+			chapterFile = get_chapter_filename(attributes)
 			if chapterFile:
 				
 				sourceFile = chapterPath + '/' + chapterFile.value
 				
 				# set the body background image
-				setBackgroundImage(sourceFile, imageName)
+				set_background_image(sourceFile, imageName)
 				
 				# set the ntiid for the chapter
-				ntiid = getNTIID(sourceFile, ntiid_pattern)
+				ntiid = get_ntiid(sourceFile, ntiid_pattern)
 				if ntiid:
 					attributes["ntiid"]= ntiid
 					modified = True
 				
 			# modify the sub-topics
-			modified = handleSubTopics(topic, chapterPath, ntiid_pattern) or modified
+			modified = handle_sub_topics(topic, chapterPath, ntiid_pattern) or modified
 			
 	return modified
 		
-def handleSubTopics(topic, chapterPath, ntiid_pattern):
+def handle_sub_topics(topic, chapterPath, ntiid_pattern):
 	"""
 	Set the NTIID for all sub topics
 	"""
@@ -92,28 +91,28 @@ def handleSubTopics(topic, chapterPath, ntiid_pattern):
 	
 	for node in topic.childNodes:
 		if node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic':
-			modified = setNTIID(node, chapterPath, ntiid_pattern) or modified
+			modified = set_ntiid(node, chapterPath, ntiid_pattern) or modified
 			
 	return modified
 	
-def setNTIID(topic, chapterPath, ntiid_pattern):
+def set_ntiid(topic, chapterPath, ntiid_pattern):
 	"""
 	Set the NTIID for the specifed topic
 	"""
 	
 	modified = False
 	attributes = topic.attributes
-	chapterFile = getChapterFileName(attributes)
+	chapterFile = get_chapter_filename(attributes)
 	if chapterFile:
 		sourceFile = chapterPath + '/' + chapterFile.value
-		ntiid = getNTIID(sourceFile, ntiid_pattern)
+		ntiid = get_ntiid(sourceFile, ntiid_pattern)
 		if ntiid:
 			attributes["ntiid"]= ntiid
 			modified = True
 										
 	return modified 	
 
-def getNTIID(sourceFile, ntiid_pattern):
+def get_ntiid(sourceFile, ntiid_pattern):
 	"""
 	Return the NTIID from the specified file 
 	"""
@@ -128,25 +127,25 @@ def getNTIID(sourceFile, ntiid_pattern):
 					
 	return None 
 
-def getChapterFileName(attributes):
+def get_chapter_filename(attributes):
 	return (attributes and attributes.get('href'))
 
-def hasIcon(attributes):
+def has_icon(attributes):
 	return (attributes and attributes.get('icon'))
 
-def isChapter(attributes):
+def is_chapter(attributes):
 	if attributes:
 		label = attributes.get('label',None)
 		return (label and label.value !='Index')
 	return False
 		
-def toXml( document ):	
+def to_xml( document ):	
 	outfile = '%s/temp-toc-file.%s.xml' % (tempfile.gettempdir(), os.getpid())
 	with open(outfile,"w") as f:
 		document.writexml(f)		
 	return outfile;
 		
-def setBackgroundImage(sourceFile, imageName):
+def set_background_image(sourceFile, imageName):
 	
 	if not os.path.exists(sourceFile) or not os.access(sourceFile, os.O_RDWR):
 		return False
