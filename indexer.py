@@ -13,10 +13,10 @@ from whoosh import index
 
 ########
 
-def getSchema():
+def get_schema():
 	return Schema(	ntiid=ID(stored=True, unique=True),\
 					title=TEXT(stored=True), 
-				  	lastModified=DATETIME(stored=True),\
+				  	last_modified=DATETIME(stored=True),\
 				  	keywords=KEYWORD(stored=True), \
 				 	quick=NGRAM(maxsize=10),\
 				 	related=STORED(),\
@@ -26,7 +26,7 @@ def getSchema():
 				  	content=TEXT(stored=False))
 	
 	
-def getOrCreateIndex(indexdir, indexname ='prealgebra', recreate = True):
+def get_or_create_index(indexdir, indexname ='prealgebra', recreate = True):
 	
 	if not os.path.exists(indexdir):
 		os.makedirs(indexdir)
@@ -36,7 +36,7 @@ def getOrCreateIndex(indexdir, indexname ='prealgebra', recreate = True):
 		recreate = True
 		
 	if recreate:
-		index.create_in(indexdir, schema=getSchema(), indexname=indexname)
+		index.create_in(indexdir, schema=get_schema(), indexname=indexname)
 	
 	ix = index.open_dir(indexdir, indexname=indexname)
 		
@@ -48,21 +48,21 @@ ref_pattern = re.compile("<span class=\"ref\">(.*)</span>")
 last_m_pattern = re.compile("<meta content=\"(.*)\" http-equiv=\"last-modified\"")
 page_c_pattern = re.compile("<div class=\"page-contents\">(.*)</body>")
 
-def getNTTID(node):
+def get_ntiid(node):
 	attrs = node.attributes
 	return attrs['ntiid'].value if attrs.has_key('ntiid') else None
 
-def getTitle(node):
+def get_title(node):
 	attrs = node.attributes
 	return attrs['label'].value if attrs.has_key('label') else None
 	
-def addNTTID2Set(set, node):
-	ntiid = getNTTID(node)
+def add_ntiid_to_set(set, node):
+	ntiid = get_ntiid(node)
 	if ntiid:
 		set.add(unicode(ntiid))
 	return set
 
-def getRelated(node):
+def get_related(node):
 	"""
 	return a list w/ the related nttids for this node
 	"""
@@ -71,30 +71,30 @@ def getRelated(node):
 	for child in node.childNodes:
 		if child.nodeType == Node.ELEMENT_NODE:
 			if child.localName == 'topic':
-				addNTTID2Set(related, child)
+				add_ntiid_to_set(related, child)
 			elif child.localName == 'Related':
 				for c in child.childNodes:
 					if c.nodeType == Node.ELEMENT_NODE and c.localName == 'page':
-						addNTTID2Set(related, c)
+						add_ntiid_to_set(related, c)
 			
 	result = list(related)
 	result.sort()
 	return result
 
-def parseText(text, pattern, defValue = ''): 
+def parse_text(text, pattern, defValue = ''): 
 	m = pattern.search(text, re.M|re.I)
 	if m: 
 		return m.groups()[0]
 	else:
 		return defValue
 
-def getLastModified(text):
+def get_last_modified(text):
 	"""
 	return the last modified date from the text
 	"""
 	now = time.time()
 	
-	t = parseText(text, last_m_pattern, None)
+	t = parse_text(text, last_m_pattern, None)
 	try:
 		if t:
 			ms = ".0"
@@ -112,23 +112,23 @@ def getLastModified(text):
 	except:
 		return now
 	
-def getRef(text):
+def get_ref(text):
 	"""
 	return the reference [chapter/section] code
 	"""
-	return parseText(text, ref_pattern)
+	return parse_text(text, ref_pattern)
 
-def getPageContent(text):
+def get_page_content(text):
 	"""
 	Returns everything after <div class="page-contents">
 	"""
 	c = text.replace('\n','')
 	c = c.replace('\r','')
 	c = c.replace('\t','')
-	c = parseText(c, page_c_pattern, None)
+	c = parse_text(c, page_c_pattern, None)
 	return c or text
 
-def wordSplitter(text, wordpat=r"(?L)\w+"):
+def word_splitter(text, wordpat=r"(?L)\w+"):
 	"""
 	remove all html related tags and returs a list of words
 	"""
@@ -138,20 +138,20 @@ def wordSplitter(text, wordpat=r"(?L)\w+"):
 		text = re.sub(pat, " ", text)
 	return re.findall(wordpat, text)
 
-def getSnippet(text):
+def get_snippet(text):
 	"""
 	Get the first paragraph with text in the specified content"
 	"""
 	s = re.sub("<p>","\n<p>", text)
 	all = re.findall("<p>.*", s)
 	for p in all:
-		content = wordSplitter(p)
+		content = word_splitter(p)
 		content = ' '.join(content)
 		if len(content) > 0:
 			return content
 	return ''
 
-def indexNode(ix, node, contentPath, order = 0, optimize=False):
+def index_node(ix, node, contentPath, order = 0, optimize=False):
 	"""
 	Index a the information for a toc node
 	TODO: How to get the keywords
@@ -160,31 +160,31 @@ def indexNode(ix, node, contentPath, order = 0, optimize=False):
 	attributes = node.attributes
 	fileName = str(attributes['href'].value)
 	
-	title = getTitle(node)
-	ntiid = getNTTID(node)
+	title = get_title(node)
+	ntiid = get_ntiid(node)
 	
 	if not ntiid:
 		return
 	
 	print "Indexing (%s, %s, %s)" % (fileName, title, ntiid)
 		
-	related = getRelated(node)
+	related = get_related(node)
 	
 	contentFile = os.path.join(contentPath, str(fileName))
 	with open(contentFile, "r") as f:
 		rawContent = f.read() 
 	
-	ref = getRef(rawContent)
-	lastModified = getLastModified(rawContent)
+	ref = get_ref(rawContent)
+	last_modified = get_last_modified(rawContent)
 	
-	pageRawContent = getPageContent(rawContent)
-	snippet = getSnippet(pageRawContent)
-	content = ' '.join(wordSplitter(pageRawContent))
+	pageRawContent = get_page_content(rawContent)
+	snippet = get_snippet(pageRawContent)
+	content = ' '.join(word_splitter(pageRawContent))
 		
 	writer = ix.writer()
 	
 	try:
-		asTime = datetime.fromtimestamp(float(lastModified))
+		as_time = datetime.fromtimestamp(float(last_modified))
 		writer.add_document(ntiid=unicode(ntiid),\
 							title=unicode(title),\
 							content=unicode(content),\
@@ -192,8 +192,8 @@ def indexNode(ix, node, contentPath, order = 0, optimize=False):
 							snippet=unicode(snippet),\
 							related=related,\
 							ref=ref,\
-							order = order,\
-							lastModified = asTime)
+							order=order,\
+							last_modified=as_time)
 		
 	except Exception, e:
 		print "Cannot index %s,%s" % (contentFile,e)
@@ -203,7 +203,7 @@ def indexNode(ix, node, contentPath, order = 0, optimize=False):
 	
 ########				
 					
-def getNodes(tocFile):
+def get_nodes(tocFile):
 	dom = parse(tocFile)
 	result = list()
 	
@@ -221,11 +221,11 @@ def main(tocFile, contentPath, indexdir = None, indexname = "prealgebra"):
 	if not indexdir:
 		indexdir = os.path.join(contentPath, "indexdir")
 		
-	idx = getOrCreateIndex(indexdir, indexname)
-	nodes = getNodes(tocFile)
+	idx = get_or_create_index(indexdir, indexname)
+	nodes = get_nodes(tocFile)
 	order = 0
 	for node in nodes:
-		indexNode(idx, node, contentPath, order)
+		index_node(idx, node, contentPath, order)
 		order += 1
 
 	print "Optimizing index"
