@@ -442,6 +442,7 @@ def _digestAndCollect( self, tokens, until ):
 from plasTeX.Base import Node
 class sectionproblems(Base.subsection):
 	counter = 'sectionprobsnotused'
+	args = ''
 
 	def invoke( self, tex ):
 		self.ownerDocument.context.counters['saveprobnum'].setcounter(
