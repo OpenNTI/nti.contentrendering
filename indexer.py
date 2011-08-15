@@ -188,7 +188,6 @@ def index_node(ix, node, contentPath, order = 0, optimize=False):
 							title=unicode(title),\
 							content=unicode(content),\
 							quick=unicode(content),\
-							snippet=unicode(snippet),\
 							related=related,\
 							ref=ref,\
 							order=order,\
