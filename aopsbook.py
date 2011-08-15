@@ -420,6 +420,9 @@ class _BasePicProblem(Base.Environment):
 class picproblem(_BasePicProblem):
 	pass
 
+class picproblemspec(picproblem):
+	pass
+
 class picsecprob(_BasePicProblem):
 	pass
 
@@ -441,6 +444,8 @@ class problem(Base.Environment):
 		return res
 
 
+class problemspec(problem):
+	pass
 
 def _digestAndCollect( self, tokens, until ):
 	self.digestUntil(tokens, until )
