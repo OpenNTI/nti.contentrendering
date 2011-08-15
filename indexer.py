@@ -15,7 +15,7 @@ from whoosh import index
 
 def get_schema():
 	return Schema(	ntiid=ID(stored=True, unique=True),\
-					title=TEXT(stored=True), 
+					title=TEXT(stored=True, spelling=True), 
 				  	last_modified=DATETIME(stored=True),\
 				  	keywords=KEYWORD(stored=True), \
 				 	quick=NGRAM(maxsize=10),\
@@ -23,7 +23,7 @@ def get_schema():
 				 	ref=STORED(),\
 				 	order=NUMERIC(int),\
 				 	snippet=TEXT(stored=True),\
-				  	content=TEXT(stored=False))
+				  	content=TEXT(stored=False, spelling=True))
 	
 	
 def get_or_create_index(indexdir, indexname ='prealgebra', recreate = True):
