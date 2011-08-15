@@ -36,6 +36,7 @@ def main(argv):
 	jobname = document.userdata['jobname'] = tex.jobname
 	cwd = document.userdata['working-dir'] = os.getcwd()
 	document.userdata['generated_time'] = str(datetime.datetime.now())
+	document.userdata['transform_process'] = True;
 
 	# Load aux files for cross-document references
 #	pauxname = '%s.paux' % jobname
