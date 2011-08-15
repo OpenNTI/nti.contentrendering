@@ -355,6 +355,9 @@ class game(Base.Environment):
 class sidebar(Base.Environment):
 	pass
 
+class xtra(Base.Environment):
+	pass
+
 titlepattern = re.compile(r'/Title\s+\((?P<title>.*?)\)\s+/Author\s+\((?P<authors>.*?)\).*')
 
 class pdfinfo(Base.Command):
