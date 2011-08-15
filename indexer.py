@@ -22,7 +22,6 @@ def get_schema():
 				 	related=STORED(),\
 				 	ref=STORED(),\
 				 	order=NUMERIC(int),\
-				 	snippet=TEXT(stored=True),\
 				  	content=TEXT(stored=True, spelling=True))
 	
 	
