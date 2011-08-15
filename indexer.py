@@ -23,7 +23,7 @@ def get_schema():
 				 	ref=STORED(),\
 				 	order=NUMERIC(int),\
 				 	snippet=TEXT(stored=True),\
-				  	content=TEXT(stored=False, spelling=True))
+				  	content=TEXT(stored=True, spelling=True))
 	
 	
 def get_or_create_index(indexdir, indexname ='prealgebra', recreate = True):
