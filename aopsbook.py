@@ -31,6 +31,12 @@ class yen(Base.Command):
 	#unicode = '&#165;'
 	pass
 
+class textcent(Base.Command):
+	#It would be nice to do this here so we don't have to define a template
+	#but the & gets escaped on the way out to html
+	#unicode = '&#162;'
+	pass
+
 class Cube(_OneText):
 	resourceTypes = ['png', 'svg']
 	pass
