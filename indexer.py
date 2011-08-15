@@ -22,8 +22,7 @@ def get_schema():
 				 	related=STORED(),\
 				 	ref=STORED(),\
 				 	order=NUMERIC(int),\
-				 	snippet=TEXT(stored=True),\
-				  	content=TEXT(stored=False, spelling=True))
+				  	content=TEXT(stored=True, spelling=True))
 	
 	
 def get_or_create_index(indexdir, indexname ='prealgebra', recreate = True):
@@ -138,7 +137,7 @@ def word_splitter(text, wordpat=r"(?L)\w+"):
 		text = re.sub(pat, " ", text)
 	return re.findall(wordpat, text)
 
-def get_snippet(text):
+def get_first_paragraph(text):
 	"""
 	Get the first paragraph with text in the specified content"
 	"""
@@ -178,7 +177,6 @@ def index_node(ix, node, contentPath, order = 0, optimize=False):
 	last_modified = get_last_modified(rawContent)
 	
 	pageRawContent = get_page_content(rawContent)
-	snippet = get_snippet(pageRawContent)
 	content = ' '.join(word_splitter(pageRawContent))
 		
 	writer = ix.writer()
@@ -189,7 +187,6 @@ def index_node(ix, node, contentPath, order = 0, optimize=False):
 							title=unicode(title),\
 							content=unicode(content),\
 							quick=unicode(content),\
-							snippet=unicode(snippet),\
 							related=related,\
 							ref=ref,\
 							order=order,\
