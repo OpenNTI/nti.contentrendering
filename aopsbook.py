@@ -25,6 +25,12 @@ class rindent(_Ignored):
 class vupnud(_Ignored):
 	pass
 
+class yen(Base.Command):
+	#It would be nice to do this here so we don't have to define a template
+	#but the & gets escaped on the way out to html
+	#unicode = '&#165;'
+	pass
+
 class Cube(_OneText):
 	resourceTypes = ['png', 'svg']
 	pass
