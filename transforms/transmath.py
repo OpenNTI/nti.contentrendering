@@ -59,6 +59,8 @@ def transformSimpleMath(document):
 	simpleMaths = [math for math in document.getElementsByTagName('math') \
 				   if all( [ child.nodeType == Node.TEXT_NODE for child in math.childNodes ] )]
 
+	simpleMaths = list(set(simpleMaths))
+
 	for math in simpleMaths:
 		try:
 
