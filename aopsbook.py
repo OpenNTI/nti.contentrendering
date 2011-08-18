@@ -144,6 +144,10 @@ class cancel(Base.Command):
 class cancelto(Base.Command):
 	args = 'to text'
 
+#TODO:  Inherit from something in Boxes.py?
+class boxed(Base.Command):
+	args = '{self}'
+
 class text(Base.BoxCommand):
 
 	args = '{self}'
