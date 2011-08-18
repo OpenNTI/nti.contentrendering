@@ -220,28 +220,30 @@ class rlin(Base.Command):
 		return super(rlin,self).invoke( tex )
 
 # Attributions
-class attribution(Base.Command):
-	#No reason to have an invoke method, not doing anything special here.
-	#def invoke( self, tex ):
-	#	super(attribution, self).invoke( tex )
+class source(Base.Command):
+	args = '{source:str}'
+	pass
 
-	def toXML(self):
-		xml = "<nti:attribution "
-		xml += "nti:type='" + self.attribution_type + "'"
-		if 'value' in self.attributes and self.attributes['value']:
-			xml += " nti:value='" + `self.attributes['value']` + "' ";
-		xml += "/>"
-		return xml
+class MathCounts(source):
+	args = ''
+	def invoke(self, tex):
+		res = super(MathCounts, self).invoke(tex)
+		self.attributes['source'] = 'MATHCOUNTS'
+		return res
 
-class MathCounts(attribution):
-	attribution_type = "MathCounts"
+class MOEMS(source):
+	args = ''
+	def invoke(self, tex):
+		res = super(MOEMS, self).invoke(tex)
+		self.attributes['source'] = 'MOEMS'
+		return res
 
-class MOEMS(attribution):
-	attribution_type = "MOEMS"
-
-class AMC(attribution):
-	args='{value:int}'
-	attribution_type = "AMC"
+class AMC(source):
+	args = '{text:str}'
+	def invoke(self, tex):
+		res = super(AMC, self).invoke(tex)
+		self.attributes['source'] = 'AMC %s' % self.attributes['text']
+		return res
 
 # Counters
 class partnum(Base.Command):
