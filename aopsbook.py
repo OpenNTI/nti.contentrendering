@@ -134,6 +134,10 @@ class defn(Base.Environment):
 class defns(Base.Environment):
 	pass
 
+class picdefns(defns):
+	args = '{Picture}'
+	pass
+
 class cancel(Base.Command):
 	args = 'text'
 
