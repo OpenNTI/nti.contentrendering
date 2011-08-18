@@ -25,16 +25,20 @@ class rindent(_Ignored):
 class vupnud(_Ignored):
 	pass
 
+#TODO:  In many cases phantom is used purely for spacing we don't care about
+#in our rendering.  At other times it's used for spaceing we do need to render (e.g. fill in the blank style blanks)
+#This looks like it will be a case by case basis.
+#included phantom doesn't allow for tex fragments as args
+class phantom(Base.Space.phantom):
+	args = 'tex'
+	pass
+
 class yen(Base.Command):
-	#It would be nice to do this here so we don't have to define a template
-	#but the & gets escaped on the way out to html
-	#unicode = '&#165;'
+	unicode = u'\xA5'
 	pass
 
 class textcent(Base.Command):
-	#It would be nice to do this here so we don't have to define a template
-	#but the & gets escaped on the way out to html
-	#unicode = '&#162;'
+	unicode = u'\xA2'
 	pass
 
 class Cube(_OneText):
