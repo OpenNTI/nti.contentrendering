@@ -653,6 +653,7 @@ Math.math.resourceTypes = inlineMathTypes
 #Math.ensuremath.resourceTypes=inlineMathTypes
 
 Math.displaymath.resourceTypes = displayMathTypes
+Math.EqnarrayStar.resourceTypes = displayMathTypes
 #Math.equation.resourceTypes=displayMathTypes
 #Math.eqnarray.resourceTypes=displayMathTypes
 #Math.EqnarrayStar.resourceTypes=displayMathTypes
