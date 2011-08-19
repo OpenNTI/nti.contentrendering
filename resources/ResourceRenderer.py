@@ -24,7 +24,6 @@ def createResourceRenderer(baserenderername, resourcedb):
 	renderer = Renderer()
 	renderer.resourcedb = resourcedb
 
-
 	return renderer
 
 def renderDocument(self, document, postProcess=None):

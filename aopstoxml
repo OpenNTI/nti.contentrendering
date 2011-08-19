@@ -141,8 +141,8 @@ from resources import ResourceDB
 
 def generateImages(document):
 	### Generates required images ###
-
-	db = ResourceDB(document)
+	overrides = os.path.join(os.path.dirname(__file__), 'resourceoverrides')
+	db = ResourceDB(document, overridesLocation=overrides)
 	db.generateResourceSets()
 
 	return db;

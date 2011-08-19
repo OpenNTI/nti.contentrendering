@@ -38,6 +38,56 @@ RESOURCE_TYPES = {'mathjax_inline': 'nti_resource_inlinemathjaxdom', \
 				  'mathjax_display': 'nti_resource_displaymathjaxdom', \
 				  'png': 'nti_resource_image' }
 
+from UserDict import DictMixin
+class ResourceTypeOverrides(DictMixin):
+
+	OVERRIDE_INDEX_NAME = 'resourcetypes.txt'
+
+	def __init__(self, location):
+		self.location = location
+		self._overrides = {}
+		if location:
+			self._loadOverrides()
+
+	def _loadOverrides(self):
+
+		overridesFile = os.path.join(self.location, self.OVERRIDE_INDEX_NAME)
+
+		if not os.path.exists(overridesFile):
+			log.warning('%s not found.  No resourceType overrides will be applied' % overridesFile)
+			return
+
+		with open(overridesFile, 'r') as f:
+			for line in f.readlines():
+				sourceFileName, types = line.split('=');
+				types = types.split(',')
+				types = [type.strip() for type in types];
+
+				sourcePath = os.path.join(self.location, sourceFileName)
+
+				if not os.path.exists(sourcePath):
+					log.warning('Can\'t apply override for %s.  File does not exist' % sourcePath)
+					continue
+
+				with open(sourcePath, 'r') as sourceFile:
+					source = sourceFile.read().strip()
+					source = ''.join(source.split())
+					self[source] = types
+
+	def __getitem__(self, key):
+		return self._overrides[key]
+
+	def __delitem__(self, key):
+		del self._overrides[key]
+
+	def __setitem__(self, key, value):
+		self._overrides[key]  = value
+
+	def keys(self):
+		return self._overrides.keys()
+
+
+
 class Resource(object):
 
 	def __init__(self, path, url=None, resourceSet=None, checksum=None):
@@ -121,9 +171,10 @@ class ResourceDB(object):
 	"""
 	Manages external resources (images, mathml, videos, etc..) for a document
 	"""
-	def __init__(self, document, path=None):
+	def __init__(self, document, path=None, overridesLocation=None):
 		self.__document=document
 		self.__config=self.__document.config
+		self.overrides = ResourceTypeOverrides(overridesLocation)
 
 		if not hasattr(Image, '_url'): # Not already patched
 			Image._url=None
@@ -168,8 +219,6 @@ class ResourceDB(object):
 
 		for node in nodesToGenerate:
 
-			#Handle overrides
-
 			for rType in node.resourceTypes:
 				# We don't want to regenerate for source that already esists
 				if not node.source in self.__db:
@@ -212,6 +261,14 @@ class ResourceDB(object):
 
 	def __findNodes(self, node):
 		nodes=[]
+
+		#Do we have any overrides
+		#FIXME Be smarter about this.  The source for mathnodes is reconstructed so the
+		#whitespace is all jacked up.  The easiest (not safest) thing to do is strip whitespace
+		source = ''.join(node.source.split())
+		if source in self.overrides:
+			print 'Applying resourceType override to %s' % node
+			node.resourceTypes = self.overrides[source]
 
 		if getattr(node, 'resourceTypes', None):
 			nodes.append(node)
