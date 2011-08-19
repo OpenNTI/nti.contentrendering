@@ -736,6 +736,10 @@ class parpic(Base.Command):
 class fig(Base.figure):
 	pass
 
+class negthinspaceshorthand(Base.Text.negthinspace):
+	macroName = '!'
+	pass
+
 ## Hints
 class hints(_Ignored):
 	pass
