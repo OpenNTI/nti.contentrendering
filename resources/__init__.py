@@ -34,6 +34,10 @@ except ImportError:
 
 from collections import defaultdict
 
+RESOURCE_TYPES = {'mathjax_inline': 'nti_resource_inlinemathjaxdom', \
+				  'mathjax_display': 'nti_resource_displaymathjaxdom', \
+				  'png': 'nti_resource_image' }
+
 class Resource(object):
 
 	def __init__(self, path, url=None, resourceSet=None, checksum=None):
@@ -163,6 +167,9 @@ class ResourceDB(object):
 		typesToSource=defaultdict(set)
 
 		for node in nodesToGenerate:
+
+			#Handle overrides
+
 			for rType in node.resourceTypes:
 				# We don't want to regenerate for source that already esists
 				if not node.source in self.__db:

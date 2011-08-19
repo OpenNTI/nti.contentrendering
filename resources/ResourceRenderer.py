@@ -7,6 +7,8 @@ from plasTeX.Filenames import Filenames
 import os
 log = getLogger()
 import pdb
+from resources import RESOURCE_TYPES
+
 
 def createResourceRenderer(baserenderername, resourcedb):
 	# Load renderer
@@ -95,6 +97,49 @@ class Renderable(BaseRenderable):
 		#print 'getting contents for %s'%self.source
 		return self.renderer.resourcedb.getResourceContent(self.source, criteria)
 
+
+	@property
+	def resource(self):
+		#pdb.set_trace()
+		renderer = Node.renderer
+
+		resourceTypes = None
+		if getattr(self, 'resourceTypes', None):
+			resourceTypes = self.resourceTypes
+
+		if not resourceTypes:
+			log.warning('No resource types for %s using default renderer %s' % (self.nodeName, renderer.default))
+			return renderer.default(self)
+
+		template = None
+
+		for resourceType in resourceTypes:
+
+			if not resourceType in RESOURCE_TYPES:
+				continue
+
+			resourceTemplateName = RESOURCE_TYPES[resourceType]
+			resourceTemplateNameForNode = '%s_%s' % (resourceTemplateName, self.nodeName)
+
+			template = renderer.find([resourceTemplateNameForNode, resourceTemplateName], None)
+
+			if template is not None:
+				break
+
+		if template is None:
+			log.warning('Unable to find template from resourcetypes %s for node %s' % (resourceTypes, self.nodeName))
+			return renderer.default(self)
+
+		val = template(self)
+
+		#From Renderer.unicode
+		# If a plain string is returned, we have no idea what
+		# the encoding is, but we'll make a guess.
+		if type(val) is not unicode:
+			log.warning('The renderer for %s returned a non-unicode string.	 Using the default input encoding.' % type(child).__name__)
+			val = unicode(val, self.config['files']['input-encoding'])
+
+		return val
 
 	def getResource(self, criteria):
 		#print 'calling getResource on %s for %s' % (self.source, criteria)
