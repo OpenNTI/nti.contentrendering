@@ -90,6 +90,8 @@ import contentsizesetter
 import relatedlinksetter
 from RenderedBook import RenderedBook
 
+import contentchecks
+
 def postRender(document, contentLocation='.'):
 	print 'Performing post render steps'
 
@@ -106,20 +108,8 @@ def postRender(document, contentLocation='.'):
 	print 'Adding related links to toc'
 	relatedlinksetter.transform(book)
 
-	print 'Checking for excessively wide pages'
-	badPages = 0
-
-	maxWidth = 730
-
-	for pageid, page in book.pages.items():
-		width = page.pageInfo['scrollWidth']
-
-		if width > maxWidth:
-			badPages += 1
-			print '*** WARNING *** Width of %s is outside of bounds.  Maximum width should be %s but it was %s ' % (page.filename, maxWidth, width)
-
-	if badPages == 0:
-		print 'All page sizes within acceptable range'
+	print 'Running checks on content'
+	contentchecks.performChecks(document, book);
 
 
 from resources.ResourceRenderer import createResourceRenderer
