@@ -6,15 +6,16 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import os
 import pdb
 
-javascript =  os.path.join(os.path.join(os.path.dirname(__file__), '../js'), 'getPageInfo.js')
-def _getPageInfo(contentLocation, tocNode):
+
+def _runPhantomOnPage(contentLocation, tocNode, scriptName):
 	htmlFile = os.path.join(contentLocation, tocNode.getAttribute('href'))
 	#print 'Fetching page info for %s' % htmlFile
-	process = "phantomjs %s %s 2>/dev/null" % (javascript, htmlFile)
+	process = "phantomjs %s %s 2>/dev/null" % (scriptName, htmlFile)
 	#print process
 	jsonStr = subprocess.Popen(process, shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-	pageInfo = json.loads(jsonStr)
-	return (tocNode, pageInfo)
+	#print '%s-%s' % (htmlFile, jsonStr)
+	result = json.loads(jsonStr)
+	return (tocNode, result)
 
 
 class RenderedBook(object):
@@ -37,22 +38,34 @@ class RenderedBook(object):
 
 
 	def _processPages(self):
-		eclipseTOC = EclipseTOC(self.tocFile)
-		nodesForPages = eclipseTOC.getPageNodes()
+		javascript =  os.path.join(os.path.join(os.path.dirname(__file__), '../js'), 'getPageInfo.js')
 
-		with ProcessPoolExecutor() as executor:
-			for the_tuple in executor.map( _getPageInfo, [self.contentLocation for x in nodesForPages if x], nodesForPages):
-				node = the_tuple[0]
-				pageinfo = the_tuple[1]
+		results = self.runPhantomOnPages(javascript)
 
-				page = ContentPage(os.path.join(self.contentLocation, node.getAttribute('href')), pageinfo, node)
-				self.pages[page.ntiid] = page
+		for node, pageinfo in results.items():
+			page = ContentPage(os.path.join(self.contentLocation, node.getAttribute('href')), pageinfo, node)
+			self.pages[page.ntiid] = page
 
 
 
 	def getEclipseTOC(self):
 		return EclipseTOC(self.tocFile)
 
+	def runPhantomOnPages(self, script):
+		eclipseTOC = EclipseTOC(self.tocFile)
+		nodesForPages = eclipseTOC.getPageNodes()
+
+		results = {}
+
+		with ProcessPoolExecutor() as executor:
+			for the_tuple in executor.map( _runPhantomOnPage, [self.contentLocation for x in nodesForPages if x], \
+										   nodesForPages, [script for x in nodesForPages if x]):
+				node = the_tuple[0]
+				result = the_tuple[1]
+
+				results[node] = result
+
+		return results
 
 
 
