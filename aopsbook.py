@@ -25,6 +25,9 @@ class rindent(_Ignored):
 class vupnud(_Ignored):
 	pass
 
+class pagebreak(_Ignored):
+	pass
+
 #TODO:  In many cases phantom is used purely for spacing we don't care about
 #in our rendering.  At other times it's used for spaceing we do need to render (e.g. fill in the blank style blanks)
 #This looks like it will be a case by case basis.
@@ -503,6 +506,18 @@ class sectionproblems(Base.subsection):
 			elif item.nodeType == Node.TEXT_NODE:
 				if item.isElementContentWhitespace:
 					self.pop(i)
+
+		#For some reason we can't combine this with the loop above previousSibling isn't correct
+		for i in range(len(self)-1, -1, -1):
+			item = self[i]
+
+			if not ( isinstance(item, problem) or isinstance(item, _BasePicProblem) ):
+				before = item.previousSibling;
+				if before is not None:
+					self.pop(i)
+					before.append(item)
+				else:
+					log.warning('Non problem item %s of %s has no previous sibling' % (item, self))
 
 
 
