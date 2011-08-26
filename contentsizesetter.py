@@ -63,7 +63,7 @@ def writeContentSizeToMeta(htmlFile, contentHeight):
 	backupFile = htmlFile+'.bkp'
 
 	if os.path.exists(backupFile):
-		os.remove(htmlFile+'.bkp')
+		os.remove(backupFile)
 
 if __name__ == '__main__':
 	main(args)

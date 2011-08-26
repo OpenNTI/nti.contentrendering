@@ -6,11 +6,13 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import os
 import pdb
 
-
-def _runPhantomOnPage(contentLocation, tocNode, scriptName):
+def _runPhantomOnPage(contentLocation, tocNode, scriptName, args):
 	htmlFile = os.path.join(contentLocation, tocNode.getAttribute('href'))
+
+
+
 	#print 'Fetching page info for %s' % htmlFile
-	process = "phantomjs %s %s 2>/dev/null" % (scriptName, htmlFile)
+	process = "phantomjs %s %s %s 2>/dev/null" % (scriptName, htmlFile, " ".join([str(x) for x in args]))
 	#print process
 	jsonStr = subprocess.Popen(process, shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
 	#print '%s-%s' % (htmlFile, jsonStr)
@@ -51,7 +53,7 @@ class RenderedBook(object):
 	def getEclipseTOC(self):
 		return EclipseTOC(self.tocFile)
 
-	def runPhantomOnPages(self, script):
+	def runPhantomOnPages(self, script, *args):
 		eclipseTOC = EclipseTOC(self.tocFile)
 		nodesForPages = eclipseTOC.getPageNodes()
 
@@ -59,7 +61,7 @@ class RenderedBook(object):
 
 		with ProcessPoolExecutor() as executor:
 			for the_tuple in executor.map( _runPhantomOnPage, [self.contentLocation for x in nodesForPages if x], \
-										   nodesForPages, [script for x in nodesForPages if x]):
+										   nodesForPages, [script for x in nodesForPages if x], [args for x in nodesForPages if x]):
 				node = the_tuple[0]
 				result = the_tuple[1]
 
