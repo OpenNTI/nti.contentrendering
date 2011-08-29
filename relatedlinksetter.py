@@ -35,7 +35,13 @@ from collections import defaultdict
 def addRelatedBasedOnTOC(eclipseTOC, book):
 	relatedTuples = []
 
-	theIndex = book.document.getElementsByTagName('printindex')[0]
+	theIndexs = book.document.getElementsByTagName('printindex')
+
+	#some books (mathcounts) dont have an index.
+	if len(theIndexs) < 1:
+		return
+
+	theIndex = theIndexs[0];
 
 	for group in theIndex.groups:
 		entries = [ entry for column in group for entry in column]
