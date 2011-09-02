@@ -8,7 +8,7 @@ from datetime import datetime
 from xml.dom.minidom import parse
 from xml.dom.minidom import Node
 
-from whoosh.fields import Schema, TEXT,ID, KEYWORD, DATETIME, STORED, NGRAM, NUMERIC
+from whoosh.fields import Schema, TEXT,ID, KEYWORD, DATETIME, NGRAM, NUMERIC
 from whoosh import index
 
 ########
@@ -19,8 +19,8 @@ def get_schema():
 				  	last_modified=DATETIME(stored=True),\
 				  	keywords=KEYWORD(stored=True), \
 				 	quick=NGRAM(maxsize=10),\
-				 	related=STORED(),\
-				 	ref=STORED(),\
+				 	related=KEYWORD(),\
+				 	section=TEXT(),\
 				 	order=NUMERIC(int),\
 				  	content=TEXT(stored=True, spelling=True))
 	
@@ -35,9 +35,9 @@ def get_or_create_index(indexdir, indexname ='prealgebra', recreate = True):
 		recreate = True
 		
 	if recreate:
-		index.create_in(indexdir, schema=get_schema(), indexname=indexname)
-	
-	ix = index.open_dir(indexdir, indexname=indexname)
+		ix = index.create_in(indexdir, schema=get_schema(), indexname=indexname)
+	else:
+		ix = index.open_dir(indexdir, indexname=indexname)
 		
 	return ix
 
@@ -55,11 +55,11 @@ def get_title(node):
 	attrs = node.attributes
 	return attrs['label'].value if attrs.has_key('label') else None
 	
-def add_ntiid_to_set(set, node):
+def add_ntiid_to_set(pset, node):
 	ntiid = get_ntiid(node)
 	if ntiid:
-		set.add(unicode(ntiid))
-	return set
+		pset.add(unicode(ntiid))
+	return pset
 
 def get_related(node):
 	"""
@@ -142,8 +142,8 @@ def get_first_paragraph(text):
 	Get the first paragraph with text in the specified content"
 	"""
 	s = re.sub("<p>","\n<p>", text)
-	all = re.findall("<p>.*", s)
-	for p in all:
+	hits = re.findall("<p>.*", s)
+	for p in hits:
 		content = word_splitter(p)
 		content = ' '.join(content)
 		if len(content) > 0:
@@ -173,7 +173,7 @@ def index_node(ix, node, contentPath, order = 0, optimize=False):
 	with open(contentFile, "r") as f:
 		rawContent = f.read() 
 	
-	ref = get_ref(rawContent)
+	section = get_ref(rawContent)
 	last_modified = get_last_modified(rawContent)
 	
 	pageRawContent = get_page_content(rawContent)
@@ -188,7 +188,7 @@ def index_node(ix, node, contentPath, order = 0, optimize=False):
 							content=unicode(content),\
 							quick=unicode(content),\
 							related=related,\
-							ref=ref,\
+							section=unicode(section),\
 							order=order,\
 							last_modified=as_time)
 		
