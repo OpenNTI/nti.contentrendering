@@ -19,7 +19,7 @@ def get_schema():
 				  	last_modified=DATETIME(stored=True),\
 				  	keywords=KEYWORD(stored=True), \
 				 	quick=NGRAM(maxsize=10),\
-				 	related=KEYWORD(),\
+				 	related=KEYWORD(stored=True),\
 				 	section=TEXT(),\
 				 	order=NUMERIC(int),\
 				  	content=TEXT(stored=True, spelling=True))
