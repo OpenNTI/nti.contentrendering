@@ -81,7 +81,8 @@ class parpic(includegraphics):
 
 
 def ProcessOptions( options, document ):
-	document.context.newcounter( 'probnum','worksheet')
+	#Reset by the section counter which in our implementation is the worksheet
+	document.context.newcounter( 'probnum', resetby='section')
 	document.context.newcounter( 'solnum' )
 
 
