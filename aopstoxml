@@ -80,8 +80,7 @@ def nextID(self):
 	ntiid = ntiid + 1
 
 	setattr(self, 'NTIID', ntiid)
-
-	return 'aops-%s-%s' % (self.userdata['jobname'], ntiid)
+	return 'tag:nextthought.com,2011-07-14:AOPS-HTML-%s-%s' % (self.userdata['jobname'], ntiid)
 
 plasTeX.TeXDocument.nextNTIID=nextID
 
