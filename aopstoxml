@@ -48,6 +48,7 @@ def main(argv):
 	#		document.context.restore(fname, rname)
 
 	# Parse the document
+	print "Parsing %s" % sourceFile
 	tex.parse()
 	
 	# Set up TEXINPUTS to include the current directory for the renderer
@@ -66,6 +67,7 @@ def main(argv):
 	transforms.performTransforms( document )
 
 	if outFormat == 'images' or outFormat == 'xhtml':
+		print "Generating images"
 		db = generateImages(document)
 
 	if outFormat == 'xhtml':
