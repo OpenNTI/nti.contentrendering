@@ -4,6 +4,7 @@ import os
 import sys
 import string
 import datetime
+import logging
 
 import plasTeX
 from plasTeX.TeX import TeX
@@ -13,9 +14,15 @@ import transforms
 
 log = getLogger()
 
+def _configure_logging():
+	logging.basicConfig( level=logging.INFO )
+	logging.root.handlers[0].setFormatter( logging.Formatter( '[%(name)s] %(levelname)s: %(message)s' ) )
+
 def main(argv):
 	""" Main program routine """
 
+	_configure_logging()
+	
 	sourceFile = argv.pop(0)
 	outFormat = 'xml'
 
