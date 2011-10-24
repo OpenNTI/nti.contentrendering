@@ -1,40 +1,40 @@
 #!/usr/bin/env python
 
-import os, sys, codecs, string, glob
+import os
+import sys
+import string
+import datetime
+
 import plasTeX
 from plasTeX.TeX import TeX
 from plasTeX.Logging import getLogger
-import pdb
-from plasTeX.ConfigManager import *
-import datetime
-log = getLogger()
+
 import transforms
-from plasTeX.Base import Node
+
+log = getLogger()
 
 def main(argv):
 	""" Main program routine """
 
-
-	file = argv.pop(0)
-
+	sourceFile = argv.pop(0)
 	outFormat = 'xml'
 
 	if argv:
 		outFormat = argv.pop(0)
 
-
 	# Create document instance that output will be put into
 	document = plasTeX.TeXDocument()
+	
 	#setup config options we want
 	document.config['files']['split-level']=1
 	document.config['general']['theme']='AoPS'
 
 	# Instantiate the TeX processor
-	tex = TeX(document, file=file)
+	tex = TeX(document, file=sourceFile)
 
 	# Populate variables for use later
 	jobname = document.userdata['jobname'] = tex.jobname
-	cwd = document.userdata['working-dir'] = os.getcwd()
+	document.userdata['working-dir'] = os.getcwd()
 	document.userdata['generated_time'] = str(datetime.datetime.now())
 	document.userdata['transform_process'] = True;
 
@@ -49,10 +49,11 @@ def main(argv):
 
 	# Parse the document
 	tex.parse()
+	
 	# Set up TEXINPUTS to include the current directory for the renderer
 	os.environ['TEXINPUTS'] = '%s%s%s%s' % (os.getcwd(), os.pathsep,
 										 os.environ.get('TEXINPUTS',''), os.pathsep)
-	 # Change to specified directory to output to
+	# Change to specified directory to output to
 	outdir = document.config['files']['directory']
 	if outdir:
 		outdir = string.Template(outdir).substitute({'jobname':jobname})
@@ -84,20 +85,23 @@ def nextID(self):
 
 plasTeX.TeXDocument.nextNTIID=nextID
 
+import indexer
 import tociconsetter
 import contentsizesetter
 import relatedlinksetter
 import contentthumbnails
+
 from RenderedBook import RenderedBook
 
 import contentchecks
 
-def postRender(document, contentLocation='.'):
+def postRender(document, contentLocation='.', indexname = 'prealgebra'):
 	print 'Performing post render steps'
 
 	#This goes first b/c it sets the root node of the toc up
 	print 'Adding icons to toc and pages'
-	tociconsetter.transform(os.path.join(contentLocation, 'eclipse-toc.xml'), contentLocation)
+	toc_file = os.path.join(contentLocation, 'eclipse-toc.xml')
+	tociconsetter.transform(toc_file, contentLocation)
 
 	print 'Fetching page info'
 	book = RenderedBook(document, contentLocation)
@@ -112,8 +116,11 @@ def postRender(document, contentLocation='.'):
 	contentthumbnails.transform(book)
 
 	print 'Running checks on content'
-	contentchecks.performChecks(document, book);
-
+	contentchecks.performChecks(document, book)
+	
+	print "indexing content"
+	contentPath = os.path.realpath(contentLocation)
+	indexer.index_content(tocFile=toc_file, contentPath=contentPath, indexname=indexname)
 
 from resources.ResourceRenderer import createResourceRenderer
 
@@ -127,9 +134,6 @@ def toXml( document, jobname ):
 	with open(outfile,'w') as f:
 		f.write(document.toXML().encode('utf-8'))
 
-import string
-
-
 from resources import ResourceDB
 
 def generateImages(document):
@@ -137,9 +141,7 @@ def generateImages(document):
 	overrides = os.path.join(os.path.dirname(__file__), 'resourceoverrides')
 	db = ResourceDB(document, overridesLocation=overrides)
 	db.generateResourceSets()
-
-	return db;
-
+	return db
 
 if __name__ == '__main__':
 	main(sys.argv[1:])

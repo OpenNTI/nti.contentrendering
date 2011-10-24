@@ -5,6 +5,8 @@ import os
 import re
 import sys
 import tempfile
+import subprocess
+
 from xml.dom.minidom import parse
 from xml.dom.minidom import Node
 
@@ -14,9 +16,12 @@ def main(args):
 	tocFile = args.pop(0)
 	chapterPath = None
 	if (args):
-		chapterPath = args.pop();
+		chapterPath = args.pop()
 
 	transform(tocFile, chapterPath)
+	
+	args=os.path.realpath(chapterPath) + "/*.bkp"
+	subprocess.call(["rm", "-rf", args])
 
 def transform(tocFile, chapterPath=None):
 	dom = parse(tocFile)
@@ -154,9 +159,8 @@ def set_background_image(sourceFile, imageName):
 	command = "sed -i .bkp \"s/<body \\(.*\\)>/" + replace + "/g\" ";
 
 	os.popen(command + sourceFile)
-	os.remove(sourceFile + ".bkp")
 
-	return True;
+	return True
 
 if __name__ == '__main__':
 	args = sys.argv[1:]

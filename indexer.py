@@ -228,7 +228,9 @@ def main(tocFile, contentPath, indexdir = None, indexname = "prealgebra"):
 	print "Optimizing index"
 	
 	idx.optimize()
-	
+
+index_content = main
+
 if __name__ == '__main__':	
 	
 	args = sys.argv[1:]
