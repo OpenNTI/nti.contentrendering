@@ -5,7 +5,6 @@ import os
 import re
 import sys
 import tempfile
-import subprocess
 
 from xml.dom.minidom import parse
 from xml.dom.minidom import Node
@@ -20,8 +19,11 @@ def main(args):
 
 	transform(tocFile, chapterPath)
 	
-	args=os.path.realpath(chapterPath) + "/*.bkp"
-	subprocess.call(["rm", "-rf", args])
+	try:
+		command = 'rm %s/*.bkp' % os.path.realpath(chapterPath)
+		os.system(command)
+	except:
+		pass
 
 def transform(tocFile, chapterPath=None):
 	dom = parse(tocFile)
