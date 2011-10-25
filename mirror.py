@@ -187,4 +187,5 @@ if __name__ == '__main__':
 		out_dir = args.pop(0) if args else "/tmp"
 		main(url, out_dir)
 	else:
-		print("syntax URL [output directory]")
+		print("Syntax URL [output directory]")
+		print("python mirror.py http://localhost/prealgebra /tmp/prealgebra")
