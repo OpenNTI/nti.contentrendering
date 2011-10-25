@@ -13,7 +13,7 @@ from xml.dom.minidom import Node
 
 WGET_CMD = 'wget'
 
-def main(url, out_dir="/tmp"):
+def main(url, out_dir="/tmp/mirror"):
 	""" 
 	Main program routine 
 	"""
@@ -184,7 +184,7 @@ if __name__ == '__main__':
 	args = sys.argv[1:]
 	if args:
 		url = args.pop(0)
-		out_dir = args.pop(0) if args else "/tmp"
+		out_dir = args.pop(0) if args else "/tmp/mirror"
 		main(url, out_dir)
 	else:
 		print("Syntax URL [output directory]")
