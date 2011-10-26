@@ -11,9 +11,9 @@ from urlparse import urlparse
 
 from pyquery import PyQuery as pq
 
-WGET_CMD = '/opt/local/bin/wget'
+WGET_CMD = 'wget'
 
-def main(url_or_path, out_dir="/tmp/", manifest='cache-manifest', port=7777):
+def main(url_or_path, out_dir="/tmp/", manifest='cache-manifest', port=7776):
 	""" 
 	Creates an html cache-manifest file with all resources in the specified url
 	"""
@@ -29,7 +29,7 @@ def main(url_or_path, out_dir="/tmp/", manifest='cache-manifest', port=7777):
 	
 		out_dir = _create_path(out_dir)
 		
-		resources = _get_url_resources(url, out_dir) 
+		resources = _get_url_resources(url, out_dir, httpd==None) 
 		_process_toc_file(url, resources)
 		
 		print "%s Resources found" % len(resources)
@@ -101,17 +101,24 @@ def _get_toc_file(url, out_dir, toc_file='eclipse-toc.xml'):
 	print "Getting TOC file"
 	return _get_file(url, out_dir, toc_file, True)
 	
-def _get_url_resources(url, out_dir="/tmp"):	
+def _get_url_resources(url, out_dir="/tmp", user_spider=False):	
 	
 	print "Getting URL resources"
 	
+	tmp = None
 	resources = {}
 	
-	args = [WGET_CMD, '-r', '-np', '-p', '-nH'] 
+	args = [WGET_CMD, '-m', '-nH', '--no-parent', '-p'] 
 	cut_dirs = _get_cut_dirs(url)
 	if cut_dirs > 0:
 		args.append('--cut-dirs=%s' % cut_dirs)
-	args.append('--spider')
+		
+	if user_spider:
+		args.append('--spider')
+	else:
+		tmp = tempfile.mkdtemp()
+		args.append('-P %s' % tmp)
+		
 	args.append(url)
 	
 	def valid_resource(rsr):
@@ -122,13 +129,8 @@ def _get_url_resources(url, out_dir="/tmp"):
 		else:
 			return None
 		
-	print ' '.join(args)
-	tmp = tempfile.mktemp()
-	try:
-		with open(tmp, "w") as target:
-			subprocess.Popen(args, shell=False, stderr=target)
-		
-		with open(tmp, "r") as source:
+	try:	
+		with subprocess.Popen(args, shell=False, stderr=subprocess.PIPE).stderr as source:
 			for line in source:
 				m = re.search('(^--.*--)  (http:\/\/.*[^\/]$)', line)
 				if m:
@@ -136,7 +138,8 @@ def _get_url_resources(url, out_dir="/tmp"):
 					if rsr and rsr not in resources:
 						resources[rsr] = None
 	finally:
-		_remove_file(tmp)
+		if tmp:
+			shutil.rmtree(tmp, ignore_errors=True)
 		
 	return resources
 	
