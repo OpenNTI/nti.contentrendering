@@ -19,7 +19,7 @@ WGET_CMD = 'wget'
 
 # -------------------------------
 
-def main(url_or_path, out_dir="/tmp/mirror", process_links=True, zip_archive=True, archive_index=False, port=7777):
+def main(url_or_path, out_dir="/tmp/mirror", zip_archive=True, process_links=True, archive_index=False, port=7777):
 	
 	global WGET_CMD
 	
@@ -166,6 +166,9 @@ def _launch_server(data_path, port = 7777):
 	import SimpleHTTPServer
 	import SocketServer
 
+	if not os.path.exists(data_path):
+		raise Exception("'%s' does not exists" % data_path)
+	
 	os.chdir(data_path)
 
 	def ignore(self, *args, **kwargs):
@@ -269,7 +272,8 @@ if __name__ == '__main__':
 	if args:
 		url_or_path = args.pop(0)
 		out_dir = args.pop(0) if args else "/tmp/mirror"
-		main(url_or_path, out_dir)
+		zip_archive = args.pop(0) != '--disable-zip-archive' if args else True
+		main(url_or_path, out_dir, zip_archive)
 	else:
-		print("Syntax URL_OR_PATH [output directory]")
+		print("Syntax URL_OR_PATH [output directory] [--disable-zip-archive]")
 		print("python mirror.py http://localhost/prealgebra /tmp/prealgebra")
