@@ -1,6 +1,9 @@
 import os
 import sys
 import glob
+import shutil
+import thread
+import zipfile 
 import tempfile
 import html5lib
 import subprocess
@@ -8,42 +11,131 @@ import subprocess
 from urlparse import urljoin
 from urlparse import urlparse
 
-from xml.dom.minidom import parse
-from xml.dom.minidom import Node
+from pyquery import PyQuery as pq
+
+# -------------------------------
 
 WGET_CMD = 'wget'
 
-def main(url, out_dir="/tmp/mirror"):
-	""" 
-	Main program routine 
-	"""
+# -------------------------------
+
+def main(url_or_path, out_dir="/tmp/mirror", process_links=True, zip_archive=True, archive_index=False, port=7777):
+	
 	global WGET_CMD
 	
-	url = url[:-1] if url[-1] =='/' else url
-	
-	out_dir = os.path.expanduser(out_dir)
-	if not os.path.exists(out_dir):
-		os.makedirs(out_dir)
-	
-	log_file = '%s/_out.log' % out_dir
-	_remove_file(log_file)
-	
-	WGET_CMD = "%s -a %s" % (WGET_CMD, log_file)
-
-	result = _get_url_content(url, out_dir) and _get_toc_file(url, out_dir)	
-	if result:
-		toc_file = os.path.join(out_dir, 'eclipse-toc.xml')
-		result = _process_toc_file(url, out_dir, toc_file)
-		if result:
-			_get_index_dir(url, out_dir)
+	httpd = None
+	try:
+		result = False
 		
+		if not _is_valid_url(url_or_path):
+			httpd = _launch_server(url_or_path, port)
+			url = "http://localhost:%s" % port
+		else:
+			httpd = None
+			url = url_or_path
+			url = url[:-1] if url[-1] =='/' else url
+	
+		out_dir = _create_path(out_dir)
+		
+		if zip_archive:
+			log_file = tempfile.mktemp()
+			archive_dir = tmp_dir = _create_path(tempfile.mkdtemp())
+		else:
+			tmp_dir = None
+			archive_dir = out_dir
+			log_file = '%s/_out.log' % archive_dir
+		
+		_remove_file(log_file)
+		WGET_CMD = "%s -a %s" % (WGET_CMD, log_file)
+	
+		result = _get_url_content(url, archive_dir) and _get_toc_file(url, archive_dir)	
+		if result:
+			toc_file = os.path.join(archive_dir, 'eclipse-toc.xml')
+			_process_toc_file(url, archive_dir, process_links, toc_file)
+			if archive_index:
+				_get_index_dir(url, archive_dir)
+			
+		if zip_archive:
+			_zip_archive(archive_dir, out_dir)
+		
+		return result
+	finally:
+		if httpd:
+			httpd.shutdown()
+			httpd.server_close()
+			
+		if result:
+			if tmp_dir:
+				shutil.rmtree(tmp_dir, ignore_errors=True)
+			
+			if zip_archive:
+				lpath = os.path.join(out_dir, '_out.log')
+				_remove_file(lpath)
+				os.rename(log_file, lpath)
+				
+
+# -------------------------------
+
+def _zip_archive(source_path, out_dir, zip_name="archive.zip"):
+
+	out_file = os.path.join(out_dir, zip_name)
+	
+	print "Archiving '%s' to '%s'" % (source_path, zip_name)
+	
+	zip_file = zipfile.ZipFile(out_file, "w")
+	try:
+		_add_to_zip(zip_file, source_path, source_path)
+	finally:
+		zip_file.close()
+
+def _add_to_zip(zip_file, path, source_path):
+	if os.path.isfile(path):
+		path = path[len(source_path) + 1:]
+		zip_file.write(path, path, zipfile.ZIP_DEFLATED)
+	elif os.path.isdir(path):
+		for name in glob.glob("%s/*" % path):
+			_add_to_zip(zip_file, name, source_path)
+			
+# -------------------------------
+
+def _process_toc_file(url, out_dir, process_links, toc_file='eclipse-toc.xml'):
+	
+	print "Processing TOC content"
+	
+	e = pq(filename = toc_file)
+	e('toc').map(lambda i,e: _process_node(e, url, out_dir, process_links))
+	e('topic').map(lambda i,e: _process_node(e, url, out_dir, process_links))
+	e('page').map(lambda i,e: _process_node(e, url, out_dir, process_links))
+	
+	return True
+				
+def _process_node(node, url, out_dir, process_links):
+	result = True
+	attributes = node.attrib
+	for i, name  in enumerate (['href', 'qualifier', 'icon', 'thumbnail']):
+		
+		if i<=1 and not process_links:
+			continue
+		
+		value =  attributes.get(name, None)
+		if value:
+			force_html = i <= 1 
+			if i == 1 and attributes.get('type', None) != 'link':
+				continue
+			result = _handle_attribute(value, url, out_dir, force_html) and result
+			
 	return result
 
-def _remove_file(target):
-	try:
-		os.remove(target)
-	except:
-		pass
+def _handle_attribute(target, url, out_dir, force_html=False):
+	head, _ = os.path.split(target)
+	out_dir = _create_path(os.path.join(out_dir, head))
+	return _get_file(url, out_dir, target, force_html)
+	
+def _get_toc_file(url, out_dir, toc_file='eclipse-toc.xml'):
+	print "Getting TOC file"
+	return _get_file(url, out_dir, toc_file, True)
+
+# -------------------------------
 	
 def _get_index_dir(url, out_dir):
 	
@@ -64,89 +156,34 @@ def _get_index_dir(url, out_dir):
 					if href and (href.startswith('_') or href.endswith('_WRITELOCK')):
 						target = "indexdir/" + href
 						_get_file(url, os.path.join(out_dir,"indexdir"), target, False)
-		
-	except Exception, e:
-		print e
 	finally:
 		_remove_file(tmp)
 
-def _process_toc_file(url, out_dir, toc_file='eclipse-toc.xml'):
-	
-	print "Processing TOC content"
-	
-	result = True
-	dom = parse(toc_file)
-	toc = dom.getElementsByTagName("toc");
-	if toc and _process_node(toc[0], url, out_dir):
-		for node in toc[0].childNodes:
-			if node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic':
-				result = _process_topic(node,  url, out_dir) and result
-	else:
-		result = False
-		
-	return result
+# -------------------------------
 
-def _process_topic(topic, url, out_dir):
-	result = _process_node(topic, url, out_dir)
-	if result:
-		for node in topic.childNodes:
-			if node.nodeType == Node.ELEMENT_NODE:
-				if node.localName == 'topic':
-					result = _process_topic(node,  url, out_dir) and result
-				elif node.localName == 'Related':
-					for c in node.childNodes:
-						if c.nodeType == Node.ELEMENT_NODE and c.localName == 'page':
-							result = _process_node(c,  url, out_dir) and result
-	return result
-				
-def _process_node(node, url, out_dir):
-	result = True
-	attributes = node.attributes
-	for i, name  in enumerate (['href', 'qualifier', 'icon', 'thumbnail']):
-		av =  attributes.get(name, None)
-		if av and av.value:
-			if i <= 1 and not av.value.endswith(".html"):
-				continue
-			result = _handle_attribute(av.value, url, out_dir, i<=1) and result
-	return result
+def _launch_server(data_path, port = 7777):
 
-def _handle_attribute(target, url, out_dir, force_html=False):
-	
-	head, _ = os.path.split(target)
-	out_dir = os.path.join(out_dir, head)
-	if not os.path.exists(out_dir):
-		os.makedirs(out_dir)
-	
-	return _get_file(url, out_dir, target, force_html)
-	
-def _get_cut_dirs(url):
-	r = urlparse(url)
-	s = r.path.split('/')
-	return len(s) - 1
-	
-def _get_file(url, out_dir, target, force_html=False):
-	"""
-	Return the specified target from the specified url
-	"""
-	args = [WGET_CMD, '-N', '-nH', '-P %s' % out_dir]
-	if force_html:
-		args.extend(['-p', '--force-html'])
-		
-	cut_dirs = _get_cut_dirs(url)
-	if cut_dirs > 0:
-		args.append('--cut-dirs=%s' % cut_dirs)
-		
-	url = urljoin(url + '/', target)
-	args.append(url)
-	_execute_cmd(args)
-	
-	target = os.path.split(target)[1]
-	return os.path.exists(os.path.join(out_dir, target))
+	import SimpleHTTPServer
+	import SocketServer
 
-def _get_toc_file(url, out_dir, toc_file='eclipse-toc.xml'):
-	print "Getting TOC file"
-	return _get_file(url, out_dir, toc_file, True)
+	os.chdir(data_path)
+
+	def ignore(self, *args, **kwargs):
+		pass
+		
+	handler = SimpleHTTPServer.SimpleHTTPRequestHandler
+	handler.log_error = ignore
+	handler.log_message = ignore
 	
+	httpd = SocketServer.TCPServer(("", port), handler) 	
+	def worker():
+		httpd.serve_forever()
+		
+	thread.start_new_thread(worker, ())
+	return httpd
+	
+# -------------------------------
+
 def _get_url_content(url, out_dir="/tmp"):	
 	"""
 	Get as much as possible content from the
@@ -171,6 +208,30 @@ def _get_url_content(url, out_dir="/tmp"):
 	
 	_execute_cmd(args)
 	return glob.glob(out_dir + "*.html") > 0
+	
+def _get_file(url, out_dir, target, force_html=False):
+	"""
+	Return the specified target from the specified url
+	"""
+	args = [WGET_CMD, '-N', '-nH', '-P %s' % out_dir]
+	if force_html:
+		args.extend(['-p', '--force-html'])
+		
+	cut_dirs = _get_cut_dirs(url)
+	if cut_dirs > 0:
+		args.append('--cut-dirs=%s' % cut_dirs)
+		
+	url = urljoin(url + '/', target)
+	args.append(url)
+	_execute_cmd(args)
+	
+	target = os.path.split(target)[1]
+	return os.path.exists(os.path.join(out_dir, target))
+
+def _get_cut_dirs(url):
+	r = urlparse(url)
+	s = r.path.split('/')
+	return len(s) - 1
 
 def _execute_cmd(args):
 	cmd = ' '.join(args)
@@ -180,12 +241,35 @@ def _execute_cmd(args):
 	
 	return True
 
+# -------------------------------
+
+def _remove_file(target):
+	try:
+		os.remove(target)
+	except:
+		pass
+	
+def _create_path(path):
+	path = os.path.expanduser(path)
+	if not os.path.exists(path):
+		os.makedirs(path)
+	return path
+			
+def _is_valid_url(url_or_path):
+	try:
+		pr = urlparse(url_or_path)
+		return pr.scheme == 'http' and pr.netloc
+	except:
+		return False
+
+# -------------------------------
+
 if __name__ == '__main__':
 	args = sys.argv[1:]
 	if args:
-		url = args.pop(0)
+		url_or_path = args.pop(0)
 		out_dir = args.pop(0) if args else "/tmp/mirror"
-		main(url, out_dir)
+		main(url_or_path, out_dir)
 	else:
-		print("Syntax URL [output directory]")
+		print("Syntax URL_OR_PATH [output directory]")
 		print("python mirror.py http://localhost/prealgebra /tmp/prealgebra")
