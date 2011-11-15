@@ -94,8 +94,10 @@ def nextID(self):
 
 plasTeX.TeXDocument.nextNTIID=nextID
 
+import mirror
 import indexer
 import tociconsetter
+import html5cachefile
 import contentsizesetter
 import relatedlinksetter
 import contentthumbnails
@@ -130,7 +132,13 @@ def postRender(document, contentLocation='.', indexname = 'prealgebra'):
 	print "indexing content"
 	contentPath = os.path.realpath(contentLocation)
 	indexer.index_content(tocFile=toc_file, contentPath=contentPath, indexname=indexname)
-
+	
+	print "Creating html cache-manifest"
+	html5cachefile.main(contentPath, contentPath)
+	
+	print "Createing a mirror file"
+	mirror.main(contentPath, contentPath, indexname + ".zip")
+	
 from resources.ResourceRenderer import createResourceRenderer
 
 def render(document, rname, db):

@@ -15,7 +15,7 @@ from pyquery import PyQuery as pq
 
 # -------------------------------
 
-WGET_CMD = 'wget'
+WGET_CMD = '/opt/local/bin/wget'
 
 # -------------------------------
 
@@ -56,7 +56,8 @@ def main(url_or_path, out_dir="/tmp/mirror", zip_archive=True, process_links=Tru
 				_get_index_dir(url, archive_dir)
 			
 		if zip_archive:
-			_zip_archive(archive_dir, out_dir)
+			zip_name = zip_archive if isinstance(zip_archive, basestring) else 'archive.zip'
+			_zip_archive(archive_dir, out_dir, zip_name)
 		
 		return result
 	finally:
@@ -272,7 +273,7 @@ if __name__ == '__main__':
 	if args:
 		url_or_path = args.pop(0)
 		out_dir = args.pop(0) if args else "/tmp/mirror"
-		zip_archive = args.pop(0) != '--disable-zip-archive' if args else True
+		zip_archive = args.pop(0) if args else False
 		main(url_or_path, out_dir, zip_archive)
 	else:
 		print("Syntax URL_OR_PATH [output directory] [--disable-zip-archive]")

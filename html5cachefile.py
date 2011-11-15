@@ -11,7 +11,7 @@ from urlparse import urlparse
 
 from pyquery import PyQuery as pq
 
-WGET_CMD = 'wget'
+WGET_CMD = '/opt/local/bin/wget'
 
 def main(url_or_path, out_dir="/tmp/", manifest='cache-manifest', port=7776):
 	""" 
@@ -204,4 +204,4 @@ if __name__ == '__main__':
 		main(url, out_dir, manifest)
 	else:
 		print("Syntax URL_OR_PATH [output directory] [manifest file name]")
-		print("python mirror.py http://localhost/prealgebra /tmp/")
+		print("python html5cachefile.py http://localhost/prealgebra /tmp/")
