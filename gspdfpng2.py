@@ -122,14 +122,14 @@ copy=resources.copy
 
 class ResourceGenerator(resources.ImagerResourceGenerator):
 
-	scales=[1, 2, 4]
-	shouldInvert=True
+	scales = [1, 2, 4]
+	shouldInvert = True
 
 	def __init__(self, document):
 		super(ResourceGenerator, self).__init__(document, Imager)
 
 	def generateResources(self, sources, db):
-		generatableSources=[s for s in sources if self.canGenerate(sources)]
+		generatableSources = [s for s in sources if self.canGenerate(sources)]
 
 		rsg = self.createResourceSetGenerator()
 		rsg.imager.scaleFactor = None  #We scale them on our side
@@ -145,22 +145,23 @@ class ResourceGenerator(resources.ImagerResourceGenerator):
 		#Create a tempdir to work in
 		tempdir = tempfile.mkdtemp()
 
-
-
-		sourceToScaleToImage = defaultdict(dict)
 		imagesToResizeSource = []
 		imagesToResizeDest = []
 
 		allNewImages = []
 
 		for source, image in processed:
+			if image is None or image.width is None or image.height is None:
+				raise Exception( "Unable to generate image for '%s' (%s)" % (source, image) )
 			for scale in self.scales:
 				print '%s %s %s %s' % (image.width, image.height, scale, rsg.imager.defaultScaleFactor)
-			   	newImage = self.makeImage(os.path.join(tempdir, self.__newNameFromOrig(image.path,
-																					  scale,
-																			  False)),
-									  image.width*(scale/rsg.imager.defaultScaleFactor),
-									  image.height*(scale/rsg.imager.defaultScaleFactor), image.depth)
+			   	newImage = self.makeImage( os.path.join( tempdir,
+														 self.__newNameFromOrig(image.path,
+																				scale,
+																				False)),
+											image.width * (scale / rsg.imager.defaultScaleFactor),
+											image.height * (scale/rsg.imager.defaultScaleFactor),
+											image.depth )
 
 				newImage._scaleFactor = scale
 				newImage._source = source
@@ -177,9 +178,11 @@ class ResourceGenerator(resources.ImagerResourceGenerator):
 
 		#Do the resize
 		with ProcessPoolExecutor() as executor:
-				for i in executor.map(_scale, [image.path for image in imagesToResizeSource],
-									  [image.path for image in imagesToResizeDest], [image._scaleFactor for image in imagesToResizeDest],
-									  [rsg.imager.defaultScaleFactor for x in imagesToResizeSource]):
+				for i in executor.map( _scale,
+									   [image.path for image in imagesToResizeSource],
+									   [image.path for image in imagesToResizeDest],
+									   [image._scaleFactor for image in imagesToResizeDest],
+									   [rsg.imager.defaultScaleFactor for x in imagesToResizeSource] ):
 					pass
 
 		for newImage in allNewImages:
@@ -189,16 +192,20 @@ class ResourceGenerator(resources.ImagerResourceGenerator):
 		#Now invert
 		if self.shouldInvert:
 			allInvertedImages = []
-			for origImage in allNewImages:
-				newImage = self.makeImage(os.path.join(tempdir, self.__newNameFromOrig(origImage.path,
-																					  scale,
-																			  True)),
-									  origImage.width, origImage.height, origImage.depth)
-				allInvertedImages.append(newImage)
+			for scale in self.scales:
+				for origImage in allNewImages:
+					newImage = self.makeImage( os.path.join( tempdir,
+															 self.__newNameFromOrig(origImage.path,
+																					scale,
+																					True)),
+												origImage.width,
+												origImage.height,
+												origImage.depth )
+					allInvertedImages.append(newImage)
 
 			with ProcessPoolExecutor() as executor:
-					for i in executor.map(_invert, [image.path for image in allNewImages], [image.path for image in allInvertedImages]):
-						pass
+				for i in executor.map(_invert, [image.path for image in allNewImages], [image.path for image in allInvertedImages]):
+					pass
 
 			for origImage, newImage in zip(allNewImages, allInvertedImages):
 				db.setResource(origImage._source, [self.resourceType, 'inverted', origImage._scaleFactor], newImage)
@@ -214,7 +221,7 @@ class ResourceGenerator(resources.ImagerResourceGenerator):
 		return image
 
 	def __newNameFromOrig(self, name, size, inverted):
-		dir, base=os.path.split(name)
+		dir, base = os.path.split(name)
 		fname, ext = os.path.splitext(base)
 
 		newName = '%s_%dx' % (fname, size)

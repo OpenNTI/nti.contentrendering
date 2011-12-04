@@ -1,28 +1,32 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 import codecs, os
 import resources
 import tempfile
 import subprocess
 import cgi
-from plasTeX.Imagers import *
+#from plasTeX.Imagers import *
 import html2mathml
-
+import warnings
 _debug = False
 
 class ResourceSetGenerator(resources.BaseResourceSetGenerator):
 
 	htmlfile 			= 'math.html'
 	mathjaxconfigname	= 'mathjaxconfig.js'
-	mathjaxconfigfile	= '%s/../renderers/Themes/AoPS/js/%s'%(os.path.dirname(__file__), mathjaxconfigname)
+	# FIXME: This path assumption is not good.
+	mathjaxconfigfile	= '%s/../../../renderers/Themes/AoPS/js/%s' % (os.path.dirname(__file__), mathjaxconfigname)
 
 	def __init__(self, compiler, encoding, batch):
 		super(ResourceSetGenerator, self).__init__(compiler, encoding, batch)
+		warnings.warn( "MathJax config file specified by weird relative path" )
 
-		#TODO: Why the check???
+		# TODO: Why the check???
 		self.configName = self.mathjaxconfigfile if self.mathjaxconfigname else None
 		if not self.configName:
 			print 'Mathjax config has not been provided.'
+		elif not os.path.exists( self.configName ):
+			raise Exception( "Config does not exist %s" % self.configName )
 
 
 	def writePreamble(self, preamble):
@@ -67,7 +71,7 @@ class ResourceSetGenerator(resources.BaseResourceSetGenerator):
 
 	def compileSource(self):
 
-		source = self.writer;
+		source = self.writer
 		source.seek(0)
 		htmlSource = source.read()
 
@@ -77,7 +81,7 @@ class ResourceSetGenerator(resources.BaseResourceSetGenerator):
 		htmlOutFile = os.path.join(tempdir, self.htmlfile)
 		codecs.open(htmlOutFile, 'w', 'utf-8').write(htmlSource)
 
-		configName = os.path.basename(self.mathjaxconfigfile);
+		configName = os.path.basename(self.mathjaxconfigfile)
 		configOutFile = os.path.join(tempdir, configName)
 		try:
 			configOutFile = os.path.join(tempdir, configName)
@@ -86,8 +90,7 @@ class ResourceSetGenerator(resources.BaseResourceSetGenerator):
 			program	 = self.compiler
 			command = '%s "%s"' % (program, htmlOutFile)
 
-			print 'executing %s' %command
-			stdout, stderr=subprocess.Popen( command, shell=True, stdout=subprocess.PIPE).communicate()
+			stdout, stderr = subprocess.Popen( command, shell=True, stdout=subprocess.PIPE).communicate()
 
 			if _debug:
 				print 'out'
@@ -115,28 +118,29 @@ class ResourceSetGenerator(resources.BaseResourceSetGenerator):
 
 		return [resources.Resource(name) for name in files]
 
-#End ResourceSetGenerator
 
 class ResourceGenerator(html2mathml.ResourceGenerator):
 
-	concurrency			= 4
-	illegalCommands		= None
-	resourceType		= 'mathjax_inline'
-	javascript 			= os.path.join(os.path.join(os.path.dirname(__file__), '../js'), 'tex2html.js')
+	concurrency = 4
+	illegalCommands = None
+	resourceType = 'mathjax_inline'
+	javascript = os.path.join( os.path.dirname(__file__), 'js', 'tex2html.js' )
 
 	def __init__(self, document):
 		super(ResourceGenerator, self).__init__(document)
-		self.compiler = 'phantomjs %s'% (self.javascript)
+		warnings.warn( "Using phantomjs from PATH" )
+		self.compiler = 'phantomjs %s' % (self.javascript)
+		if not os.path.exists( self.javascript ):
+			raise Exception( "Unable to get javascript %s" % self.javascript )
 
-	def createResourceSetGenerator(self, compiler='', encoding = 'utf-8', batch = 0):
+	def createResourceSetGenerator(self, compiler='', encoding='utf-8', batch=0):
 		return ResourceSetGenerator(compiler, encoding, batch)
 
-#End ResourceGenerator
 
 def _processBatchSource(generator, params):
 	if generator.size() > 0:
 		return generator.processSource()
-	else:
-		return ()
+
+	return ()
 
 

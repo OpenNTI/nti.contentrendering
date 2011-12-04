@@ -5,7 +5,7 @@ import resources
 import xml.sax
 from xml.sax.xmlreader import InputSource
 from xml.dom import minidom
-from plasTeX.Imagers import *
+#from plasTeX.Imagers import *
 from concurrent.futures import ProcessPoolExecutor
 
 def findfile(path):
@@ -15,15 +15,13 @@ def findfile(path):
 			return possible
 	return None
 
-#End findfile
-
 class MyEntityResolver(xml.sax.handler.EntityResolver):
 
 	def resolveEntity(self, p, s):
 
 		name = s.split('/')[-1:][0]
 
-		print 'looking for local source %s'%name
+		print 'looking for local source %s' % name
 		local = findfile(name)
 
 		if local:
@@ -32,14 +30,13 @@ class MyEntityResolver(xml.sax.handler.EntityResolver):
 
 		return InputSource(s)
 
-#End MyEntityResolver
 
 _RESOURCE_TYPE = 'mathml'
 
 class ResourceSetGenerator(resources.BaseResourceSetGenerator):
 
-	fileExtension 	='.xml'
-	resourceType  	= _RESOURCE_TYPE
+	fileExtension = '.xml'
+	resourceType = _RESOURCE_TYPE
 
 	def convert(self, output, workdir):
 
@@ -49,13 +46,13 @@ class ResourceSetGenerator(resources.BaseResourceSetGenerator):
 		mathmls = dom.getElementsByTagName('math')
 
 		for mathml in mathmls:
-			resource = '%s_%s%s'%(self.resourceType, i, self.fileExtension)
+			resource = '%s_%s%s' % (self.resourceType, i, self.fileExtension)
 			fpath = os.path.join(workdir, resource)
 			codecs.open(fpath,\
 					 	'w',\
 					 	self.encoding).write(mathml.toxml())
 			resourceNames.append(resource)
-			i=i+1
+			i = i + 1
 
 		return [resources.Resource(os.path.join(workdir, name)) for name in resourceNames]
 
@@ -65,8 +62,6 @@ class ResourceSetGenerator(resources.BaseResourceSetGenerator):
 		parser.setEntityResolver(MyEntityResolver())
 
 		return minidom.parse(output, parser)
-
-#End ResourceSetGenerator
 
 class ResourceGenerator(resources.BaseResourceGenerator):
 
@@ -86,7 +81,7 @@ class ResourceGenerator(resources.BaseResourceGenerator):
 
 	def generateResources(self, sources, db):
 
-		generatableSources=[s for s in sources if self.canGenerate(s)]
+		generatableSources = [s for s in sources if self.canGenerate(s)]
 
 		size = len(generatableSources)
 		if not size > 0:
@@ -99,7 +94,7 @@ class ResourceGenerator(resources.BaseResourceGenerator):
 		generators = list()
 		for i in range(self.concurrency):
 			g = self.createResourceSetGenerator(self.compiler, encoding, i)
-			generators.append(g);
+			generators.append(g)
 			g.writePreamble(self.document.preamble.source)
 
 		i = 0
@@ -112,8 +107,8 @@ class ResourceGenerator(resources.BaseResourceGenerator):
 			g.writePostamble()
 
 		if self.concurrency > 1:
-			#Process batches in parallel,
-			params = [True]*self.concurrency
+			# Process batches in parallel,
+			params = [True] * self.concurrency
 			with ProcessPoolExecutor() as executor:
 				for tuples in executor.map(_processBatchSource, generators, params):
 					self.storeResources(tuples, db, self.debug)
@@ -130,13 +125,11 @@ class ResourceGenerator(resources.BaseResourceGenerator):
 				return False
 		return True
 
-#End ResourceGenerator
 
 def _processBatchSource(generator, params):
 	if generator.size() > 0:
 		return generator.processSource()
-	else:
-		return ()
 
-#End _processBatchSource
+	return ()
+
 

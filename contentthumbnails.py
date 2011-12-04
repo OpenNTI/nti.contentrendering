@@ -4,7 +4,7 @@ import os
 import shutil
 
 import subprocess
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 import tempfile
 import warnings
 
@@ -13,7 +13,7 @@ if not os.path.exists(javascript): raise Exception( "Unable to load %s" % javasc
 thumbnailsLocationName = 'thumbnails'
 
 def replaceExtension(fname, newext):
-	return '%s.%s' % (os.path.splitext(fname)[0], newext);
+	return '%s.%s' % (os.path.splitext(fname)[0], newext)
 
 def _generatedImage(contentdir, page, output):
 	#print 'Fetching page info for %s' % htmlFile
