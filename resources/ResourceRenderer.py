@@ -8,7 +8,9 @@ from plasTeX.Logging import getLogger
 from plasTeX.Filenames import Filenames
 from resources import RESOURCE_TYPES
 
-logger = getLogger()
+import logging
+
+logger = getLogger( __name__ )
 
 def createResourceRenderer(baserenderername, resourcedb):
 	# Load renderer
@@ -19,7 +21,7 @@ def createResourceRenderer(baserenderername, resourcedb):
 		logger.error('Could not import renderer "%s"' % baserenderername)
 		raise
 
-	# it would be nice to patch just the instance but PageTemplates render method 
+	# it would be nice to patch just the instance but PageTemplates render method
 	# calls BaseRenderer.render method
 	BaseRenderer.render = renderDocument
 	BaseRenderer.renderableClass = Renderable
@@ -85,7 +87,6 @@ class Renderable(BaseRenderable):
 
 	@property
 	def image(self):
-
 		return self.getResource(['png', 'orig', 1])
 
 	@property
@@ -94,13 +95,12 @@ class Renderable(BaseRenderable):
 
 
 	def contents(self, criteria):
-		#print 'getting contents for %s'%self.source
+		logger.debug( 'getting contents for %s', self.source ) if logger.isEnabledFor( logging.DEBUG ) else None
 		return self.renderer.resourcedb.getResourceContent(self.source, criteria)
 
 
 	@property
 	def resource(self):
-		#pdb.set_trace()
 		renderer = Node.renderer
 
 		resourceTypes = None
@@ -142,7 +142,6 @@ class Renderable(BaseRenderable):
 		return val
 
 	def getResource(self, criteria):
-		#print 'calling getResource on %s for %s' % (self.source, criteria)
 		return Node.renderer.resourcedb.getResource(self.source, criteria)
 
 

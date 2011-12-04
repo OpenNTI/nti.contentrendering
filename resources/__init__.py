@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 
-import os, time, tempfile, shutil, re, string, codecs, pdb
+import os, time, tempfile, shutil, codecs
 import subprocess, shlex, uuid
 import copy as cp
 import plasTeX.Imagers
 
-try:
-	from hashlib import md5
-except ImportError:
-	from md5 import new as md5
+from hashlib import sha1
 
 try:
 	import cPickle as mPickle
@@ -21,16 +18,13 @@ from plasTeX.Filenames import Filenames
 from plasTeX.dictutils import ordereddict
 from plasTeX.Imagers import WorkingFile, Image
 
-log = getLogger()
-depthlog = getLogger('render.images.depth')
-status = getLogger('status')
-imagelog = getLogger('imager')
+log = getLogger(__name__)
 
-try:
-	import Image as PILImage
-	import ImageChops as PILImageChops
-except ImportError:
-	PILImage = PILImageChops = None
+# try:
+# 	import Image as PILImage
+# 	import ImageChops as PILImageChops
+# except ImportError:
+# 	PILImage = PILImageChops = None
 
 from collections import defaultdict
 
@@ -59,9 +53,9 @@ class ResourceTypeOverrides(DictMixin):
 
 		with open(overridesFile, 'r') as f:
 			for line in f.readlines():
-				sourceFileName, types = line.split('=');
+				sourceFileName, types = line.split('=')
 				types = types.split(',')
-				types = [type.strip() for type in types];
+				types = [type.strip() for type in types]
 
 				sourcePath = os.path.join(self.location, sourceFileName)
 
@@ -102,7 +96,7 @@ class Resource(object):
 
 #key digest cache
 class CachingDigester(object):
-	cachingEnabled = True
+	cachingEnabled = False
 
 	digestCache = {}
 
@@ -114,13 +108,13 @@ class CachingDigester(object):
 
 	def digest(self, toDigest):
 
-		#FIXME  Is there something else we should be doing here?
-		toDigest = toDigest.encode('ascii', 'ignore')
+		# FIXME  Is there something else we should be doing here?
+		# toDigest = toDigest.encode('ascii', 'ignore')
 
 		if toDigest in self.digestCache:
 			return self.digestCache[toDigest]
 
-		m = md5()
+		m = sha1()
 		m.update(toDigest)
 		digest = str(m.hexdigest())
 
@@ -139,9 +133,9 @@ class ResourceSet(object):
 		self.path = digester.digest(source)
 
 	def setResource(self, resource, keys):
-		#FIXME caching relies on being able to tell which resourceTypes
-		#We have already generated.  We used to just be able to inspect
-		#The resources dict keys but now they are md5
+		# FIXME caching relies on being able to tell which resourceTypes
+		# We have already generated.  We used to just be able to inspect
+		# The resources dict keys but now they are md5
 
 		resource.resourceType = keys[0]
 		self.resources[digester.digestKeys(keys)] = resource
@@ -156,7 +150,7 @@ class ResourceSet(object):
 
 	def __str__(self):
 		return '%s' % self.resources
-#ResourceSet
+
 
 class ResourceDB(object):
 
@@ -172,28 +166,27 @@ class ResourceDB(object):
 	Manages external resources (images, mathml, videos, etc..) for a document
 	"""
 	def __init__(self, document, path=None, overridesLocation=None):
-		self.__document=document
-		self.__config=self.__document.config
+		self.__document = document
+		self.__config = self.__document.config
 		self.overrides = ResourceTypeOverrides(overridesLocation)
 
 		if not hasattr(Image, '_url'): # Not already patched
-			Image._url=None
+			Image._url = None
 			def seturl(self, value):
-				self._url=value
+				self._url = value
 
 			def geturl(self):
 				return self._url
 
-			Image.url=property(geturl, seturl)
+			Image.url = property(geturl, seturl)
 
 		if not path:
 			path = 'resources'
 
-		self.__dbpath=os.path.join(path, self.__document.userdata['jobname'])
-		self.baseURL=self.__dbpath
+		self.__dbpath = os.path.join(path, self.__document.userdata['jobname'])
+		self.baseURL = self.__dbpath
 		if not os.path.isdir(self.__dbpath):
 			os.makedirs(self.__dbpath)
-
 
 		log.info('Using %s as resource db' % self.__dbpath)
 
@@ -204,18 +197,15 @@ class ResourceDB(object):
 		self.__loadResourceDB()
 
 	def __str__(self):
-		return '%s'%self.__db
-
+		return str(self.__db)
 
 	def generateResourceSets(self):
 
 		#set of all nodes we need to generate resources for
-		nodesToGenerate=self.__findNodes(self.__document)
-
-		#print nodesToGenerate
+		nodesToGenerate = self.__findNodes(self.__document)
 
 		#Generate a mapping of types to source  {png: [src2, src5], mathml: [src1, src5]}
-		typesToSource=defaultdict(set)
+		typesToSource = defaultdict(set)
 
 		for node in nodesToGenerate:
 
@@ -229,10 +219,9 @@ class ResourceDB(object):
 						resourceType = getattr(resource, 'resourceType', None)
 						if resourceType == rType:
 							hasType = True
-							break;
+							break
 					if not hasType:
 						typesToSource[rType].add(node.source)
-
 
 		for rType, sources in typesToSource.items():
 			self.__generateResources(rType, sources)
@@ -241,9 +230,10 @@ class ResourceDB(object):
 
 	def __generateResources(self, resourceType, sources):
 		#Load a resource generate
-		generator=self.__loadGenerator(resourceType)
+		generator = self.__loadGenerator(resourceType)
 
 		if not generator:
+			log.warn( "Not generating resource %s for %s", resourceType, sources )
 			return
 
 		generator.generateResources(sources, self)
@@ -260,14 +250,14 @@ class ResourceDB(object):
 			return None
 
 	def __findNodes(self, node):
-		nodes=[]
+		nodes = []
 
 		#Do we have any overrides
 		#FIXME Be smarter about this.  The source for mathnodes is reconstructed so the
 		#whitespace is all jacked up.  The easiest (not safest) thing to do is strip whitespace
 		source = ''.join(node.source.split())
 		if source in self.overrides:
-			print 'Applying resourceType override to %s' % node
+			log.info( 'Applying resourceType override to %s', node )
 			node.resourceTypes = self.overrides[source]
 
 		if getattr(node, 'resourceTypes', None):
@@ -297,11 +287,11 @@ class ResourceDB(object):
 						del self.__db[key]
 						continue
 			except ImportError:
-				print 'Error loading cache.  Starting from scratch'
+				log.exception( 'Error loading cache.  Starting from scratch' )
 				os.remove(self.__indexPath)
-				self.__db={}
+				self.__db = {}
 		else:
-			self.__db={}
+			self.__db = {}
 
 
 	def setResource(self, source, keys, resource, debug = False):
@@ -309,7 +299,7 @@ class ResourceDB(object):
 		self.dirty = True
 
 		if not source in self.__db:
-			self.__db[source]=ResourceSet(source)
+			self.__db[source] = ResourceSet(source)
 
 		resourceSet = self.__db[source]
 
@@ -337,12 +327,12 @@ class ResourceDB(object):
 
 	def urlForResource(self, resource):
 		if self.baseURL and not self.baseURL.endswith('/'):
-			self.baseURL='%s/'%self.baseURL
+			self.baseURL = '%s/' % self.baseURL
 
 		if not self.baseURL:
-			self.baseURL=''
+			self.baseURL = ''
 
-		return '%s%s/%s'% (self.baseURL, resource.resourceSet.path, resource.path)
+		return '%s%s/%s' % (self.baseURL, resource.resourceSet.path, resource.path)
 
 	def saveResourceDB(self):
 		if not os.path.isdir(os.path.dirname(self.__indexPath)):
@@ -375,11 +365,11 @@ class ResourceDB(object):
 
 	def getResource(self, source, keys):
 
-		rsrcSet = self.__db[source]
+		rsrcSet = self.__db.get(source)
 
 		if rsrcSet == None:
 			return None
-
+		assert source == rsrcSet.source
 		return rsrcSet.resources[digester.digestKeys(keys)]
 
 	def getResourcePath(self, source, keys):
@@ -455,9 +445,10 @@ class BaseResourceSetGenerator(object):
 		filename = os.path.join(tempdir,'resources.tex')
 
 		self.source().seek(0)
-		codecs.open(filename,\
-					'w',\
-					 self.encoding).write(self.source().read())
+		with codecs.open(filename,
+						 'w',
+						 self.encoding ) as out:
+			out.write(self.source().read())
 
 		# Run LaTeX
 		os.environ['SHELL'] = '/bin/sh'
@@ -526,7 +517,7 @@ class BaseResourceGenerator(object):
 
 	def generateResources(self, sources, db):
 
-		generatableSources=[s for s in sources if self.canGenerate(s)]
+		generatableSources = [s for s in sources if self.canGenerate(s)]
 
 		size = len(generatableSources)
 		if not size > 0:
@@ -566,7 +557,7 @@ class ImagerResourceSetGenerator(BaseResourceSetGenerator):
 		pass
 
 	def processSource(self):
-		images=[]
+		images = []
 		for source in self.generatables:
 			#TODO newImage completely ignores the concept of imageoverrides
 			images.append(self.imager.newImage(source))
@@ -603,13 +594,13 @@ class ImagerResourceGenerator(BaseResourceGenerator):
 	def createImager(self):
 		newImager = self.imagerClass(self.document)
 
-		#create a tempdir for the imager to right images to
+		# create a tempdir for the imager to write images to
 		tempdir = tempfile.mkdtemp()
-		newImager.newFilename=Filenames(os.path.join(tempdir, 'img-$num(4)'),\
-									 	extension=newImager.fileExtension)
+		newImager.newFilename = Filenames(os.path.join(tempdir, 'img-$num(12)'),
+										  extension=newImager.fileExtension)
 
-		newImager._filecache=os.path.join(os.path.join(tempdir, '.cache'),\
-									   	  newImager.__class__.__name__+'.images')
+		newImager._filecache = os.path.join(os.path.join(tempdir, '.cache'),
+											newImager.__class__.__name__+'.images')
 
 		return newImager
 

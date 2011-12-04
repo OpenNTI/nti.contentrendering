@@ -1,22 +1,24 @@
+
 from xml.dom.minidom import parse
-from xml.dom.minidom import Node
 import subprocess
 import json
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import os
-import pdb
+import warnings
+
+import logging
+logger = logging.getLogger( __name__ )
 
 def _runPhantomOnPage(contentLocation, tocNode, scriptName, args):
 	htmlFile = os.path.join(contentLocation, tocNode.getAttribute('href'))
-
-
-
-	#print 'Fetching page info for %s' % htmlFile
+	warnings.warn( "Using whatever phantomjs is on the path" )
 	process = "phantomjs %s %s %s 2>/dev/null" % (scriptName, htmlFile, " ".join([str(x) for x in args]))
-	#print process
 	jsonStr = subprocess.Popen(process, shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-	#print '%s-%s' % (htmlFile, jsonStr)
-	result = json.loads(jsonStr)
+	try:
+		result = json.loads(jsonStr)
+	except:
+		logger.exception( "Failed to read json (%s) from %s", jsonStr, process )
+		raise
 	return (tocNode, result)
 
 
@@ -40,7 +42,8 @@ class RenderedBook(object):
 
 
 	def _processPages(self):
-		javascript =  os.path.join(os.path.join(os.path.dirname(__file__), '../js'), 'getPageInfo.js')
+		javascript =  os.path.join( os.path.dirname(__file__), 'js', 'getPageInfo.js')
+		if not os.path.exists( javascript ): raise Exception( "Unable to get page info script %s" % javascript )
 
 		results = self.runPhantomOnPages(javascript)
 
@@ -60,8 +63,11 @@ class RenderedBook(object):
 		results = {}
 
 		with ProcessPoolExecutor() as executor:
-			for the_tuple in executor.map( _runPhantomOnPage, [self.contentLocation for x in nodesForPages if x], \
-										   nodesForPages, [script for x in nodesForPages if x], [args for x in nodesForPages if x]):
+			for the_tuple in executor.map( _runPhantomOnPage,
+										   [self.contentLocation for x in nodesForPages if x],
+										   nodesForPages,
+										   [script for x in nodesForPages if x],
+										   [args for x in nodesForPages if x]):
 				node = the_tuple[0]
 				result = the_tuple[1]
 

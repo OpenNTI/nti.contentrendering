@@ -94,9 +94,10 @@ def addOutgoingLinks(eclipseTOC, page):
 		fileName = fileNameAndLink[0]
 		link = fileNameAndLink[1]
 
-		tocNode = eclipseTOC.getPageNodeWithAttribute('href', fileName)[0]
-
 		if fileName and link:
+			tocNodes = eclipseTOC.getPageNodeWithAttribute('href', fileName)
+			if not tocNodes: continue
+			tocNode = tocNodes[0]
 			markRelated(eclipseTOC, page.ntiid, tocNode.getAttribute('ntiid'), 'link', qualifier=link)
 
 

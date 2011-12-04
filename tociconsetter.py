@@ -18,7 +18,7 @@ def main(args):
 		chapterPath = args.pop()
 
 	transform(tocFile, chapterPath)
-	
+
 	try:
 		command = 'rm %s/*.bkp' % os.path.realpath(chapterPath)
 		os.system(command)
@@ -40,8 +40,9 @@ def handle_toc(toc, chapterPath):
 
 	attributes = toc.attributes
 	attributes['href'] = "index.html"
-	attributes['icon'] = "icons/chapters/PreAlgebra-cov-icon.png"
-	attributes['label'] = "Prealgebra"
+	# Either derive this information naturally or parse it from somewhere else.
+	attributes['icon'] = os.environ.get( 'NTI_ICON_PATH', "icons/chapters/PreAlgebra-cov-icon.png" )
+	attributes['label'] = os.environ.get( 'NTI_TITLE',  "Prealgebra" )
 
 	if chapterPath:
 		sourceFile = chapterPath + '/index.html'

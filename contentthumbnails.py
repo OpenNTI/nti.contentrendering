@@ -1,16 +1,15 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python2.7
 
 import os
-import re
-import sys, shutil,pdb
-from xml.dom.minidom import parse
-from xml.dom.minidom import Node
+import shutil
+
 import subprocess
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-from RenderedBook import RenderedBook
 import tempfile
-javascript = os.path.join(os.path.dirname(__file__),'../js/rasterize.js')
+import warnings
+
+javascript = os.path.join(os.path.dirname(__file__), 'js', 'rasterize.js')
+if not os.path.exists(javascript): raise Exception( "Unable to load %s" % javascript )
 thumbnailsLocationName = 'thumbnails'
 
 def replaceExtension(fname, newext):
@@ -18,16 +17,14 @@ def replaceExtension(fname, newext):
 
 def _generatedImage(contentdir, page, output):
 	#print 'Fetching page info for %s' % htmlFile
+	warnings.warn( "Using phantomjs and convert from the PATH" )
 	process = "phantomjs %s %s %s 2>/dev/null" % (javascript, os.path.join(contentdir, page.location), output)
-	#print process
-	jsonStr = subprocess.Popen(process, shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-
-	#shrink it down to size
-	process = "convert %s -resize %d%% PNG32:%s" % (output, 25, output)
 	#print process
 	subprocess.Popen(process, shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
 
-
+	#shrink it down to size
+	process = "convert %s -resize %d%% PNG32:%s" % (output, 25, output)
+	subprocess.Popen(process, shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
 
 	return (page.ntiid, output)
 
@@ -46,12 +43,12 @@ def transform(book):
 
 	eclipseTOC = book.getEclipseTOC()
 
-	htmlFiles = [x.filename for x in book.pages.values()]
+	#htmlFiles = [x.filename for x in book.pages.values()]
 
 	pageAndOutput = [(page, replaceExtension(page.filename, 'png')) for page in book.pages.values()]
 
 	#generate a place to put the thumbnails
-	thumbnails = os.path.join(book.contentLocation, thumbnailsLocationName);
+	thumbnails = os.path.join(book.contentLocation, thumbnailsLocationName)
 
 	if not os.path.isdir(thumbnails):
 		os.mkdir(thumbnails)
@@ -60,15 +57,13 @@ def transform(book):
 
 	tempdir = tempfile.mkdtemp()
 
-	results = None
-
 	os.chdir(tempdir)
 
 	with ProcessPoolExecutor() as executor:
 		for ntiid, output in executor.map( _generatedImage,[cwd for x in pageAndOutput], [x[0] for x in pageAndOutput], [x[1] for x in pageAndOutput]):
 			thumbnail = os.path.join(thumbnails, output)
 			copy(os.path.join(tempdir, output), os.path.join(cwd, thumbnail))
-			eclipseTOC.getPageNodeWithNTIID(ntiid).attributes['thumbnail']=os.path.relpath(thumbnail)
+			eclipseTOC.getPageNodeWithNTIID(ntiid).attributes['thumbnail'] = os.path.relpath(thumbnail)
 
 	os.chdir(cwd)
 

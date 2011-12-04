@@ -1,22 +1,15 @@
 #!/usr/bin/env python
-import os,tempfile, shutil,re, codecs,pdb, tempfile
+import os,tempfile, re, tempfile
 from plasTeX.Logging import getLogger
 import plasTeX.Imagers, glob, sys, os
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 import resources
 from collections import defaultdict
 
-log = getLogger()
+log = getLogger(__name__)
 depthlog = getLogger('render.images.depth')
 status = getLogger('status')
 imagelog = getLogger('imager')
-
-try:
-	import Image as PILImage
-	import ImageChops as PILImageChops
-except ImportError:
-	PILImage = PILImageChops = None
-
 
 import plasTeX.Imagers
 from plasTeX.Imagers import Image, WorkingFile

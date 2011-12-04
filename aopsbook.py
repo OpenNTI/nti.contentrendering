@@ -645,31 +645,32 @@ class challhard(Base.subsection):
 		res = super(challhard,self).invoke( tex )
 		self.attributes['probnum'] = self.ownerDocument.context.counters['probnum'].value
 		return res
-
+# This is all handled by the main driver
 from plasTeX.Base import Arrays
-tabularTypes = ['png', 'svg']
+# tabularTypes = ['png', 'svg']
 
-Arrays.tabular.resourceTypes = tabularTypes
-Arrays.TabularStar.resourceTypes = tabularTypes
-Arrays.tabularx.resourceTypes = tabularTypes
+# Arrays.tabular.resourceTypes = tabularTypes
+# Arrays.TabularStar.resourceTypes = tabularTypes
+# Arrays.tabularx.resourceTypes = tabularTypes
 
 from plasTeX.Base import Math
 
-#The math package does not correctly implement the sqrt macro.	It takes two args
-Math.sqrt.args='[root]{arg}'
 
-inlineMathTypes=['mathjax_inline']
-displayMathTypes=['mathjax_display']
+# #The math package does not correctly implement the sqrt macro.	It takes two args
+# Math.sqrt.args='[root]{arg}'
 
-#inlineMathTypes = ['mathjax_inline', 'png', 'svg']
-#displayMathTypes = ['mathjax_display', 'png', 'svg']
+# inlineMathTypes = ['mathjax_inline']
+# displayMathTypes = ['mathjax_display']
 
-Math.math.resourceTypes = inlineMathTypes
-#Math.ensuremath.resourceTypes=inlineMathTypes
+# #inlineMathTypes = ['mathjax_inline', 'png', 'svg']
+# #displayMathTypes = ['mathjax_display', 'png', 'svg']
 
-Math.displaymath.resourceTypes = displayMathTypes
-Math.EqnarrayStar.resourceTypes = displayMathTypes
-#Math.equation.resourceTypes=displayMathTypes
+# Math.math.resourceTypes = inlineMathTypes
+# #Math.ensuremath.resourceTypes=inlineMathTypes
+
+# Math.displaymath.resourceTypes = displayMathTypes
+# Math.EqnarrayStar.resourceTypes = displayMathTypes
+# #Math.equation.resourceTypes=displayMathTypes
 #Math.eqnarray.resourceTypes=displayMathTypes
 #Math.EqnarrayStar.resourceTypes=displayMathTypes
 
@@ -712,24 +713,24 @@ class nth(nsuperscript):
 	pass
 
 
-
+# FIXME: star imports!
 from plasTeX.Packages.fancybox import *
 
 from plasTeX.Packages.graphicx import *
 
 from plasTeX.Packages.amsmath import *
 
-align.resourceTypes = displayMathTypes
-AlignStar.resourceTypes = displayMathTypes
-alignat.resourceTypes = displayMathTypes
-AlignatStar.resourceTypes = displayMathTypes
-gather.resourceTypes = displayMathTypes
-GatherStar.resourceTypes = displayMathTypes
+# align.resourceTypes = displayMathTypes
+# AlignStar.resourceTypes = displayMathTypes
+# alignat.resourceTypes = displayMathTypes
+# AlignatStar.resourceTypes = displayMathTypes
+# gather.resourceTypes = displayMathTypes
+# GatherStar.resourceTypes = displayMathTypes
 
-from plasTeX.Packages.multicol import *
+# from plasTeX.Packages.multicol import *
 
-#includegraphics.resourceTypes = ['png', 'svg']
-includegraphics.resourceTypes = ['png']
+# #includegraphics.resourceTypes = ['png', 'svg']
+# includegraphics.resourceTypes = ['png']
 
 class rightpic(includegraphics):
 	" For our purposes, exactly the same as an includegraphics command. "

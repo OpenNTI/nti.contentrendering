@@ -1,7 +1,12 @@
 import os
+import logging
+logger = logging.getLogger(__name__)
+
+import nti.contentrendering
 
 def check(document, book):
-	javascript =  os.path.join(os.path.join(os.path.dirname(__file__), '../../js'), 'detectOverflowedMath.js')
+	javascript =  os.path.join( os.path.dirname( nti.contentrendering.__file__), 'js', 'detectOverflowedMath.js' )
+	if not os.path.exists( javascript ): raise Exception( "Unable to get %s" % javascript )
 
 	results = book.runPhantomOnPages(javascript)
 
@@ -11,7 +16,7 @@ def check(document, book):
 		page = book.pages[node.getAttribute('ntiid')]
 		if maths:
 			pagesWithBadMath += 1
-			print '*** WARNING *** Width of math elements %s is outside the bounds of %s.' % (maths, page.filename)
+			logger.warn( '*** WARNING *** Width of math elements %s is outside the bounds of %s.', maths, page.filename )
 
 	if pagesWithBadMath == 0:
-		print 'All math within page bounds'
+		logger.info( 'All math within page bounds' )
