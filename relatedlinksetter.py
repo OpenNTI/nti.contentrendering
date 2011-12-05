@@ -28,9 +28,6 @@ def transform(book):
 
 	eclipseTOC.save()
 
-
-
-from collections import defaultdict
 def addRelatedBasedOnTOC(eclipseTOC, book):
 	relatedTuples = []
 
@@ -40,7 +37,7 @@ def addRelatedBasedOnTOC(eclipseTOC, book):
 	if len(theIndexs) < 1:
 		return
 
-	theIndex = theIndexs[0];
+	theIndex = theIndexs[0]
 
 	for group in theIndex.groups:
 		entries = [ entry for column in group for entry in column]

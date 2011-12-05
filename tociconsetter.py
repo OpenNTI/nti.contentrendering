@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 
-
 import os
-import re
+import urllib
 import sys
 import tempfile
 
 from xml.dom.minidom import parse
 from xml.dom.minidom import Node
+
+from pyquery import PyQuery
+
+import logging
+logger = logging.getLogger(__name__)
 
 def main(args):
 	""" Main program routine """
@@ -25,74 +29,58 @@ def main(args):
 	except:
 		pass
 
-def transform(tocFile, chapterPath=None):
+def transform(tocFile, contentLocation=None):
 	dom = parse(tocFile)
 	toc = dom.getElementsByTagName("toc")
-	if toc and handle_toc(toc[0], chapterPath):
-		tempfile = to_xml(dom)
+	if toc and _handle_toc(toc[0], contentLocation):
+		xml_file = to_xml(dom)
 		os.remove(tocFile)
-		os.rename(tempfile, tocFile)
+		os.rename(xml_file, tocFile)
 	else:
 		raise Exception( "Failed to transform %s (dom %s; toc %s)" % (tocFile, dom, toc) )
 
-def handle_toc(toc, chapterPath):
+def _handle_toc(toc, contentLocation):
 	current = 0
-
-	ntiid_pattern = re.compile("<meta.*content=\"(.*)\".*name=\"NTIID\"")
 
 	attributes = toc.attributes
 	attributes['href'] = "index.html"
-	# Either derive this information naturally or parse it from somewhere else.
-	attributes['icon'] = os.environ.get( 'NTI_ICON_PATH', "icons/chapters/PreAlgebra-cov-icon.png" )
-	attributes['label'] = os.environ.get( 'NTI_TITLE',  "Prealgebra" )
+	modified = True
+	if contentLocation:
+		index = _Topic( toc, contentLocation, os.path.join( contentLocation, 'index.html' ) )
+		modified = index.set_ntiid()
 
-	if chapterPath:
-		sourceFile = chapterPath + '/index.html'
-		ntiid = get_ntiid(sourceFile, ntiid_pattern)
-		if ntiid:
-			attributes["ntiid"] = ntiid
+		title = index.get_title( )
+		if title:
+			modified = index.set_label( title ) or modified
+			modified = index.set_icon( "icons/chapters/" + title + "-icon.png" ) or modified
 
-	for node in toc.childNodes:
-		if node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic':
-			current += 1
-			handle_topic(node, current, chapterPath, ntiid_pattern)
-
-	return True
-
-def handle_topic(topic, current, chapterPath, ntiid_pattern):
-
-	modified = False
-	attributes = topic.attributes
-
-	if is_chapter(attributes):
-
-		imageName = 'C' + str(current) + '.png'
-		if not has_icon(attributes):
-			attributes['icon'] = 'icons/chapters/' + imageName
-			modified = True
-
-		if chapterPath:
-
-			chapterFile = get_chapter_filename(attributes)
-			if chapterFile:
-
-				sourceFile = chapterPath + '/' + chapterFile.value
-
-				# set the body background image
-				set_background_image(sourceFile, imageName)
-
-				# set the ntiid for the chapter
-				ntiid = get_ntiid(sourceFile, ntiid_pattern)
-				if ntiid:
-					attributes["ntiid"]= ntiid
-					modified = True
-
-			# modify the sub-topics
-			modified = handle_sub_topics(topic, chapterPath, ntiid_pattern) or modified
+		for node in index.childNodes:
+			if node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic':
+				current += 1
+				_handle_topic(node, current, contentLocation)
 
 	return modified
 
-def handle_sub_topics(topic, chapterPath, ntiid_pattern):
+
+def _handle_topic(topic, current, contentLocation):
+	modified = False
+
+	if is_chapter(topic.attributes):
+		_topic = _Topic( topic, contentLocation )
+		imageName = 'C' + str(current) + '.png'
+		if not _topic.has_icon():
+			modified = _topic.set_icon( 'icons/chapters/' + imageName )
+
+		if contentLocation:
+			modified = _topic.set_ntiid() or modified
+			modified = _topic.set_background_image( imageName ) or modified
+
+			# modify the sub-topics
+			modified = _handle_sub_topics(topic, contentLocation) or modified
+
+	return modified
+
+def _handle_sub_topics(topic, contentLocation):
 	"""
 	Set the NTIID for all sub topics
 	"""
@@ -101,47 +89,88 @@ def handle_sub_topics(topic, chapterPath, ntiid_pattern):
 
 	for node in topic.childNodes:
 		if node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic':
-			modified = set_ntiid(node, chapterPath, ntiid_pattern) or modified
+			modified = _Topic( node, contentLocation).set_ntiid() or modified
 
 	return modified
 
-def set_ntiid(topic, chapterPath, ntiid_pattern):
-	"""
-	Set the NTIID for the specifed topic
-	"""
+class _Topic(object):
 
-	modified = False
-	attributes = topic.attributes
-	chapterFile = get_chapter_filename(attributes)
-	if chapterFile:
-		sourceFile = chapterPath + '/' + chapterFile.value
-		ntiid = get_ntiid(sourceFile, ntiid_pattern)
+	def __init__( self, topic, contentLocation, sourceFile=None ):
+		self.topic = topic
+		self.contentLocation = contentLocation
+		self.sourceFile = sourceFile or (self.get_chapter_filename( )
+										 and os.path.join( contentLocation, self.get_chapter_filename().value ) )
+		self.modifiedTopic = False
+		self.modifiedDom = False
+		self._dom = None
+
+	@property
+	def childNodes(self):
+		return self.topic.childNodes
+
+	@property
+	def dom(self):
+		if not self._dom and self.sourceFile and os.path.exists( self.sourceFile ):
+			dom = PyQuery( filename=self.sourceFile )
+			if len(dom("body")) != 1:
+				dom = PyQuery( filename=self.sourceFile, parser="html" )
+			self._dom = dom
+		return self._dom
+
+	def set_ntiid( self ):
+		"""
+		Set the NTIID for the specifed topic
+		"""
+
+		ntiid = self.get_ntiid()
 		if ntiid:
-			attributes["ntiid"]= ntiid
-			modified = True
+			self.topic.attributes["ntiid"] = ntiid
+			self.modifiedTopic = True
 
-	return modified
+		return self.modifiedTopic
 
-def get_ntiid(sourceFile, ntiid_pattern):
-	"""
-	Return the NTIID from the specified file
-	"""
+	def get_ntiid(self):
+		"""
+		Return the NTIID from the specified file
+		"""
+		try:
+			return self.dom("meta[name=NTIID]").attr( "content" )
+		except IOError:
+			logger.debug( "Unable to open file %s", self.sourceFile, exc_info=True )
+			return None
 
-	if os.path.exists(sourceFile):
-		s = ''
-		with open(sourceFile, "r") as f:
-			s = f.read()
+	def get_title( self ):
+		return self.dom("title").text()
 
-		m = ntiid_pattern.search(s, re.M|re.I)
-		if m: return m.groups()[0]
+	def get_chapter_filename( self ):
+		return (self.topic.attributes and self.topic.attributes.get('href'))
 
-	return None
+	def set_background_image( self, imageName ):
 
-def get_chapter_filename(attributes):
-	return (attributes and attributes.get('href'))
+		dom = self.dom
+		if dom is None:
+			return False
 
-def has_icon(attributes):
-	return (attributes and attributes.get('icon'))
+		dom("body").attr["style"] = r"background-image: url('images/chapters/" + imageName + r"')"
+
+		with open(self.sourceFile, 'w') as f:
+			f.write( dom.outerHtml().encode( "utf-8" ) )
+
+		self.modifiedDom = True
+		return self.modifiedDom
+
+	def has_icon( self ):
+		return (self.topic.attributes and self.topic.attributes.get('icon'))
+
+	def set_icon( self, icon ):
+		self.topic.attributes['icon'] = urllib.quote( icon )
+		self.modifiedTopic = True
+		return self.modifiedTopic
+
+	def set_label( self, label ):
+		self.topic.attributes['label'] = label
+		self.modifiedTopic = True
+		return self.modifiedTopic
 
 def is_chapter(attributes):
 	if attributes:
@@ -153,19 +182,7 @@ def to_xml( document ):
 	outfile = '%s/temp-toc-file.%s.xml' % (tempfile.gettempdir(), os.getpid())
 	with open(outfile,"w") as f:
 		document.writexml(f)
-	return outfile;
-
-def set_background_image(sourceFile, imageName):
-
-	if not os.path.exists(sourceFile) or not os.access(sourceFile, os.O_RDWR):
-		return False
-
-	replace = r"<body \\1 style=\"background-image: url('images\/chapters\/" + imageName + r"') \">"
-	command = "sed -i .bkp \"s/<body \\(.*\\)>/" + replace + "/g\" ";
-
-	os.popen(command + sourceFile)
-
-	return True
+	return outfile
 
 if __name__ == '__main__':
 	args = sys.argv[1:]
