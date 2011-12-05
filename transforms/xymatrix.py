@@ -1,5 +1,5 @@
 from plasTeX import Base, Node
-from .. import domutils
+from nti.contentrendering import domutils
 from plasTeX.Base.LaTeX import Math
 import plasTeX
 
