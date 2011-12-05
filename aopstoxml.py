@@ -80,7 +80,7 @@ def main(argv):
 
 	if outFormat == 'xhtml':
 		render( document, 'XHTML', db )
-		postRender(document)
+		postRender(document, indexname=jobname)
 
 	if outFormat == 'xml':
 		toXml( document, jobname )
@@ -108,7 +108,7 @@ from RenderedBook import RenderedBook
 
 import contentchecks
 
-def postRender(document, contentLocation='.', indexname = 'prealgebra'):
+def postRender(document, contentLocation='.', indexname='prealgebra'):
 	print 'Performing post render steps'
 
 	#This goes first b/c it sets the root node of the toc up

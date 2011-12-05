@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import sys
 from RenderedBook import RenderedBook
-import pdb
 import itertools
 
 def main(args):
@@ -59,7 +58,13 @@ def addRelatedBasedOnTOC(eclipseTOC, book):
 
 def relatedPagesForIndexEntry(book, eclipseTOC, entry):
 	related = []
-	pages = [book.pages[eclipseTOC.getPageForDocumentNode(page).getAttribute('ntiid')] for page in entry.pages]
+	def _error(node):
+		page = eclipseTOC.getPageForDocumentNode(node)
+		attrs = getattr(page, 'attributes')
+		raise ValueError( "No NTIID for entry %s doc node %s page %s attrs %s" % (entry, node, page, attrs) )
+	pages = [book.pages[eclipseTOC.getPageForDocumentNode(page).getAttribute('ntiid') or _error(page)]
+			 for page
+			 in entry.pages]
 	pageIds = [page.ntiid for page in pages if page is not None]
 
 	related.extend( [x for x in itertools.permutations(pageIds, 2) if x[0]!=x[1]] )
@@ -71,19 +76,19 @@ def relatedPagesForIndexEntry(book, eclipseTOC, entry):
 	return (entry.key.textContent, related)
 
 def addRelatedBasedOnLinks(eclipseTOC, book):
-	for id, page in book.pages.items():
+	for _, page in book.pages.items():
 		addOutgoingLinks(eclipseTOC, page)
 
 import re
 filere = re.compile('(?P<file>.*?\.html).*')
 def stripToFile(link):
-	file = None
+	results = None
 
 	match = filere.match(link)
 	if match:
-		file = match.group('file')
+		results = match.group('file')
 
-	return file
+	return results
 
 def addOutgoingLinks(eclipseTOC, page):
 

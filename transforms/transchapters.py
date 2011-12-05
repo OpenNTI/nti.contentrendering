@@ -1,7 +1,5 @@
-from plasTeX import Base, Node
-import plasTeX
-import traceback
-
+import logging
+logger = logging.getLogger( __name__ )
 
 def transform(document):
 	# Chapterauthor and chapterquote need to move down a level, inside
@@ -16,8 +14,8 @@ def transform(document):
 			parent = parent.parentNode
 
 		if parent and parent.nextSibling:
+			logger.info( "Moving chaterquote/author (%s/%s) to %s", chapterquote, chapterauthor, parent )
 			chapterquote.parentNode.removeChild( chapterauthor )
 			chapterquote.parentNode.removeChild( chapterquote )
 			parent.nextSibling.insert( 0, chapterquote )
 			parent.nextSibling.insert( 1, chapterauthor )
-			traceback.print_exc()

@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 import os, time, tempfile, shutil, codecs
-import subprocess, shlex, uuid
 import copy as cp
-import plasTeX.Imagers
 
 from hashlib import sha1
 
@@ -15,10 +13,9 @@ except ImportError:
 from StringIO import StringIO
 from plasTeX.Logging import getLogger
 from plasTeX.Filenames import Filenames
-from plasTeX.dictutils import ordereddict
 from plasTeX.Imagers import WorkingFile, Image
 
-log = getLogger(__name__)
+logger = getLogger(__name__)
 
 # try:
 # 	import Image as PILImage
@@ -48,7 +45,7 @@ class ResourceTypeOverrides(DictMixin):
 		overridesFile = os.path.join(self.location, self.OVERRIDE_INDEX_NAME)
 
 		if not os.path.exists(overridesFile):
-			log.warning('%s not found.  No resourceType overrides will be applied' % overridesFile)
+			logger.warning('%s not found.  No resourceType overrides will be applied', overridesFile)
 			return
 
 		with open(overridesFile, 'r') as f:
@@ -60,7 +57,7 @@ class ResourceTypeOverrides(DictMixin):
 				sourcePath = os.path.join(self.location, sourceFileName)
 
 				if not os.path.exists(sourcePath):
-					log.warning('Can\'t apply override for %s.  File does not exist' % sourcePath)
+					logger.warning('Can\'t apply override for %s.  File does not exist', sourcePath)
 					continue
 
 				with open(sourcePath, 'r') as sourceFile:
@@ -107,9 +104,7 @@ class CachingDigester(object):
 		return self.digest(dkey)
 
 	def digest(self, toDigest):
-
-		# FIXME  Is there something else we should be doing here?
-		# toDigest = toDigest.encode('ascii', 'ignore')
+		toDigest = toDigest.encode('ascii', 'backslashreplace')
 
 		if toDigest in self.digestCache:
 			return self.digestCache[toDigest]
@@ -188,7 +183,7 @@ class ResourceDB(object):
 		if not os.path.isdir(self.__dbpath):
 			os.makedirs(self.__dbpath)
 
-		log.info('Using %s as resource db' % self.__dbpath)
+		logger.info('Using %s as resource db', self.__dbpath)
 
 		self.__indexPath = os.path.join(self.__dbpath, 'resources.index')
 
@@ -233,20 +228,20 @@ class ResourceDB(object):
 		generator = self.__loadGenerator(resourceType)
 
 		if not generator:
-			log.warn( "Not generating resource %s for %s", resourceType, sources )
+			logger.warn( "Not generating resource %s for %s", resourceType, sources )
 			return
 
 		generator.generateResources(sources, self)
 
 	def __loadGenerator(self, resourceType):
 		if not resourceType in self.types:
-			log.warn('No generator specified for resource type %s' % resourceType)
+			logger.warn('No generator specified for resource type %s', resourceType)
 			return None
 		try:
 			m  = __import__(self.types[resourceType])
 			return m.ResourceGenerator(self.__document)
 		except ImportError, msg:
-			log.warning("Could not load custom imager '%s' because '%s'" % (resourceType, msg))
+			logger.warning("Could not load custom imager '%s' because '%s'", resourceType, msg)
 			return None
 
 	def __findNodes(self, node):
@@ -257,7 +252,7 @@ class ResourceDB(object):
 		#whitespace is all jacked up.  The easiest (not safest) thing to do is strip whitespace
 		source = ''.join(node.source.split())
 		if source in self.overrides:
-			log.info( 'Applying resourceType override to %s', node )
+			logger.info( 'Applying resourceType override to %s', node )
 			node.resourceTypes = self.overrides[source]
 
 		if getattr(node, 'resourceTypes', None):
@@ -287,7 +282,7 @@ class ResourceDB(object):
 						del self.__db[key]
 						continue
 			except ImportError:
-				log.exception( 'Error loading cache.  Starting from scratch' )
+				logger.exception( 'Error loading cache.  Starting from scratch' )
 				os.remove(self.__indexPath)
 				self.__db = {}
 		else:
@@ -389,7 +384,6 @@ class ResourceDB(object):
 
 		return None
 
-#ResourceDB
 
 class BaseResourceSetGenerator(object):
 
@@ -429,8 +423,8 @@ class BaseResourceSetGenerator(object):
 		nresources = len(resources)
 
 		if nresources != len(self.generatables):
-			print 'WARNING.	Expected %s files but only generated %s for batch %s' %\
-				  (len(self.generatables), nresources, self.batch)
+			logger.warn( 'Expected %s files but only generated %s for batch %s',
+						 len(self.generatables), nresources, self.batch )
 
 		elapsed = time.time() - start
 		print "%s resources generated in %sms for batch %s" % (nresources, elapsed, self.batch)
@@ -467,7 +461,7 @@ class BaseResourceSetGenerator(object):
 		# 	line = p.stdout.readline()
 		# 	done = p.poll()
 		# 	if line:
-		# 		imagelog.info(str(line.strip()))
+		# 		imagelogger.info(str(line.strip()))
 		# 	elif done is not None:
 		# 		break
 
@@ -496,12 +490,10 @@ class BaseResourceSetGenerator(object):
 		if data:
 			self.writer.write(data)
 
-#End BaseResourceSetGenerator
-
 class BaseResourceGenerator(object):
 
 	compiler = ''
-	debug	 = False
+	debug = False
 
 	def __init__(self, document):
 		self.document = document

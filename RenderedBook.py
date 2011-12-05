@@ -38,7 +38,7 @@ class RenderedBook(object):
 		self._processPages()
 
 		for pageid, page in self.pages.items():
-			print '%s -> %s' % (pageid, page.ntiid)
+			logger.debug( '%s -> %s', pageid, page.ntiid )
 
 
 	def _processPages(self):

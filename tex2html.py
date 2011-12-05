@@ -5,7 +5,6 @@ import resources
 import tempfile
 import subprocess
 import cgi
-#from plasTeX.Imagers import *
 import html2mathml
 import warnings
 _debug = False
@@ -16,6 +15,8 @@ class ResourceSetGenerator(resources.BaseResourceSetGenerator):
 	mathjaxconfigname	= 'mathjaxconfig.js'
 	# FIXME: This path assumption is not good.
 	mathjaxconfigfile	= '%s/../../../renderers/Themes/AoPS/js/%s' % (os.path.dirname(__file__), mathjaxconfigname)
+
+	wrapInText = False
 
 	def __init__(self, compiler, encoding, batch):
 		super(ResourceSetGenerator, self).__init__(compiler, encoding, batch)
@@ -48,8 +49,8 @@ class ResourceSetGenerator(resources.BaseResourceSetGenerator):
 		</head>\
 		<body>')
 
-	def writeResource(self, source, context, wrapInText=False):
-		if wrapInText:
+	def writeResource(self, source, context):
+		if self.wrapInText:
 			self.write('Cras vel metus diam, sed molestie risus. Etiam mattis, nisi sed malesuada luctus, arcu purus euismod velit, \
 			eu luctus felis nisi vitae nulla. Vestibulum euismod leo vel mauris commodo egestas. Nullam eu metus vitae velit euismod \
 			eleifend ac vitae nibh.  consectetur commodo.\
@@ -58,7 +59,7 @@ class ResourceSetGenerator(resources.BaseResourceSetGenerator):
 			in nunc dolor ')
 		self.write('%s<span class="mathjax math tex2jax_process mathquill-embedded-latex">\(%s\)</span>' %\
 					(context , cgi.escape(source[1:-1])))
-		if wrapInText:
+		if self.wrapInText:
 			self.write('. Cras vel metus diam, sed molestie risus. Etiam mattis, nisi sed malesuada luctus, arcu purus euismod velit, \
 			eu luctus felis nisi vitae nulla. Vestibulum euismod leo vel mauris commodo egestas. Nullam eu metus vitae velit euismod \
 			eleifend ac vitae nibh. Phasellus u diam. Suspendisse condimentum consectetur commodo.\

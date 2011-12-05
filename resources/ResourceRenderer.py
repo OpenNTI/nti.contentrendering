@@ -6,9 +6,7 @@ from plasTeX.Renderers import mixin, unmix
 from plasTeX.DOM import Node
 from plasTeX.Logging import getLogger
 from plasTeX.Filenames import Filenames
-from resources import RESOURCE_TYPES
-
-import logging
+from . import RESOURCE_TYPES
 
 logger = getLogger( __name__ )
 
@@ -95,7 +93,6 @@ class Renderable(BaseRenderable):
 
 
 	def contents(self, criteria):
-		logger.debug( 'getting contents for %s', self.source ) if logger.isEnabledFor( logging.DEBUG ) else None
 		return self.renderer.resourcedb.getResourceContent(self.source, criteria)
 
 
@@ -108,7 +105,7 @@ class Renderable(BaseRenderable):
 			resourceTypes = self.resourceTypes
 
 		if not resourceTypes:
-			logger.warning('No resource types for %s using default renderer %s' % (self.nodeName, renderer.default))
+			logger.warning('No resource types for %s using default renderer %s', self.nodeName, renderer.default )
 			return renderer.default(self)
 
 		template = None
@@ -127,7 +124,7 @@ class Renderable(BaseRenderable):
 				break
 
 		if template is None:
-			logger.warning('Unable to find template from resourcetypes %s for node %s' % (resourceTypes, self.nodeName))
+			logger.warning('Unable to find template from resourcetypes %s for node %s', resourceTypes, self.nodeName )
 			return renderer.default(self)
 
 		val = template(self)
@@ -136,7 +133,7 @@ class Renderable(BaseRenderable):
 		# If a plain string is returned, we have no idea what
 		# the encoding is, but we'll make a guess.
 		if type(val) is not unicode:
-			logger.warning('The renderer for %s returned a non-unicode string.	 Using the default input encoding.' % type(child).__name__)
+			logger.warning('The renderer for %s returned a non-unicode string.	 Using the default input encoding.', type(child).__name__)
 			val = unicode(val, self.config['files']['input-encoding'])
 
 		return val

@@ -16,7 +16,7 @@ def check(document, book):
 		page = book.pages[node.getAttribute('ntiid')]
 		if maths:
 			pagesWithBadMath += 1
-			logger.warn( '*** WARNING *** Width of math elements %s is outside the bounds of %s.', maths, page.filename )
+			logger.warn( 'Width of math elements %s is outside the bounds of %s.', maths, page.filename )
 
 	if pagesWithBadMath == 0:
 		logger.info( 'All math within page bounds' )

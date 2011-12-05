@@ -27,11 +27,13 @@ def main(args):
 
 def transform(tocFile, chapterPath=None):
 	dom = parse(tocFile)
-	toc = dom.getElementsByTagName("toc");
+	toc = dom.getElementsByTagName("toc")
 	if toc and handle_toc(toc[0], chapterPath):
 		tempfile = to_xml(dom)
 		os.remove(tocFile)
 		os.rename(tempfile, tocFile)
+	else:
+		raise Exception( "Failed to transform %s (dom %s; toc %s)" % (tocFile, dom, toc) )
 
 def handle_toc(toc, chapterPath):
 	current = 0
@@ -48,14 +50,14 @@ def handle_toc(toc, chapterPath):
 		sourceFile = chapterPath + '/index.html'
 		ntiid = get_ntiid(sourceFile, ntiid_pattern)
 		if ntiid:
-			attributes["ntiid"]= ntiid
+			attributes["ntiid"] = ntiid
 
 	for node in toc.childNodes:
 		if node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic':
 			current += 1
 			handle_topic(node, current, chapterPath, ntiid_pattern)
 
-	return True;
+	return True
 
 def handle_topic(topic, current, chapterPath, ntiid_pattern):
 

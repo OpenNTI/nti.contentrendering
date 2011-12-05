@@ -1,8 +1,10 @@
 from plasTeX import Base, Node
-import domutils
-from plasTeX.Base import Math
+from .. import domutils
+from plasTeX.Base.LaTeX import Math
 import plasTeX
 
+import logging
+logger = logging.getLogger(__name__)
 
 class ntixymatrix(Base.Command):
 	@property
@@ -11,12 +13,9 @@ class ntixymatrix(Base.Command):
 
 class ntixydisplaymath(Math.displaymath):
 	resourceTypes = ['png', 'svg']
-	pass
 
 class ntixymath(Math.math):
 	resourceTypes = ['png', 'svg']
-	pass
-
 
 def transform(document):
 	document.context['ntixymatrix'] = ntixymatrix
@@ -25,12 +24,11 @@ def transform(document):
 
 	xys = domutils.findNodesStartsWith(document, 'xymatrix')
 
-	print 'Will transform on %s' % xys
+	logger.info( 'Will transform on %s', xys )
 
 	for xy in xys:
 		fixxy(document, xy)
 
-import pdb
 def fixxy(document, xy):
 	#figure out if the xy would be the only child
 	parent = xy.parentNode

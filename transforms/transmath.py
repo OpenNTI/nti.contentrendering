@@ -1,8 +1,9 @@
-from plasTeX import Base, Node
-from plasTeX.Base import Math
+from plasTeX import Node
 import plasTeX
 import string
-import sys, pdb, traceback
+
+import logging
+logger = logging.getLogger(__name__)
 
 class _mathnode(plasTeX.Base.Command):
 
@@ -34,8 +35,8 @@ def transform(document):
 	document.context['mathname'] = mathnumber
 	## document.context['mathline'] = mathline
 
-	transformSimpleMath(document);
-	transformSimpleNsuperscript(document);
+	transformSimpleMath(document)
+	transformSimpleNsuperscript(document)
 
 def transformSimpleNsuperscript(document):
 	nsuperscripts = []
@@ -53,7 +54,7 @@ def transformSimpleNsuperscript(document):
 
 
 def transformSimpleMath(document):
-	''' Transform simple maths.  Simple maths are math
+	''' Transform simple maths.	 Simple maths are math
 	elemsnts that have only text children '''
 
 	simpleMaths = [math for math in document.getElementsByTagName('math') \
@@ -66,43 +67,39 @@ def transformSimpleMath(document):
 
 			text = math.textContent
 
-			#Remove any empty math nodes from the dom.  There are likely none
+			#Remove any empty math nodes from the dom.	There are likely none
 			#Note the addition of the childNode check its is not enough to just
 			#check if the textContent is none
 			if not(text):
 				#Found empty mathnode remove it from the parent
-				print 'Found empty math node'
+				logger.info( 'Found empty math node' )
 				math.parentNode.removeChild(math)
 			elif all( [c in string.ascii_letters for c in text] ):
 				r = None
 				#print "Found math node %s to mathname" % math.toXML()
-			## 	if math.previousSibling:
-			## 		prevText = (math.previousSibling.textContent or '').rstrip()
-			## 		if prevText.lower().endswith( ' angle' ):
-			## 			r = document.createElement( 'mathangle' )
-			## 		elif prevText.lower().endswith( ' line') or prevText == 'Line':
-			## 			r = document.createElement( 'mathline' )
-			## 	if r is None:
-			## 		r = document.createElement( 'mathname' )
+			##	if math.previousSibling:
+			##		prevText = (math.previousSibling.textContent or '').rstrip()
+			##		if prevText.lower().endswith( ' angle' ):
+			##			r = document.createElement( 'mathangle' )
+			##		elif prevText.lower().endswith( ' line') or prevText == 'Line':
+			##			r = document.createElement( 'mathline' )
+			##	if r is None:
+			##		r = document.createElement( 'mathname' )
 				r = document.createElement( 'mathname' )
-			 	r.attributes['text'] = text
-			 	r.origMathSource=math.source
-			 	math.parentNode.replaceChild( r, math )
+				r.attributes['text'] = text
+				r.origMathSource = math.source
+				math.parentNode.replaceChild( r, math )
 			else:
 				#at this point we better have a a number
 				#print 'Replacing mathnumber'
-			 	float(text)
+				float(text)
 				r = document.createElement( 'mathnumber' )
 				r.attributes['text'] = text
 				r.origMathSource = math.source
-			 	math.parentNode.replaceChild( r, math )
+				math.parentNode.replaceChild( r, math )
 
+		except ValueError:
+			pass
+		except Exception:
+			logger.exception( 'Unable to replace %s parents children are %s', math, [x for x in enumerate(math.parentNode)] )
 
-		except UnicodeEncodeError, e:
-			pass
-		except ValueError, e:
-			pass
-		except plasTeX.DOM.NotFoundErr, e:
-			print 'Unable to replace %s parents children are %s' % (math, [x for x in enumerate(math.parentNode)])
-			#import traceback
-			#traceback.print_exc()

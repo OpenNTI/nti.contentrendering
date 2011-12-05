@@ -1,17 +1,16 @@
 import os
-import sys
-import pdb
 import glob
 
 from plasTeX.Logging import getLogger
 
-logger = getLogger()
+logger = getLogger(__name__)
 
 def performTransforms(document):
 	transformsDir = os.path.dirname(__file__)
 
-	modules = [os.path.splitext(os.path.basename(fileName))[0] \
-				for fileName in glob.glob(os.path.join(transformsDir, '*.py'))  if not '__init__' in fileName]
+	modules = [os.path.splitext(os.path.basename(fileName))[0]
+				for fileName in glob.glob(os.path.join(transformsDir, '*.py'))
+				if not '__init__' in fileName]
 
 	for moduleName in modules:
 		_name = 'transforms.%s' % moduleName
@@ -22,6 +21,6 @@ def performTransforms(document):
 			logger.error('Could not import transforms from "%s".' % _name)
 			continue
 
-		print 'Running transform for %s' % _name
-		
+		logger.info( 'Running transform for %s', _name )
+
 		_module.transform(document)
