@@ -6,6 +6,10 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import os
 import warnings
 
+from zope.deprecation import deprecate
+from zope import interface
+from . import interfaces
+
 import logging
 logger = logging.getLogger( __name__ )
 
@@ -23,18 +27,21 @@ def _runPhantomOnPage(contentLocation, tocNode, scriptName, args):
 
 
 class RenderedBook(object):
+
+	interface.implements(interfaces.IRenderedBook)
+
 	TOC_FILE_NAME = 'eclipse-toc.xml'
 
 	document = None
 	contentLocation = None
 	tocFile = None
 
-	pages = {} #id to ContentPage
-
 	def __init__(self, document, location):
 		self.contentLocation = location
 		self.tocFile = os.path.join(self.contentLocation, self.TOC_FILE_NAME)
 		self.document = document
+		self.pages = {}
+		self._toc = None
 		self._processPages()
 
 		for pageid, page in self.pages.items():
@@ -51,13 +58,25 @@ class RenderedBook(object):
 			page = ContentPage(os.path.join(self.contentLocation, node.getAttribute('href')), pageinfo, node)
 			self.pages[page.ntiid] = page
 
+	@property
+	def toc(self):
+		"""
+		An :class:`EclipseTOC` object. Changes made to the returned
+		object are persistent in memory for the life of this object (and possibly on disk).
+		"""
+		if self._toc is None:
+			self._toc = self.getEclipseTOC()
+		return self._toc
 
-
+	@deprecate("Prefer the toc property")
 	def getEclipseTOC(self):
+		"""
+		Returns a newly parsed TOC object.
+		"""
 		return EclipseTOC(self.tocFile)
 
 	def runPhantomOnPages(self, script, *args):
-		eclipseTOC = EclipseTOC(self.tocFile)
+		eclipseTOC = self.toc
 		nodesForPages = eclipseTOC.getPageNodes()
 
 		results = {}
@@ -75,9 +94,6 @@ class RenderedBook(object):
 
 		return results
 
-
-
-
 class EclipseTOC(object):
 	file = None
 	dom = None
@@ -85,6 +101,11 @@ class EclipseTOC(object):
 	def __init__(self, f):
 		self.file = f
 		self.dom = parse(self.file)
+
+	# FIXME These names need adjustment. There are "page" XML nodes, but the method
+	# names below use "page" to mean a page in the the TOC, i.e., a 'topic' or 'toc'
+	# node
+
 
 	def getPageForDocumentNode(self, node):
 		#Walk up the node try untill we find something with an id that matches our label

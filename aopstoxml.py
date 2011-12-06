@@ -131,7 +131,7 @@ def postRender(document, contentLocation='.', indexname='prealgebra'):
 	contentsizesetter.transform(book)
 
 	print 'Adding related links to toc'
-	relatedlinksetter.transform(book)
+	relatedlinksetter.performTransforms(book)
 
 	print 'Generating thumbnails for pages'
 	contentthumbnails.transform(book)

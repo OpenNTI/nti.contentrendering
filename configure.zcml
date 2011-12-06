@@ -3,4 +3,11 @@
 		   i18n_domain="zope">
 	<include package="zope.component" />
 	<include package=".transforms" />
+
+	<utility component=".relatedlinksetter.TOCRelatedAdder"
+			 name="TOCRelatedAdder" />
+	<utility component=".relatedlinksetter.LinkRelatedAdder"
+			 name="LinkRelatedAdder" />
+	<utility component=".relatedlinksetter.ExistingTOCRelatedAdder"
+			 name="ExistingTOCRelatedAdder" />
 </configure>
