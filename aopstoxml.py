@@ -13,6 +13,7 @@ from plasTeX.Logging import getLogger
 import transforms
 from zope.configuration import xmlconfig
 
+import nti.contentrendering
 
 log = getLogger(__name__)
 
