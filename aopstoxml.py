@@ -16,6 +16,7 @@ from zope.configuration import xmlconfig
 import nti.contentrendering
 
 log = getLogger(__name__)
+logger = log
 
 
 def _configure_logging():
@@ -40,7 +41,7 @@ def main(argv):
 
 	#setup config options we want
 	document.config['files']['split-level'] = 1
-	document.config['general']['theme']='AoPS'
+	document.config['general']['theme'] = 'AoPS'
 
 	# Instantiate the TeX processor
 	tex = TeX(document, file=sourceFile)
@@ -49,7 +50,7 @@ def main(argv):
 	jobname = document.userdata['jobname'] = tex.jobname
 	document.userdata['working-dir'] = os.getcwd()
 	document.userdata['generated_time'] = str(datetime.datetime.now())
-	document.userdata['transform_process'] = True;
+	document.userdata['transform_process'] = True
 	setupResources()
 
 	# Load aux files for cross-document references
@@ -100,7 +101,7 @@ def nextID(self):
 	provider = os.environ.get( "NTI_PROVIDER", "AOPS" )
 	return 'tag:nextthought.com,2011-10:%s-HTML-%s.%s' % (provider,self.userdata['jobname'], ntiid)
 
-plasTeX.TeXDocument.nextNTIID=nextID
+plasTeX.TeXDocument.nextNTIID = nextID
 
 import mirror
 import indexer
@@ -113,6 +114,7 @@ import contentthumbnails
 from RenderedBook import RenderedBook
 
 import contentchecks
+import subprocess
 
 def postRender(document, contentLocation='.', indexname='prealgebra'):
 	print 'Performing post render steps'
@@ -139,8 +141,23 @@ def postRender(document, contentLocation='.', indexname='prealgebra'):
 
 	contentPath = os.path.realpath(contentLocation)
 	if not os.path.exists( os.path.join( contentPath, 'indexdir' ) ):
-		print "indexing content"
-		indexer.index_content(tocFile=toc_file, contentPath=contentPath, indexname=indexname)
+		# Try with pypy, it's much faster
+		env = dict(os.environ)
+		# Need whoosh, etc, on the path, but NOT the standard lib, or the
+		# raw site-packages (so no site.py). This requires whoosh to be
+		# installed as an egg using easy_intstall.pth
+		path = [p for p in sys.path
+				if not p.endswith('site-packages') and not p.endswith('site-packages/') and not p.endswith('python2.7')]
+		env['PYTHONPATH'] = ':'.join(path)
+		try:
+			logger.info( 'Indexing content with pypy' )
+			subprocess.check_call( ['pypy-c', '-m', 'nti.contentrendering.indexer',
+									toc_file, contentPath, 'indexdir', indexname],
+									env=env )
+		except subprocess.CalledProcessError:
+			logger.info( 'pypy failed to index, falling back to current' )
+			logger.debug( 'pypy exception', exc_info=True )
+			indexer.index_content(tocFile=toc_file, contentPath=contentPath, indexname=indexname)
 
 	print "Creating html cache-manifest"
 	html5cachefile.main(contentPath, contentPath)

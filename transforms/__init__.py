@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 
 import logging
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 from zope.deprecation import deprecated
 from zope import component

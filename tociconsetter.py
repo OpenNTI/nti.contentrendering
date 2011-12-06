@@ -57,30 +57,28 @@ def _handle_toc(toc, contentLocation):
 		for node in index.childNodes:
 			if node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic':
 				current += 1
-				_handle_topic(node, current, contentLocation)
+				_handle_topic(node, current)
 
 	return modified
 
 
-def _handle_topic(topic, current, contentLocation):
+def _handle_topic(_topic, current):
 	modified = False
 
-	if is_chapter(topic.attributes):
-		_topic = _Topic( topic, contentLocation )
+	if _topic.is_chapter():
 		imageName = 'C' + str(current) + '.png'
 		if not _topic.has_icon():
 			modified = _topic.set_icon( 'icons/chapters/' + imageName )
 
-		if contentLocation:
-			modified = _topic.set_ntiid() or modified
-			modified = _topic.set_background_image( imageName ) or modified
+		modified = _topic.set_ntiid() or modified
+		modified = _topic.set_background_image( imageName ) or modified
 
-			# modify the sub-topics
-			modified = _handle_sub_topics(topic, contentLocation) or modified
+		# modify the sub-topics
+		modified = _handle_sub_topics(_topic) or modified
 
 	return modified
 
-def _handle_sub_topics(topic, contentLocation):
+def _handle_sub_topics(topic):
 	"""
 	Set the NTIID for all sub topics
 	"""
@@ -89,7 +87,7 @@ def _handle_sub_topics(topic, contentLocation):
 
 	for node in topic.childNodes:
 		if node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic':
-			modified = _Topic( node, contentLocation).set_ntiid() or modified
+			modified = node.set_ntiid() or modified
 
 	return modified
 
@@ -106,13 +104,29 @@ class _Topic(object):
 
 	@property
 	def childNodes(self):
-		return self.topic.childNodes
+		return [self.__class__(x, self.contentLocation) for x in self.topic.childNodes]
+
+	@property
+	def nodeType(self): return self.topic.nodeType
+
+	@property
+	def localName(self): return self.topic.localName
 
 	@property
 	def dom(self):
 		if not self._dom and self.sourceFile and os.path.exists( self.sourceFile ):
-			dom = PyQuery( filename=self.sourceFile )
-			if len(dom("body")) != 1:
+			# we've seen this throw ValueError: I/O operation on closed file
+			# we've also seen AttributeError: 'NoneType' object has no attribute 'xpath'
+			# on dom("body")
+			body_len = 0
+			dom = None
+			try:
+				dom = PyQuery( filename=self.sourceFile )
+				body_len = len(dom("body"))
+			except (ValueError,AttributeError):
+				logger.warn( "Failed to parse %s as XML. Will try HTML.", self.sourceFile, exc_info=True )
+
+			if body_len != 1:
 				dom = PyQuery( filename=self.sourceFile, parser="html" )
 			self._dom = dom
 		return self._dom
@@ -172,11 +186,12 @@ class _Topic(object):
 		self.modifiedTopic = True
 		return self.modifiedTopic
 
-def is_chapter(attributes):
-	if attributes:
-		label = attributes.get('label',None)
-		return (label and label.value !='Index')
-	return False
+	def is_chapter(self):
+		attributes = self.topic.attributes
+		if attributes:
+			label = attributes.get('label',None)
+			return (label and label.value !='Index')
+		return False
 
 def to_xml( document ):
 	outfile = '%s/temp-toc-file.%s.xml' % (tempfile.gettempdir(), os.getpid())
