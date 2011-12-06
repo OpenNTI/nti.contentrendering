@@ -1,26 +1,26 @@
-import os
-import glob
+#!/usr/bin/env python2.7
 
-from plasTeX.Logging import getLogger
+import logging
+logger = logging.getLogger()
 
-logger = getLogger(__name__)
+from zope.deprecation import deprecated
+from zope import component
+from zope import interface
+from . import interfaces
 
-def performTransforms(document):
-	transformsDir = os.path.dirname(__file__)
 
-	modules = [os.path.splitext(os.path.basename(fileName))[0]
-				for fileName in glob.glob(os.path.join(transformsDir, '*.py'))
-				if not '__init__' in fileName]
+def performTransforms(document,context=None):
+	"""
+	Executes all transforms on the given document.
+	:return: A list of tuples (name,transformer).
+	"""
+	# TODO: Some way to specify a set of transforms for different
+	# books. The context? Something with names?
+	utils = list(component.getUtilitiesFor(interfaces.IDocumentTransformer,context=context))
+	for name, util in utils:
+		logger.info( "Running transform %s (%s)", name, util )
+		util.transform( document )
+	return utils
 
-	for moduleName in modules:
-		_name = 'transforms.%s' % moduleName
-		try:
-			_name = 'transforms.%s' % moduleName
-			_module = __import__(_name, globals(), locals(), ['transform'], -1)
-		except ImportError:
-			logger.error('Could not import transforms from "%s".' % _name)
-			continue
 
-		logger.info( 'Running transform for %s', _name )
 
-		_module.transform(document)

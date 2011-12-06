@@ -1,0 +1,6 @@
+<!-- -*- mode: nxml -*- -->
+<configure xmlns="http://namespaces.zope.org/zope"
+		   i18n_domain="zope">
+	<include package="zope.component" />
+	<include package=".transforms" />
+</configure>

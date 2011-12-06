@@ -1,9 +1,14 @@
 from plasTeX import Node
-import plasTeX
+import plasTeX.Base
 import string
 
 import logging
 logger = logging.getLogger(__name__)
+
+from zope import interface
+from . import interfaces
+interface.moduleProvides(interfaces.IDocumentTransformer)
+
 
 class _mathnode(plasTeX.Base.Command):
 

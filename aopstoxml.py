@@ -11,8 +11,11 @@ from plasTeX.TeX import TeX
 from plasTeX.Logging import getLogger
 
 import transforms
+from zope.configuration import xmlconfig
 
-log = getLogger()
+
+log = getLogger(__name__)
+
 
 def _configure_logging():
 	logging.basicConfig( level=logging.INFO )
@@ -22,6 +25,8 @@ def main(argv):
 	""" Main program routine """
 
 	_configure_logging()
+	xmlconfig.file( 'configure.zcml', package=nti.contentrendering )
+
 
 	sourceFile = argv.pop(0)
 	outFormat = 'xml'
@@ -140,7 +145,7 @@ def postRender(document, contentLocation='.', indexname='prealgebra'):
 	html5cachefile.main(contentPath, contentPath)
 
 	print "Creating a mirror file"
-	mirror.main(contentPath, contentPath, indexname + ".zip")
+	mirror.main(contentPath, contentPath )
 
 from resources.ResourceRenderer import createResourceRenderer
 

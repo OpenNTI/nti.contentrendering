@@ -6,6 +6,11 @@ import plasTeX
 import logging
 logger = logging.getLogger(__name__)
 
+from zope import interface
+from . import interfaces
+interface.moduleProvides(interfaces.IDocumentTransformer)
+
+
 class ntixymatrix(Base.Command):
 	@property
 	def source(self):

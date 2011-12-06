@@ -1,6 +1,11 @@
 import logging
 logger = logging.getLogger( __name__ )
 
+from zope import interface
+from . import interfaces
+interface.moduleProvides(interfaces.IDocumentTransformer)
+
+
 def transform(document):
 	# Chapterauthor and chapterquote need to move down a level, inside
 	# their respective chapters.
