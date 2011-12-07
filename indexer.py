@@ -2,17 +2,40 @@
 
 import os
 import re
-import time
 import sys
+import time
+
 from datetime import datetime
 from xml.dom.minidom import parse
 from xml.dom.minidom import Node
 
-from whoosh.fields import Schema, TEXT,ID, KEYWORD, DATETIME, NGRAM, NUMERIC
 from whoosh import index
+from whoosh.fields import ID
+from whoosh.fields import TEXT
+from whoosh.fields import NGRAM
+from whoosh.fields import Schema
+from whoosh.fields import KEYWORD
+from whoosh.fields import NUMERIC
+from whoosh.fields import DATETIME
+
+from concurrent.futures import ThreadPoolExecutor
+import whoosh.writing
+import multiprocessing
+
+from nltk import clean_html
+from nltk.tokenize import RegexpTokenizer
 
 import logging
 logger = logging.getLogger(__name__)
+
+# -----------------------------
+
+ref_pattern = re.compile("<span class=\"ref\">(.*)</span>")
+last_m_pattern = re.compile("<meta content=\"(.*)\" http-equiv=\"last-modified\"")
+page_c_pattern = re.compile("<div class=\"page-contents\">(.*)</body>")
+default_tokenizer = RegexpTokenizer(r"(?x)([A-Z]\.)+ | \$?\d+(\.\d+)?%? | \w+([-']\w+)*", flags = re.MULTILINE | re.DOTALL) 
+
+# -----------------------------
 
 def get_schema():
 	return Schema(	ntiid=ID(stored=True, unique=True),\
@@ -42,9 +65,7 @@ def get_or_create_index(indexdir, indexname ='prealgebra', recreate = True):
 
 	return ix
 
-ref_pattern = re.compile("<span class=\"ref\">(.*)</span>")
-last_m_pattern = re.compile("<meta content=\"(.*)\" http-equiv=\"last-modified\"")
-page_c_pattern = re.compile("<div class=\"page-contents\">(.*)</body>")
+# -----------------------------
 
 def get_ntiid(node):
 	attrs = node.attributes
@@ -126,15 +147,13 @@ def get_page_content(text):
 	c = parse_text(c, page_c_pattern, None)
 	return c or text
 
-def word_splitter(text, wordpat=r"(?L)\w+"):
+def word_splitter(text, tokenizer=default_tokenizer):
 	"""
 	remove all html related tags and returs a list of words
 	"""
-	text = text.lower()
-	remove = [r"<[^<>]*>", r"&[A-Za-z]+;"]
-	for pat in remove:
-		text = re.sub(pat, " ", text)
-	return re.findall(wordpat, text)
+	text = clean_html(text.lower())
+	words = tokenizer.tokenize(text)
+	return words
 
 def get_first_paragraph(text):
 	"""
@@ -205,19 +224,23 @@ def get_nodes(tocFile):
 
 	return result
 
-from concurrent.futures import ThreadPoolExecutor
-import whoosh.writing
-import multiprocessing
+# -----------------------------
 
-def main(tocFile, contentPath, indexdir=None, indexname="prealgebra"):
+def main(tocFile, contentPath=None, indexdir=None, indexname=None):
 	""" Main program routine """
 
+	if not contentPath:
+		contentPath = os.path.dirname(tocFile)
+		
 	if not indexdir:
 		indexdir = os.path.join(contentPath, "indexdir")
-
-	idx = get_or_create_index(indexdir, indexname)
-	nodes = get_nodes(tocFile)
+		
+	indexname = indexname or "prealgebra"
+	
 	order = 0
+	nodes = get_nodes(tocFile)
+	idx = get_or_create_index(indexdir, indexname)
+
 	writer = whoosh.writing.BufferedWriter( idx, period=None, limit=100 )
 	with ThreadPoolExecutor(multiprocessing.cpu_count()) as pool:
 		for node in nodes:
@@ -234,16 +257,17 @@ index_content = main
 if __name__ == '__main__':
 	def _call_main():
 		args = sys.argv[1:]
-		if args and len(args) >= 2:
+		if args and len(args) >= 1:
 
-			tocFile = args[0]
-			contentPath = args[1]
-			indexdir = args[2] if len(args) >= 3 else None
-			indexname = args[3] if len(args) >= 4 else 'prealgebra'
+			lm = lambda x,i: x[i] if len(x) > i else None
+			toc_file = lm(args, 0)
+			content_path = lm(args, 1)
+			index_directory = lm(args, 2)
+			index_name = lm(args, 3)
 
-			main(tocFile, contentPath, indexdir, indexname)
+			main(toc_file, content_path, index_directory, index_name)
 		else:
-			print "Specify a toc-file chapter-path [index-directory] [index-name]"
+			print "Specify a toc-file [chapter-path] [index-directory] [index-name]"
 	_call_main()
 
 
