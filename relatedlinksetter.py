@@ -206,6 +206,7 @@ class LinkRelatedAdder(AbstractRelatedAdder):
 	def _add_outgoing_links_from_page( self, page ):
 
 		def file_part_of_link(link):
+			# TODO: Shouldn't this just be path traversal?
 			results = None
 
 			match = filere.match(link)

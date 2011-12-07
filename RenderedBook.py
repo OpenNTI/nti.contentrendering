@@ -13,9 +13,8 @@ from . import interfaces
 import logging
 logger = logging.getLogger( __name__ )
 
-def _runPhantomOnPage(contentLocation, tocNode, scriptName, args):
-	htmlFile = os.path.join(contentLocation, tocNode.getAttribute('href'))
-	warnings.warn( "Using whatever phantomjs is on the path" )
+warnings.warn( "Using whatever phantomjs is on the path" )
+def _runPhantomOnPage( htmlFile, scriptName, args, key ):
 	process = "phantomjs %s %s %s 2>/dev/null" % (scriptName, htmlFile, " ".join([str(x) for x in args]))
 	jsonStr = subprocess.Popen(process, shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
 	try:
@@ -23,7 +22,7 @@ def _runPhantomOnPage(contentLocation, tocNode, scriptName, args):
 	except:
 		logger.exception( "Failed to read json (%s) from %s", jsonStr, process )
 		raise
-	return (tocNode, result)
+	return (key, result)
 
 
 class RenderedBook(object):
@@ -54,8 +53,8 @@ class RenderedBook(object):
 
 		results = self.runPhantomOnPages(javascript)
 
-		for node, pageinfo in results.items():
-			page = ContentPage(os.path.join(self.contentLocation, node.getAttribute('href')), pageinfo, node)
+		for (_,href,label), pageinfo in results.items():
+			page = ContentPage( os.path.join(self.contentLocation, href), pageinfo, href, label )
 			self.pages[page.ntiid] = page
 
 	@property
@@ -75,22 +74,38 @@ class RenderedBook(object):
 		"""
 		return EclipseTOC(self.tocFile)
 
+	def _get_phantom_function(self):
+		"""
+		This cannot be simply a class attribute because
+		it gets wrapped as an instance method automatically.
+		:return: The pickalable function to map across nodes.
+		"""
+		return _runPhantomOnPage
+
 	def runPhantomOnPages(self, script, *args):
+		"""
+		:return: Dictionary of {(ntiid,href,label) => object from script}
+		"""
 		eclipseTOC = self.toc
 		nodesForPages = eclipseTOC.getPageNodes()
-
+		# Notice that we very carefully do not send anything attached
+		# to the DOM itself over to the executor processess. Not only
+		# is it large to serialize, it is potentially
+		# risky: arbitrary, non-pickalable objects could get attached there
 		results = {}
 
 		with ProcessPoolExecutor() as executor:
-			for the_tuple in executor.map( _runPhantomOnPage,
-										   [self.contentLocation for x in nodesForPages if x],
-										   nodesForPages,
-										   [script for x in nodesForPages if x],
-										   [args for x in nodesForPages if x]):
-				node = the_tuple[0]
+			for the_tuple in executor.map( self._get_phantom_function(),
+										   [os.path.join( self.contentLocation, node.getAttribute( 'href' ) )
+											for node in nodesForPages],
+										   [script] * len(nodesForPages),
+										   [args] * len(nodesForPages),
+										   [(node.getAttribute('ntiid'),node.getAttribute('href'),node.getAttribute('label'))
+											 for node in nodesForPages]):
+				key = the_tuple[0]
 				result = the_tuple[1]
 
-				results[node] = result
+				results[key] = result
 
 		return results
 
@@ -158,10 +173,10 @@ class EclipseTOC(object):
 
 class ContentPage(object):
 
-	def __init__(self, location, pageInfo, tocNode):
+	def __init__(self, location, pageInfo, href, label):
 		self.pageInfo = pageInfo
-		self.filename = tocNode.getAttribute('href')
+		self.filename = href
 		self.ntiid = pageInfo['ntiid']
-		self.title = tocNode.getAttribute('label')
+		self.title = label
 		self.location = location
 
