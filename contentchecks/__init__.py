@@ -1,22 +1,24 @@
-import pdb, os, sys, glob
-from plasTeX.Logging import getLogger
+#!/usr/bin/env python2.7
 
-log = getLogger()
+import logging
+logger = logging.getLogger(__name__)
 
-def performChecks(document, book):
-	checksDir = os.path.dirname(__file__)
+from zope import component
+from .. import interfaces
 
-	modules = [os.path.splitext(os.path.basename(fileName))[0] for fileName in \
-			   glob.glob(os.path.join(checksDir, '*.py')) \
-			   if not '__init__' in fileName]
 
-	for moduleName in modules:
-		module = 'contentchecks.%s' % moduleName
-		try:
-			exec('from %s import check as check' % module)
-		except ImportError, msg:
-			log.error('Could not import check from "%s".  Make sure that it is installed correctly, and can be imported by Python.' % module)
-			continue
+def performChecks(book, context=None):
+	"""
+	Executes all checks on the given document.
+	:return: A list of tuples (name,checker).
+	"""
+	# TODO: Some way to specify a set of checks for different
+	# books. The context? Something with names?
+	utils = list(component.getUtilitiesFor(interfaces.IRenderedBookValidator,context=context))
+	for name, util in utils:
+		logger.info( "Running check %s (%s)", name, util )
+		util.check( book )
+	return utils
 
-		print 'Running check for %s' % module
-		check(document, book)
+
+

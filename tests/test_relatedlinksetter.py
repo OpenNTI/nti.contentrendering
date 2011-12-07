@@ -1,5 +1,6 @@
 from . import ConfiguringTestBase
 from nti.contentrendering.relatedlinksetter import performTransforms
+from nti.contentrendering.contentchecks import performChecks
 from nti.contentrendering.RenderedBook import RenderedBook
 
 import os
@@ -22,8 +23,6 @@ class NoPhantomRenderedBook(RenderedBook):
 	def _get_phantom_function(self):
 		return _phantom_function
 
-
-
 class TestTransforms(ConfiguringTestBase):
 
 	def test_transforms(self):
@@ -33,3 +32,10 @@ class TestTransforms(ConfiguringTestBase):
 		assert_that( book.toc.dom.getElementsByTagName( "video" ), has_length( 1 ) )
 		assert_that( book.toc.dom.getElementsByTagName( "video" )[0].parentNode.parentNode.getAttribute( "ntiid" ),
 					 is_("tag:nextthought.com,2011-10:ck12-HTML-book-tx.1") )
+
+class TestContentChecks(ConfiguringTestBase):
+
+	def test_checks(self):
+		book = NoPhantomRenderedBook( EmptyMockDocument(), os.path.join( os.path.dirname( __file__ ),  'intro-biology-rendered-book' ) )
+		res = performChecks( book )
+		assert_that( res, has_length( greater_than_or_equal_to( 2 ) ) )

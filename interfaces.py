@@ -32,6 +32,19 @@ class IRenderedBookTransformer(interface.Interface):
 		Perform the book transformation.
 		"""
 
+class IRenderedBookValidator(interface.Interface):
+	"""
+	Given a rendered book, check that its in-memory and on
+    disk state meets some criteria. At this time, this interface
+    does not define what happens if that is not true.
+	"""
+
+	def check( book ):
+		"""
+		Check the book's adherence to the rule of this interface.
+        :return: Undefined.
+		"""
+
 class IStaticRelatedItemsAdder(IRenderedBookTransformer):
 	"""
 	Transforms the book's TOC by adding related items mined from

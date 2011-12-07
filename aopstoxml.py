@@ -137,7 +137,7 @@ def postRender(document, contentLocation='.', indexname='prealgebra'):
 	contentthumbnails.transform(book)
 
 	print 'Running checks on content'
-	contentchecks.performChecks(document, book)
+	contentchecks.performChecks(book)
 
 	contentPath = os.path.realpath(contentLocation)
 	if not os.path.exists( os.path.join( contentPath, 'indexdir' ) ):

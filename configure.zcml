@@ -2,7 +2,6 @@
 <configure xmlns="http://namespaces.zope.org/zope"
 		   i18n_domain="zope">
 	<include package="zope.component" />
-	<include package=".transforms" />
 
 	<utility component=".relatedlinksetter.TOCRelatedAdder"
 			 name="TOCRelatedAdder" />
@@ -10,4 +9,7 @@
 			 name="LinkRelatedAdder" />
 	<utility component=".relatedlinksetter.ExistingTOCRelatedAdder"
 			 name="ExistingTOCRelatedAdder" />
+
+	<include package=".transforms" />
+	<include package=".contentchecks" />
 </configure>
