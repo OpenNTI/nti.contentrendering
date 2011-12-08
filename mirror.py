@@ -18,7 +18,12 @@ logger = logging.getLogger( __name__ )
 
 WGET_CMD = '/opt/local/bin/wget'
 
-def main(url_or_path, out_dir="/tmp/mirror", zip_archive=True, process_links=True, archive_index=False, port=7777):
+def main(url_or_path, out_dir="/tmp/mirror",
+		 zip_archive=True,
+		 zip_root_dir=None,
+		 process_links=True,
+		 archive_index=False,
+		 port=7777):
 
 	global WGET_CMD
 
@@ -56,7 +61,7 @@ def main(url_or_path, out_dir="/tmp/mirror", zip_archive=True, process_links=Tru
 
 		if zip_archive:
 			zip_name = zip_archive if isinstance(zip_archive, basestring) else 'archive.zip'
-			_zip_archive(archive_dir, out_dir, zip_name)
+			_zip_archive(archive_dir, out_dir, zip_name, zip_root_dir)
 
 		return result
 	finally:
@@ -73,25 +78,27 @@ def main(url_or_path, out_dir="/tmp/mirror", zip_archive=True, process_links=Tru
 				_remove_file(lpath)
 				os.rename(log_file, lpath)
 
-def _zip_archive(source_path, out_dir, zip_name="archive.zip"):
+def _zip_archive(source_path, out_dir, zip_name="archive.zip", zip_root_dir=None):
 
 	out_file = os.path.join(out_dir, zip_name)
 
 	print "Archiving '%s' to '%s'" % (source_path, zip_name)
 
-	zip_file = zipfile.ZipFile(out_file, "w")
-	try:
-		_add_to_zip(zip_file, source_path, source_path)
-	finally:
-		zip_file.close()
+	zip_cmd = "zip -9 -r %s %s/*" % (zip_name, source_path)
+	new_dir = None
+	if zip_root_dir and os.path.split( source_path )[-1] != zip_root_dir:
+		# If they ask for a zip name (and we do not already match it)
+		# then rename the archive dir to match (in the same directory)
+		new_dir = os.path.join( os.path.split( source_path )[0], zip_root_dir )
+		os.rename( source_path, new_dir )
+		zip_cmd = "cd %s && zip -q -9 -r %s %s && mv %s %s" % (os.path.split( source_path )[0], zip_name, zip_root_dir, zip_name, os.path.realpath( os.curdir ))
 
-def _add_to_zip(zip_file, path, source_path):
-	if os.path.isfile(path):
-		path = path[len(source_path) + 1:]
-		zip_file.write(path, path, zipfile.ZIP_DEFLATED)
-	elif os.path.isdir(path):
-		for name in glob.glob("%s/*" % path):
-			_add_to_zip(zip_file, name, source_path)
+	os.system( zip_cmd )
+
+	if new_dir:
+		# move it back
+		os.rename( new_dir, source_path )
+
 
 def _process_toc_file(url, out_dir, process_links, toc_file='eclipse-toc.xml'):
 
