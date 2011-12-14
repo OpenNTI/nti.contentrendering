@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import io
 import os
 import urllib
 import sys
@@ -7,6 +8,7 @@ import tempfile
 
 from xml.dom.minidom import parse
 from xml.dom.minidom import Node
+from . import minidom_writexml
 
 from pyquery import PyQuery
 
@@ -195,8 +197,7 @@ class _Topic(object):
 
 def to_xml( document ):
 	outfile = '%s/temp-toc-file.%s.xml' % (tempfile.gettempdir(), os.getpid())
-	with open(outfile,"w") as f:
-		document.writexml(f)
+	minidom_writexml( document, outfile )
 	return outfile
 
 if __name__ == '__main__':

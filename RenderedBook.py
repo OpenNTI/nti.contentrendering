@@ -9,6 +9,7 @@ import warnings
 from zope.deprecation import deprecate
 from zope import interface
 from . import interfaces
+from . import minidom_writexml
 
 import logging
 logger = logging.getLogger( __name__ )
@@ -166,9 +167,7 @@ class EclipseTOC(object):
 		return [x for x in self.getPageNodeWithAttribute('href', node=None) if x.hasAttribute('ntiid')]
 
 	def save(self):
-		f = open(self.file, 'w')
-		self.dom.writexml(f)
-		f.close()
+		minidom_writexml( self.dom, self.file )
 
 
 class ContentPage(object):
