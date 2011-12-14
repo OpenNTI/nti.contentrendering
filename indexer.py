@@ -11,6 +11,7 @@ from xml.dom.minidom import Node
 
 from whoosh import index
 
+from microdata import items
 from concurrent.futures import ThreadPoolExecutor
 from nti.contentsearch.contenttypes import Book
 
@@ -154,6 +155,12 @@ def get_first_paragraph(text):
 			return content
 	return ''
 
+def get_microdata(html):
+	try:
+		return items(html)
+	except:
+		return []
+	
 def _index_node(writer, node, contentPath, order=0, optimize=False):
 	"""
 	Index a the information for a toc node
