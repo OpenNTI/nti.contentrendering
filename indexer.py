@@ -10,15 +10,10 @@ from xml.dom.minidom import parse
 from xml.dom.minidom import Node
 
 from whoosh import index
-from whoosh.fields import ID
-from whoosh.fields import TEXT
-from whoosh.fields import NGRAM
-from whoosh.fields import Schema
-from whoosh.fields import KEYWORD
-from whoosh.fields import NUMERIC
-from whoosh.fields import DATETIME
 
 from concurrent.futures import ThreadPoolExecutor
+from nti.contentsearch.contenttypes import Book
+
 import whoosh.writing
 import multiprocessing
 
@@ -38,16 +33,7 @@ default_tokenizer = RegexpTokenizer(r"(?x)([A-Z]\.)+ | \$?\d+(\.\d+)?%? | \w+([-
 # -----------------------------
 
 def get_schema():
-	return Schema(	ntiid=ID(stored=True, unique=True),\
-					title=TEXT(stored=True, spelling=True),
-				  	last_modified=DATETIME(stored=True),\
-				  	keywords=KEYWORD(stored=True), \
-				 	quick=NGRAM(maxsize=10),\
-				 	related=KEYWORD(stored=True),\
-				 	section=TEXT(),\
-				 	order=NUMERIC(int),\
-				  	content=TEXT(stored=True, spelling=True))
-
+	return Book.schema
 
 def get_or_create_index(indexdir, indexname ='prealgebra', recreate = True):
 
