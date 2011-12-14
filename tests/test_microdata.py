@@ -91,7 +91,7 @@ class TestMicrodata(unittest.TestCase):
 		assert_that(d, has_entry('properties', has_length(2)))
 		
 		d = d['properties']
-		assert_that(d, has_entry('favorite-color', ['orgage']))
+		assert_that(d, has_entry('favorite-color', ['orange']))
 		assert_that(d, has_entry('favorite-fruit', ['orange']))
 		
 	def test_type(self):
@@ -116,6 +116,54 @@ class TestMicrodata(unittest.TestCase):
 		assert_that(d, has_entry('img', ['hedral.jpeg']))
 		assert_that(d, has_entry('desc', has_length(1)))
 		
+	def test_meta(self):
+		html=	"""
+				<div itemscope itemtype="http://schema.org/Book">
+					<div itemprop="reviews" itemscope itemtype="http://schema.org/Review">
+						<span itemprop="reviewRating">4</span> stars -
+						<b>"<span itemprop="name">A good read.</span>" </b>
+						by <span itemprop="author">Bob Smith</span>,
+						Written on <meta itemprop="datePublished" content="2006-06-15">June 15, 2006
+						<span itemprop="reviewBody">Catcher in the Rye is a fun book. It's a good book to read.</span>
+					</div>
+					<div itemprop="reviews" itemscope itemtype="http://schema.org/Review">
+  						<span itemprop="reviewRating">5</span> stars -
+ 						<b>"<span itemprop="name">A masterpiece of literature</span>" </b>
+						by <span itemprop="author">John Doe</span>,
+						Written on <meta itemprop="datePublished" content="2006-05-04">May 4, 2006
+						<span itemprop="reviewBody">I really enjoyed this book. It captures the essential
+						challenge people face as they try make sense of their lives and grow to adulthood.</span>
+					</div>
+				</div>
+				"""
+	
+		ls = items(html)
+		assert_that(ls, has_length(1))
+		
+		d = ls[0]
+		assert_that(d, has_key('properties'))
+		assert_that(d, has_entry('type', 'http://schema.org/Book'))
+
+		d = d['properties']
+		assert_that(d, has_entry('author', ['Bob Smith', 'John Doe']))
+		assert_that(d, has_entry('datePublished', ['2006-06-15', '2006-05-04']))
+		assert_that(d, has_entry('name', ['A good read.', 'A masterpiece of literature']))
+		assert_that(d, has_entry('reviewBody', has_length(2)))
+		assert_that(d, has_entry('reviewRating', ['4', '5']))
+		assert_that(d, has_entry('reviews', has_length(2)))
+		
+		for d in d['reviews']:
+			self.assert_(isinstance(d, dict))
+			assert_that(d, has_key('properties'))
+			assert_that(d, has_entry('type', 'http://schema.org/Review'))
+			
+			p = d['properties']
+			assert_that(p, has_key('author'))
+			assert_that(p, has_key('name'))
+			assert_that(p, has_key('datePublished'))
+			assert_that(p, has_key('reviewBody'))
+			assert_that(p, has_key('reviewRating'))
+			
 if __name__ == '__main__':
 	unittest.main()
 	
