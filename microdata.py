@@ -7,6 +7,7 @@ https://gist.github.com/577116
 
 """
 
+import sys
 import lxml.html as lhtml
 
 from urlparse import urljoin
@@ -172,4 +173,14 @@ class Microdata(object):
 					self.base = urljoin(self.base, uri)
 					return
 
+def get_file_items(html_file, types=None, uri=""):
+	with open(html_file, "r") as f:
+		return items(f.read(), types, uri)
 	
+def main(args=None):
+	args = args or sys.argv[1:]
+	return get_file_items(args[0]) if args else None
+
+if __name__ == '__main__':
+	from pprint import pprint
+	pprint(main())
