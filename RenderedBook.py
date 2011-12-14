@@ -46,6 +46,7 @@ class RenderedBook(object):
 
 		for pageid, page in self.pages.items():
 			logger.debug( '%s -> %s', pageid, page.ntiid )
+		logger.info( "Book at %s had %d pages", os.path.abspath(location), len(self.pages) )
 
 
 	def _processPages(self):
@@ -59,13 +60,20 @@ class RenderedBook(object):
 			self.pages[page.ntiid] = page
 
 	@property
+	def jobname(self):
+		try:
+			return self.document.userdata.get('jobname', '')
+		except AttributeError:
+			return ''
+
+	@property
 	def toc(self):
 		"""
 		An :class:`EclipseTOC` object. Changes made to the returned
 		object are persistent in memory for the life of this object (and possibly on disk).
 		"""
 		if self._toc is None:
-			self._toc = self.getEclipseTOC()
+			self._toc = EclipseTOC(self.tocFile)
 		return self._toc
 
 	@deprecate("Prefer the toc property")
@@ -87,8 +95,10 @@ class RenderedBook(object):
 		"""
 		:return: Dictionary of {(ntiid,href,label) => object from script}
 		"""
+
 		eclipseTOC = self.toc
 		nodesForPages = eclipseTOC.getPageNodes()
+
 		# Notice that we very carefully do not send anything attached
 		# to the DOM itself over to the executor processess. Not only
 		# is it large to serialize, it is potentially
@@ -111,17 +121,25 @@ class RenderedBook(object):
 		return results
 
 class EclipseTOC(object):
-	file = None
-	dom = None
+	interface.implements(interfaces.IEclipseMiniDomTOC)
 
 	def __init__(self, f):
-		self.file = f
-		self.dom = parse(self.file)
+		self.filename = f
+		self.dom = parse(self.filename)
+		# We may or may not have an href for the root toc yet.
+		# If not, assume it to be index.html
+		tocs = self.dom.getElementsByTagName( "toc" )
+		if len(tocs) == 1 and not tocs[0].getAttribute( "href" ):
+			tocs[0].setAttribute( "href", "index.html" )
+
+	@property
+	@deprecate("Prefer the `filename` property.")
+	def file(self):
+		return self.filename
 
 	# FIXME These names need adjustment. There are "page" XML nodes, but the method
 	# names below use "page" to mean a page in the the TOC, i.e., a 'topic' or 'toc'
 	# node
-
 
 	def getPageForDocumentNode(self, node):
 		#Walk up the node try untill we find something with an id that matches our label
@@ -167,7 +185,7 @@ class EclipseTOC(object):
 		return [x for x in self.getPageNodeWithAttribute('href', node=None) if x.hasAttribute('ntiid')]
 
 	def save(self):
-		minidom_writexml( self.dom, self.file )
+		minidom_writexml( self.dom, self.filename )
 
 
 class ContentPage(object):

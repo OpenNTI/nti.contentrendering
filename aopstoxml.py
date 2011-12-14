@@ -119,13 +119,19 @@ import subprocess
 def postRender(document, contentLocation='.', jobname='prealgebra'):
 	print 'Performing post render steps'
 
-	#This goes first b/c it sets the root node of the toc up
+	# We very likely will get a book that has no pages
+	# because NTIIDs are not added yet.
+	book = RenderedBook(document, contentLocation)
+
+	# This step adds NTIIDs to the TOC in addition to modifying
+	# on-disk content.
 	print 'Adding icons to toc and pages'
 	toc_file = os.path.join(contentLocation, 'eclipse-toc.xml')
-	tociconsetter.transform(toc_file, contentLocation)
+	tociconsetter.transform(book)
 
 	print 'Fetching page info'
 	book = RenderedBook(document, contentLocation)
+
 
 	print 'Storing content height in pages'
 	contentsizesetter.transform(book)

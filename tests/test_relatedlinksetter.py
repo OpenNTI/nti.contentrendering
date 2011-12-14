@@ -1,4 +1,4 @@
-from . import ConfiguringTestBase
+from . import ConfiguringTestBase, EmptyMockDocument, NoPhantomRenderedBook
 from nti.contentrendering.relatedlinksetter import performTransforms
 from nti.contentrendering.contentchecks import performChecks
 from nti.contentrendering.RenderedBook import RenderedBook
@@ -6,22 +6,6 @@ from nti.contentrendering.RenderedBook import RenderedBook
 import os
 from hamcrest import assert_that, has_length, greater_than_or_equal_to, is_
 
-class EmptyMockDocument(object):
-
-	childNodes = ()
-
-	def __init__(self):
-		self.context = {}
-
-	def getElementsByTagName(self, name): return ()
-
-def _phantom_function( htmlFile, scriptName, args, key ):
-	return (key, {'ntiid': key[0]})
-
-class NoPhantomRenderedBook(RenderedBook):
-
-	def _get_phantom_function(self):
-		return _phantom_function
 
 class TestTransforms(ConfiguringTestBase):
 

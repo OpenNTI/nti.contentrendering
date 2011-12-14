@@ -1,49 +1,47 @@
 #!/usr/bin/env python
 
-import io
 import os
 import urllib
 import sys
-import tempfile
-
-from xml.dom.minidom import parse
-from xml.dom.minidom import Node
-from . import minidom_writexml
 
 from pyquery import PyQuery
+from . import RenderedBook
 
 import logging
 logger = logging.getLogger(__name__)
 
+from zope import interface
+from zope import component
+from zope.deprecation import deprecate
+from . import interfaces
+
+interface.moduleProvides( interfaces.IRenderedBookTransformer )
+
 def main(args):
 	""" Main program routine """
 
-	tocFile = args.pop(0)
-	chapterPath = None
-	if (args):
-		chapterPath = args.pop()
+	contentLocation = args[0]
+	book = RenderedBook.RenderedBook( None, contentLocation )
 
-	transform(tocFile, chapterPath)
+	transform( book )
 
-	try:
-		command = 'rm %s/*.bkp' % os.path.realpath(chapterPath)
-		os.system(command)
-	except:
-		pass
-
-def transform(tocFile, contentLocation=None):
-	dom = parse(tocFile)
+def transform( book, save_toc=True ):
+	"""
+	Modifies the TOC dom by: reading NTIIDs out of HTML content and adding them
+	to the TOC, setting icon attributes in the TOC. Also modifies HTML content
+	to include background images when appropriate.
+	"""
+	dom = book.toc.dom
 	toc = dom.getElementsByTagName("toc")
-	if toc and _handle_toc(toc[0], contentLocation):
-		xml_file = to_xml(dom)
-		os.remove(tocFile)
-		os.rename(xml_file, tocFile)
-	else:
-		raise Exception( "Failed to transform %s (dom %s; toc %s)" % (tocFile, dom, toc) )
+	if toc and _handle_toc(toc[0], book, save_toc):
+		if save_toc:
+			book.toc.save()
+		return True
 
-def _handle_toc(toc, contentLocation):
-	current = 0
+	raise Exception( "Failed to transform %s" % (book) )
 
+def _handle_toc(toc, book, save_dom):
+	contentLocation = book.contentLocation
 	attributes = toc.attributes
 	attributes['href'] = "index.html"
 	modified = True
@@ -56,24 +54,32 @@ def _handle_toc(toc, contentLocation):
 			modified = index.set_label( title ) or modified
 			modified = index.set_icon( "icons/chapters/" + title + "-icon.png" ) or modified
 
-		for node in index.childNodes:
-			if node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic':
-				current += 1
-				_handle_topic(node, current)
+		for node in index.childTopics:
+			node.save_dom = save_dom
+			_handle_topic( book, node )
 
 	return modified
 
+def _query_finder( book, topic, iface ):
+	result = component.queryMultiAdapter( (book,topic), iface, name=book.jobname )
+	if not result and book.jobname != '':
+		# If nothing for the job, query the global default
+		result = component.queryMultiAdapter( (book,topic), iface )
+	return result
 
-def _handle_topic(_topic, current):
+def _handle_topic( book, _topic ):
 	modified = False
 
 	if _topic.is_chapter():
-		imageName = 'C' + str(current) + '.png'
 		if not _topic.has_icon():
-			modified = _topic.set_icon( 'icons/chapters/' + imageName )
+			icon_finder = _query_finder( book, _topic, interfaces.IIconFinder )
+			icon_path = icon_finder.find_icon() if icon_finder else None
+			modified = _topic.set_icon( icon_path ) if icon_path else modified
 
 		modified = _topic.set_ntiid() or modified
-		modified = _topic.set_background_image( imageName ) or modified
+		bg_finder = _query_finder( book, _topic, interfaces.IBackgroundImageFinder )
+		bg_path = bg_finder.find_background_image() if bg_finder else None
+		modified |= _topic.set_background_image( bg_path ) if bg_path else modified
 
 		# modify the sub-topics
 		modified = _handle_sub_topics(_topic) or modified
@@ -87,13 +93,43 @@ def _handle_sub_topics(topic):
 
 	modified = False
 
-	for node in topic.childNodes:
-		if node.nodeType == Node.ELEMENT_NODE and node.localName == 'topic':
-			modified = node.set_ntiid() or modified
+	for node in topic.childTopics:
+		modified = node.set_ntiid() or modified
 
 	return modified
 
+class _PrealgebraIconFinder(object):
+	path_type = 'icons'
+
+	def __init__( self, book, topic ):
+		self._book = book
+		self._topic = topic
+
+	def find_icon( self ):
+		# Note that the return is in URL-space using /, but the check
+		# for existence uses local path conventions
+		imagename = 'C' + str(self._topic.ordinal) + '.png'
+		path = os.path.join( self._book.contentLocation,
+							 self.path_type,
+							 'chapters',
+							 imagename )
+		if os.path.exists( path ):
+			return self.path_type + '/chapters/' + imagename
+
+class _PrealgebraBackgroundImageFinder(_PrealgebraIconFinder):
+	path_type = 'images'
+	find_background_image = _PrealgebraIconFinder.find_icon
+
 class _Topic(object):
+	"""
+	Attributes:
+	`ordinal` A number starting at one representing which (nth) child
+		I am of the parent.
+	"""
+	# TODO: Merge this class with RenderedBook.ContentPage
+	interface.implements( interfaces.IEclipseMiniDomTopic )
+
+	save_dom = True
 
 	def __init__( self, topic, contentLocation, sourceFile=None ):
 		self.topic = topic
@@ -103,10 +139,35 @@ class _Topic(object):
 		self.modifiedTopic = False
 		self.modifiedDom = False
 		self._dom = None
+		self.ordinal = 1
 
 	@property
+	@deprecate("Prefer `childTopics`; this returns arbitrary Nodes")
 	def childNodes(self):
-		return [self.__class__(x, self.contentLocation) for x in self.topic.childNodes]
+		"""
+		:return: An iterable of :class:`_Topic` objects representing the children
+			of this object.
+		"""
+		childCount = 1
+		for x in self.topic.childNodes:
+			result = self.__class__( x, self.contentLocation )
+			result.ordinal = childCount
+			childCount += 1
+			yield result
+
+	@property
+	def childTopics(self):
+		"""
+		:return: An iterable of :class:`_Topic` objects representing the topic element children
+			of this object.
+		"""
+		childCount = 1
+		for x in self.topic.childNodes:
+			if x.nodeType == x.ELEMENT_NODE and x.localName == 'topic':
+				result = self.__class__( x, self.contentLocation )
+				result.ordinal = childCount
+				childCount += 1
+				yield result
 
 	@property
 	def nodeType(self): return self.topic.nodeType
@@ -126,7 +187,7 @@ class _Topic(object):
 				dom = PyQuery( filename=self.sourceFile )
 				body_len = len(dom("body"))
 			except (ValueError,AttributeError):
-				logger.warn( "Failed to parse %s as XML. Will try HTML.", self.sourceFile, exc_info=True )
+				logger.warn( "Failed to parse %s as XML. Will try HTML.", self.sourceFile, exc_info=False )
 
 			if body_len != 1:
 				dom = PyQuery( filename=self.sourceFile, parser="html" )
@@ -168,9 +229,9 @@ class _Topic(object):
 			return False
 
 		dom("body").attr["style"] = r"background-image: url('images/chapters/" + imageName + r"')"
-
-		with open(self.sourceFile, 'w') as f:
-			f.write( dom.outerHtml().encode( "utf-8" ) )
+		if self.save_dom:
+			with open(self.sourceFile, 'w') as f:
+				f.write( dom.outerHtml().encode( "utf-8" ) )
 
 		self.modifiedDom = True
 		return self.modifiedDom
@@ -195,16 +256,5 @@ class _Topic(object):
 			return (label and label.value !='Index')
 		return False
 
-def to_xml( document ):
-	outfile = '%s/temp-toc-file.%s.xml' % (tempfile.gettempdir(), os.getpid())
-	minidom_writexml( document, outfile )
-	return outfile
-
 if __name__ == '__main__':
-	args = sys.argv[1:]
-	if args:
-		main(args)
-	else:
-		print("Specify a toc file [chapter path]")
-
-
+	main( sys.argv[1:] )

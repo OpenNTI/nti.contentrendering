@@ -19,8 +19,24 @@ class ConfiguringTestBase(unittest.TestCase):
 		#xmlconfig.XMLConfig( 'configure.zcml', module=dataserver )()
 		xmlconfig.file( 'configure.zcml', package=nti.contentrendering )
 
-
-
-
 	def tearDown( self ):
 		ptearDown()
+
+class EmptyMockDocument(object):
+
+	childNodes = ()
+
+	def __init__(self):
+		self.context = {}
+		self.userdata = {}
+
+	def getElementsByTagName(self, name): return ()
+
+def _phantom_function( htmlFile, scriptName, args, key ):
+	return (key, {'ntiid': key[0]})
+
+from nti.contentrendering.RenderedBook import RenderedBook
+class NoPhantomRenderedBook(RenderedBook):
+
+	def _get_phantom_function(self):
+		return _phantom_function
