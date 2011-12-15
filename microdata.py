@@ -17,8 +17,8 @@ PROPERTIES_KEY = 'properties'
 def items(html, types=None, uri=""):
 	"""
 	list microdata as standard data types
-	returns [{"%s": {name: [val1, ...], ...}, "id": id, "type": type}, ...]
-	""" % PROPERTIES_KEY
+	returns [{"properties": {name: [val1, ...], ...}, "id": id, "type": type}, ...]
+	"""
 	doc = lhtml.fromstring(html)
 	return Microdata(doc, uri).items(types)
 
