@@ -100,7 +100,7 @@ class TestMicrodata(unittest.TestCase):
  					<h1 itemprop="name">Hedral</h1>
  					<p itemprop="desc">Hedral is a male american domestic
  					shorthair, with a fluffy black fur with white paws and belly.</p>
- 					<img itemprop="img" src="hedral.jpeg" alt="" title="Hedral, age 18 months">
+ 					<img itemprop="img" src="hedral.jpeg" alt="" title="Hedral, age 18 months"/>
 				</section>
 				"""
 				
