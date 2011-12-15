@@ -215,7 +215,7 @@ class LinkRelatedAdder(AbstractRelatedAdder):
 
 			return results
 
-		fileNameAndLinkList = [(file_part_of_link(link), link) for link in page.pageInfo.get('OutgoingLinks',())]
+		fileNameAndLinkList = [(file_part_of_link(link), link) for link in page.outgoing_links]
 
 		for fileNameAndLink in fileNameAndLinkList:
 			fileName = fileNameAndLink[0]

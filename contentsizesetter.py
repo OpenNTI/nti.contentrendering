@@ -1,16 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
-
-import os
-import re
 import sys
-from xml.dom.minidom import parse
-from xml.dom.minidom import Node
 import subprocess
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from RenderedBook import RenderedBook
-
-javascript = os.path.join('%s'%(os.path.dirname(__file__)),'getContentSize.js')
 
 contentSizeName = 'NTIRelativeScrollHeight'
 
@@ -32,15 +24,15 @@ def transform(book):
 	Stuff the contentsize in the page as a meta tag and add it to toc
 	"""
 
-	eclipseTOC = book.getEclipseTOC()
-	for pageid, page in book.pages.items():
+	eclipseTOC = book.toc
+	for _, page in book.pages.items():
 		storeContentSizes(page, eclipseTOC)
 
 	eclipseTOC.save()
 
 def storeContentSizes(page, eclipseTOC):
 
-	contentHeight = page.pageInfo['scrollHeight']
+	contentHeight = page.scroll_height
 
 	writeContentSizeToMeta(page.location, contentHeight)
 
@@ -53,17 +45,14 @@ def writeContentSizeToMeta(htmlFile, contentHeight):
 	if htmlFile.startswith('./'):
 		htmlFile = htmlFile[2:]
 
-	command = 'sed -i .bkp \
+	# TODO: Convert to pyquery (once _Topic is merged with ContentPage and
+	# the dom is persistent and shared)
+	command = 'sed -i "" \
 					  \"s/\\(<meta name=\\"NTIRelativeScrollHeight\\" content=\\"\\).*\\(\\" \\/>\\)/\\1%s\\2/\" %s' % (contentHeight, htmlFile)
 
 	#print command
 
 	subprocess.Popen(command, shell=True)
-
-	backupFile = htmlFile+'.bkp'
-
-	if os.path.exists(backupFile):
-		os.remove(backupFile)
 
 if __name__ == '__main__':
 	main(args)

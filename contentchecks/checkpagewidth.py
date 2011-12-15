@@ -12,7 +12,7 @@ def check(book):
 	badPages = 0
 
 	for pageid, page in book.pages.items():
-		width = page.pageInfo.get( 'scrollWidth', -1 )
+		width = page.get_scroll_width()
 
 		if width > MAX_WIDTH:
 			badPages += 1

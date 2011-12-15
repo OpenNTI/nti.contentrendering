@@ -191,9 +191,41 @@ class EclipseTOC(object):
 class ContentPage(object):
 
 	def __init__(self, location, pageInfo, href, label):
-		self.pageInfo = pageInfo
+		self._pageInfo = pageInfo
 		self.filename = href
 		self.ntiid = pageInfo['ntiid']
 		self.title = label
 		self.location = location
+
+	@property
+	@deprecate("Prefer to access the specific property")
+	def pageInfo(self):
+		return self._pageInfo
+
+	@property
+	def outgoing_links(self):
+		"A sequence of strings naming links from this page."
+		return self._pageInfo.get('OutgoingLinks',())
+
+	@property
+	def scroll_height(self):
+		"""
+		:return: An integer giving the relative height of the content of this page.
+		:raises KeyError: If no size is known.
+		"""
+		return self._pageInfo['scrollHeight']
+
+	@property
+	def scroll_width(self):
+		"""
+		:return: An integer giving the relative width of the content of this page.
+		:raises KeyError: If no size is known
+		"""
+		return self._pageInfo['scrollWidth']
+
+	def get_scroll_width( self, default=-1 ):
+		"""
+		:return: The scroll width if known, otherwise the `default` (-1)
+		"""
+		return self._pageInfo.get( 'scrollWidth', default )
 
