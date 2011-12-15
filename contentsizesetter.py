@@ -4,18 +4,10 @@ import sys
 import subprocess
 from RenderedBook import RenderedBook
 
+import logging
+logger = logging.getLogger(__name__)
+
 contentSizeName = 'NTIRelativeScrollHeight'
-
-def main(args):
- 	""" Main program routine """
-
-	if not len(args)>0:
-		print "Usage: contentsizesetter.py path/to/content"
-		sys.exit()
-
-	contentLocation = args.pop(0)
-
-	transform(RenderedBook(contentLocation))
 
 def transform(book):
 	"""
@@ -33,6 +25,9 @@ def transform(book):
 def storeContentSizes(page, eclipseTOC):
 
 	contentHeight = page.scroll_height
+	if contentHeight <= 0:
+		logger.warn( "Failed to get content size for %s", page )
+		return
 
 	writeContentSizeToMeta(page.location, contentHeight)
 
@@ -53,7 +48,4 @@ def writeContentSizeToMeta(htmlFile, contentHeight):
 	#print command
 
 	subprocess.Popen(command, shell=True)
-
-if __name__ == '__main__':
-	main(args)
 

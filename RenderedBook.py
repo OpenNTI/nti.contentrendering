@@ -213,7 +213,7 @@ class ContentPage(object):
 		:return: An integer giving the relative height of the content of this page.
 		:raises KeyError: If no size is known.
 		"""
-		return self._pageInfo['scrollHeight']
+		return self.get_scroll_height( default=self )
 
 	@property
 	def scroll_width(self):
@@ -221,11 +221,31 @@ class ContentPage(object):
 		:return: An integer giving the relative width of the content of this page.
 		:raises KeyError: If no size is known
 		"""
-		return self._pageInfo['scrollWidth']
+		return self.get_scroll_width( default=self )
+
+	def get_scroll_height( self, default=-1 ):
+		"""
+		:return: The scroll height if known, otherwise the `default` (-1)
+		"""
+		return self._get_int( 'scrollHeight', default=default )
 
 	def get_scroll_width( self, default=-1 ):
 		"""
 		:return: The scroll width if known, otherwise the `default` (-1)
 		"""
-		return self._pageInfo.get( 'scrollWidth', default )
+		return self._get_int( 'scrollWidth', default=default )
+
+	def _get_int( self, key, default=-1 ):
+		try:
+			return self._pageInfo[key]
+		except KeyError:
+			if default == self:
+				raise
+			return default
+
+	def __repr__( self ):
+		return "%s('%s', %s, '%s', '%s')" % (self.location.encode( 'string_escape' ),
+											 self._pageInfo,
+											 self.href.encode( 'string_escape' ),
+											 self.label.encode( 'string_escape' ))
 
