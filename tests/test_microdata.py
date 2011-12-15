@@ -1,5 +1,5 @@
 import unittest
-from nti.contentrendering.microdata import items
+from nti.contentrendering.microdata import items, PROPERTIES_KEY
 
 from hamcrest import assert_that, has_length, has_entry, has_key
 
@@ -39,28 +39,28 @@ class TestMicrodata(unittest.TestCase):
 		
 		assert_that(d, has_length(2))
 		assert_that(d, has_entry('id',''))
-		assert_that(d, has_key('properties'))
+		assert_that(d, has_key(PROPERTIES_KEY))
 		
-		d = d['properties']
+		d = d[PROPERTIES_KEY]
 		assert_that(d, has_length(3))
 		assert_that(d, has_entry('age',['18']))
 		assert_that(d, has_entry('name',['Taro']))
 		assert_that(d, has_entry('friend', has_length(1)))
 		
 		d = d['friend'][0]
-		assert_that(d, has_key('properties'))
-		d = d['properties']
+		assert_that(d, has_key(PROPERTIES_KEY))
+		d = d[PROPERTIES_KEY]
 		assert_that(d, has_entry('name',['Jiro']))
 		assert_that(d, has_entry('friend', has_length(1)))
 		
 		d = d['friend'][0]
-		assert_that(d, has_key('properties'))
-		d = d['properties']
+		assert_that(d, has_key(PROPERTIES_KEY))
+		d = d[PROPERTIES_KEY]
 		assert_that(d, has_entry('name',['Saburo']))
 		assert_that(d, has_entry('friend', has_length(1)))
 		
 		d = d['friend'][0]
-		assert_that(d, has_entry('properties', has_length(0)))
+		assert_that(d, has_entry(PROPERTIES_KEY, has_length(0)))
 
 	def test_simple(self):
 		html = """<div itemscope>
@@ -73,8 +73,8 @@ class TestMicrodata(unittest.TestCase):
 		assert_that(ls, has_length(1))
 		
 		d = ls[0]
-		assert_that(d, has_entry('properties', has_length(2)))
-		d = d['properties']
+		assert_that(d, has_entry(PROPERTIES_KEY, has_length(2)))
+		d = d[PROPERTIES_KEY]
 		assert_that(d, has_entry('a', ['1','2']))
 		assert_that(d, has_entry('b', ['test']))
 		
@@ -88,9 +88,9 @@ class TestMicrodata(unittest.TestCase):
 		ls = items(html)
 		assert_that(ls, has_length(1))
 		d = ls[0]
-		assert_that(d, has_entry('properties', has_length(2)))
+		assert_that(d, has_entry(PROPERTIES_KEY, has_length(2)))
 		
-		d = d['properties']
+		d = d[PROPERTIES_KEY]
 		assert_that(d, has_entry('favorite-color', ['orange']))
 		assert_that(d, has_entry('favorite-fruit', ['orange']))
 		
@@ -109,9 +109,9 @@ class TestMicrodata(unittest.TestCase):
 		
 		d = ls[0]
 		assert_that(d, has_entry('type', 'http://example.org/animals#cat'))
-		assert_that(d, has_entry('properties', has_length(3)))
+		assert_that(d, has_entry(PROPERTIES_KEY, has_length(3)))
 		
-		d = d['properties']
+		d = d[PROPERTIES_KEY]
 		assert_that(d, has_entry('name', ['Hedral']))
 		assert_that(d, has_entry('img', ['hedral.jpeg']))
 		assert_that(d, has_entry('desc', has_length(1)))
@@ -141,10 +141,10 @@ class TestMicrodata(unittest.TestCase):
 		assert_that(ls, has_length(1))
 		
 		d = ls[0]
-		assert_that(d, has_key('properties'))
+		assert_that(d, has_key(PROPERTIES_KEY))
 		assert_that(d, has_entry('type', 'http://schema.org/Book'))
 
-		d = d['properties']
+		d = d[PROPERTIES_KEY]
 		assert_that(d, has_entry('author', ['Bob Smith', 'John Doe']))
 		assert_that(d, has_entry('datePublished', ['2006-06-15', '2006-05-04']))
 		assert_that(d, has_entry('name', ['A good read.', 'A masterpiece of literature']))
@@ -154,10 +154,10 @@ class TestMicrodata(unittest.TestCase):
 		
 		for d in d['reviews']:
 			self.assert_(isinstance(d, dict))
-			assert_that(d, has_key('properties'))
+			assert_that(d, has_key(PROPERTIES_KEY))
 			assert_that(d, has_entry('type', 'http://schema.org/Review'))
 			
-			p = d['properties']
+			p = d[PROPERTIES_KEY]
 			assert_that(p, has_key('author'))
 			assert_that(p, has_key('name'))
 			assert_that(p, has_key('datePublished'))

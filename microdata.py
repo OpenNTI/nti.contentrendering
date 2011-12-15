@@ -12,11 +12,13 @@ import lxml.html as lhtml
 
 from urlparse import urljoin
 
+PROPERTIES_KEY = 'properties'
+
 def items(html, types=None, uri=""):
 	"""
 	list microdata as standard data types
-	returns [{"properties": {name: [val1, ...], ...}, "id": id, "type": type}, ...]
-	"""
+	returns [{"%s": {name: [val1, ...], ...}, "id": id, "type": type}, ...]
+	""" % PROPERTIES_KEY
 	doc = lhtml.fromstring(html)
 	return Microdata(doc, uri).items(types)
 
@@ -65,7 +67,7 @@ class Microdata(object):
 		for child in elem.getchildren():
 			self.parse_item_props(child, props, None)
 			
-		item["properties"] = props
+		item[PROPERTIES_KEY] = props
 		attrs = elem.keys()
 		
 		if "itemid" in attrs: 
