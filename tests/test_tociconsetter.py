@@ -27,7 +27,7 @@ class TestTransforms(ConfiguringTestBase):
 		book = NoPhantomRenderedBook( EmptyMockDocument(), os.path.join( os.path.dirname( __file__ ),  'intro-biology-rendered-book' ) )
 		self._assert_base_state( book )
 
-		res = tociconsetter.transform( book, save_toc=False )
+		res, _ = tociconsetter.transform( book, save_toc=False )
 
 		assert_that( res, is_( True ) )
 		# No changes
@@ -41,7 +41,7 @@ class TestTransforms(ConfiguringTestBase):
 		book = NoPhantomRenderedBook( tex_doc, os.path.join( os.path.dirname( __file__ ),  'intro-biology-rendered-book' ) )
 		self._assert_base_state( book )
 
-		res = tociconsetter.transform( book, save_toc=False )
+		res, _ = tociconsetter.transform( book, save_toc=False )
 
 		assert_that( res, is_( True ) )
 		# No changes
@@ -61,11 +61,14 @@ class TestTransforms(ConfiguringTestBase):
 		# Throw away the icon for C2
 		self._chapters_of( book )[1].removeAttribute( 'icon' )
 
-		res = tociconsetter.transform( book, save_toc=False )
+		res, nodes = tociconsetter.transform( book, save_toc=False )
 
 		assert_that( res, is_( True ) )
 		# Only icons that exist are used
 		assert_that( self._chapters_of(book)[0].getAttribute( 'icon' ), is_( '' ) )
 		assert_that( self._chapters_of(book)[1].getAttribute( 'icon' ), is_( 'icons/chapters/C2.png' ) )
+		assert_that( nodes[0].get_background_image(), is_( none() ) )
+		assert_that( nodes[1].get_background_image(), is_( "background-image: url('images/chapters/C2.png')" ) )
+
 
 

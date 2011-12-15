@@ -33,10 +33,14 @@ def transform( book, save_toc=True ):
 	"""
 	dom = book.toc.dom
 	toc = dom.getElementsByTagName("toc")
-	if toc and _handle_toc(toc[0], book, save_toc):
+	if toc:
+		modified, child_nodes = _handle_toc(toc[0], book, save_toc)
 		if save_toc:
-			book.toc.save()
-		return True
+			if modified:
+				book.toc.save()
+			return modified
+		# Testing mode: return a tuple
+		return modified, child_nodes
 
 	raise Exception( "Failed to transform %s" % (book) )
 
@@ -45,6 +49,9 @@ def _handle_toc(toc, book, save_dom):
 	attributes = toc.attributes
 	attributes['href'] = "index.html"
 	modified = True
+	# For testing, we return the child nodes we modify
+	# (otherwise don't waste the memory)
+	child_nodes = []
 	if contentLocation:
 		index = _Topic( toc, contentLocation, os.path.join( contentLocation, 'index.html' ) )
 		modified = index.set_ntiid()
@@ -57,8 +64,9 @@ def _handle_toc(toc, book, save_dom):
 		for node in index.childTopics:
 			node.save_dom = save_dom
 			_handle_topic( book, node )
+			if not save_dom: child_nodes.append( node )
 
-	return modified
+	return modified, child_nodes
 
 def _query_finder( book, topic, iface ):
 	result = component.queryMultiAdapter( (book,topic), iface, name=book.jobname )
@@ -222,19 +230,25 @@ class _Topic(object):
 	def get_chapter_filename( self ):
 		return (self.topic.attributes and self.topic.attributes.get('href'))
 
-	def set_background_image( self, imageName ):
+	def set_background_image( self, image_path ):
 
 		dom = self.dom
 		if dom is None:
 			return False
 
-		dom("body").attr["style"] = r"background-image: url('images/chapters/" + imageName + r"')"
+		dom("body").attr["style"] = r"background-image: url('" + image_path + r"')"
 		if self.save_dom:
 			with open(self.sourceFile, 'w') as f:
 				f.write( dom.outerHtml().encode( "utf-8" ) )
 
 		self.modifiedDom = True
 		return self.modifiedDom
+
+	def get_background_image( self ):
+		dom = self.dom
+		if dom is None:
+			return None
+		return dom('body').attr('style')
 
 	def has_icon( self ):
 		return (self.topic.attributes and self.topic.attributes.get('icon'))
