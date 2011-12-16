@@ -1,9 +1,5 @@
 #!/usr/bin/env python2.7
 
-import sys
-import subprocess
-from RenderedBook import RenderedBook
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -17,35 +13,21 @@ def transform(book):
 	"""
 
 	eclipseTOC = book.toc
-	for _, page in book.pages.items():
-		storeContentSizes(page, eclipseTOC)
+	_storeContentSizes( book.toc.root_topic )
 
 	eclipseTOC.save()
 
-def storeContentSizes(page, eclipseTOC):
+def _storeContentSizes(topic):
+	"""
+	:param topic: An `IEclipseMiniDomTopic`.
+	"""
 
-	contentHeight = page.scroll_height
+	contentHeight = topic.scroll_height
 	if contentHeight <= 0:
-		logger.warn( "Failed to get content size for %s", page )
+		logger.warn( "Failed to get content size for %s", topic )
 		return
 
-	writeContentSizeToMeta(page.location, contentHeight)
+	topic.set_content_height( contentHeight )
 
-	pageNode = eclipseTOC.getPageNodeWithNTIID(page.ntiid)
-
-	pageNode.attributes[contentSizeName] = str(contentHeight)
-
-
-def writeContentSizeToMeta(htmlFile, contentHeight):
-	if htmlFile.startswith('./'):
-		htmlFile = htmlFile[2:]
-
-	# TODO: Convert to pyquery (once _Topic is merged with ContentPage and
-	# the dom is persistent and shared)
-	command = 'sed -i "" \
-					  \"s/\\(<meta name=\\"NTIRelativeScrollHeight\\" content=\\"\\).*\\(\\" \\/>\\)/\\1%s\\2/\" %s' % (contentHeight, htmlFile)
-
-	#print command
-
-	subprocess.Popen(command, shell=True)
-
+	for child in topic.childTopics:
+		_storeContentSizes( child )

@@ -104,7 +104,7 @@ def _process_toc_file(url, out_dir, process_links, toc_file='eclipse-toc.xml'):
 
 	print "Processing TOC content"
 
-	e = pq(filename = toc_file)
+	e = pq(filename=toc_file)
 	e('toc').map(lambda i,e: _process_node(e, url, out_dir, process_links))
 	e('topic').map(lambda i,e: _process_node(e, url, out_dir, process_links))
 	e('page').map(lambda i,e: _process_node(e, url, out_dir, process_links))
@@ -114,9 +114,10 @@ def _process_toc_file(url, out_dir, process_links, toc_file='eclipse-toc.xml'):
 def _process_node(node, url, out_dir, process_links):
 	result = True
 	attributes = node.attrib
+
 	for i, name  in enumerate (['href', 'qualifier', 'icon', 'thumbnail']):
 
-		if i<=1 and not process_links:
+		if i <= 1 and not process_links:
 			continue
 
 		value =  attributes.get(name, None)
