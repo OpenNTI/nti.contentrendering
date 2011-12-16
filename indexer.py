@@ -296,7 +296,7 @@ def _index_node(writer, node, contentPath, order=0, optimize=False):
 							related=related,
 							section=unicode(section),
 							order=order,
-							keywords=keywords,
+							keywords=unicode(' '.join(keywords)),
 							last_modified=as_time)
 	except Exception:
 		logger.exception( "Cannot index %s", contentFile )
