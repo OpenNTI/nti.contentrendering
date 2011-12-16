@@ -22,8 +22,11 @@ def _storeContentSizes(topic):
 	:param topic: An `IEclipseMiniDomTopic`.
 	"""
 
-	contentHeight = topic.scroll_height
+	contentHeight = topic.get_scroll_height()
 	if contentHeight <= 0:
+		# Some of these are expected because we don't
+		# get the page info for all the pages (like the index)
+		# for some reason
 		logger.warn( "Failed to get content size for %s", topic )
 		return
 

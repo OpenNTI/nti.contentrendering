@@ -11,6 +11,9 @@ import multiprocessing
 import tempfile
 import warnings
 
+import logging
+logger = logging.getLogger(__name__)
+
 javascript = os.path.join(os.path.dirname(__file__), 'js', 'rasterize.js')
 if not os.path.exists(javascript): raise Exception( "Unable to load %s" % javascript )
 thumbnailsLocationName = 'thumbnails'
@@ -67,7 +70,10 @@ def transform(book):
 										   [x[1] for x in pageAndOutput]):
 			thumbnail = os.path.join(thumbnails, output)
 			copy(os.path.join(tempdir, output), os.path.join(cwd, thumbnail))
-			eclipseTOC.getPageNodeWithNTIID(ntiid).attributes['thumbnail'] = os.path.relpath(thumbnail, start=book.contentLocation)
+			try:
+				eclipseTOC.getPageNodeWithNTIID(ntiid).attributes['thumbnail'] = os.path.relpath(thumbnail, start=book.contentLocation)
+			except IndexError:
+				logger.debug( "Failed to set thumbnail for %s to %s", ntiid, thumbnail, exc_info=True )
 
 	os.chdir(cwd)
 

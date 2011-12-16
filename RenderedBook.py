@@ -11,6 +11,8 @@ from zope import interface
 from . import interfaces
 from . import minidom_writexml
 
+from lxml import etree
+
 import urllib
 from pyquery import PyQuery
 
@@ -189,7 +191,10 @@ class EclipseTOC(object):
 		return self.getPageForDocumentNode(node.parentNode)
 
 	def getPageNodeWithNTIID(self, ntiid, node=None):
-		return self.getPageNodeWithAttribute('ntiid', value = ntiid, node = node)[0]
+		"""
+		:raises IndexError: If no such node can be found.
+		"""
+		return self.getPageNodeWithAttribute('ntiid', value=ntiid, node=node)[0]
 
 	def getPageNodeWithAttribute(self, name, value=None, node=None):
 
@@ -275,7 +280,7 @@ class _EclipseTOCMiniDomTopic(object):
 	def ntiid(self):
 		ntiid = self._pageInfo.get( 'ntiid' )
 		if not ntiid and self.dom:
-			ntiid = self.get_ntiid()
+			ntiid = self.read_ntiid()
 			self._pageInfo['ntiid'] = ntiid
 		return ntiid
 
@@ -403,7 +408,7 @@ class _EclipseTOCMiniDomTopic(object):
 		Set the NTIID for the specifed topic
 		"""
 
-		ntiid = self.get_ntiid()
+		ntiid = self.read_ntiid()
 		if ntiid:
 			self.topic.attributes["ntiid"] = ntiid
 			self._pageInfo['ntiid'] = ntiid
@@ -411,7 +416,7 @@ class _EclipseTOCMiniDomTopic(object):
 
 		return self.modifiedTopic
 
-	def get_ntiid(self):
+	def read_ntiid(self):
 		"""
 		Return the NTIID from the specified file
 		"""
@@ -436,7 +441,9 @@ class _EclipseTOCMiniDomTopic(object):
 		dom("body").attr["style"] = r"background-image: url('" + image_path + r"')"
 		if self.save_dom:
 			with open(self.sourceFile, 'w') as f:
-				f.write( dom.outerHtml().encode( "utf-8" ) )
+				f.write( etree.tostring( dom[0], method='html', encoding='utf-8' ) ) #dom.outerHtml().encode( "utf-8" ) )
+				#f.write( dom.outerHtml().encode( "utf-8" ) )
+				f.flush()
 
 		self.modifiedDom = True
 		return self.modifiedDom
@@ -456,7 +463,8 @@ class _EclipseTOCMiniDomTopic(object):
 		# TODO: Unify this with set_background_image
 		if self.save_dom:
 			with open(self.sourceFile, 'w') as f:
-				f.write( dom.outerHtml().encode( "utf-8" ) )
+				f.write( etree.tostring( dom[0], method='html', encoding='utf-8' ) ) #dom.outerHtml().encode( "utf-8" ) )
+				f.flush()
 
 		pageNode = self.toc_dom_node
 
