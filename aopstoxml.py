@@ -160,7 +160,7 @@ def postRender(document, contentLocation='.', jobname='prealgebra'):
 			subprocess.check_call( ['pypy-c', '-m', 'nti.contentrendering.indexer',
 									toc_file, contentPath, 'indexdir', jobname],
 									env=env )
-		except subprocess.CalledProcessError:
+		except (subprocess.CalledProcessError,OSError):
 			logger.info( 'pypy failed to index, falling back to current' )
 			logger.debug( 'pypy exception', exc_info=True )
 			indexer.index_content(tocFile=toc_file, contentPath=contentPath, indexname=jobname)
