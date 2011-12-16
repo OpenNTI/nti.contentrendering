@@ -176,7 +176,7 @@ class _Node(object):
 		return self.__str__()
 	
 	def add_property(self, value):
-		self.properties.append(unicode(value))
+		self.properties.append(unicode(value.lower()))
 		
 def _peek(stack):
 	return stack[len(stack) -1] if stack else None
@@ -299,7 +299,7 @@ def _index_node(writer, node, contentPath, order=0, optimize=False):
 							related=related,
 							section=unicode(section),
 							order=order,
-							keywords=unicode(' '.join(sorted(keywords))),
+							keywords=sorted(keywords),
 							last_modified=as_time)
 	except Exception:
 		logger.exception( "Cannot index %s", content_file )
