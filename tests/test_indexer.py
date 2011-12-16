@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from nti.contentrendering.indexer import get_microdata
@@ -8,7 +9,7 @@ class TestIndexer(unittest.TestCase):
 	def _has_tuple(self, results, index, t):
 		assert_that(results[index], is_(t))
 		
-	def test_get_microdata(self):
+	def test_get_microdata_string(self):
 		raw = """
 			<html>
 			<a name="one" itemscope itemtype="http://schema.org/CreativeWork">what a fuck is going on
@@ -33,6 +34,16 @@ class TestIndexer(unittest.TestCase):
 		self._has_tuple(ls, 1, (u'four', [u'divisible', u'pair']))
 		self._has_tuple(ls, 2, (u'two', []))
 		self._has_tuple(ls, 3, (u'three', [u'prime', u'trinity']))
+		
+	def test_get_microdata_file(self):
+		
+		tf = os.path.join(os.path.dirname(__file__), 'sec-multiplication.html')
+		with open(tf, "r") as f:
+			raw = f.read()
+		
+		ls = get_microdata(raw)
+		assert_that(ls, has_length(0))
+		
 		
 if __name__ == '__main__':
 	unittest.main()
