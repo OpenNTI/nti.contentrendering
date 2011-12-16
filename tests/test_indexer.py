@@ -1,11 +1,24 @@
 import os
+import shutil
+import tempfile
 import unittest
 
 from nti.contentrendering.indexer import get_microdata
+from nti.contentrendering.indexer import index_content
+from nti.contentrendering.indexer import get_or_create_index
+
 from hamcrest import assert_that, has_length, is_
 
-class TestIndexer(unittest.TestCase):
+class TestIndexer(unittest.TestCase):	
+	
+	@classmethod
+	def setUpClass(cls):
+		cls.idxdir = tempfile.mkdtemp(dir="/tmp")
 
+	@classmethod
+	def tearDownClass(cls):
+		shutil.rmtree(cls.idxdir, True)
+		
 	def _has_tuple(self, results, index, t):
 		assert_that(results[index], is_(t))
 		
@@ -37,13 +50,17 @@ class TestIndexer(unittest.TestCase):
 		
 	def test_get_microdata_file(self):
 		
-		tf = os.path.join(os.path.dirname(__file__), 'sec-multiplication.html')
+		tf = os.path.join(os.path.dirname(__file__), 'sect0001.html')
 		with open(tf, "r") as f:
 			raw = f.read()
 		
 		ls = get_microdata(raw)
 		assert_that(ls, has_length(0))
 		
+	def test_index_content(self):
+		toc = os.path.join(os.path.dirname(__file__), 'eclipse-toc-complete.xml')
+		index_content(toc, indexdir=self.idxdir, optimize=False)
+		get_or_create_index(indexdir=self.idxdir)
 		
 if __name__ == '__main__':
 	unittest.main()

@@ -257,24 +257,27 @@ def get_microdata(html, sort=True):
 def _index_node(writer, node, contentPath, order=0, optimize=False):
 	"""
 	Index a the information for a toc node
-	TODO: How to get the keywords
 	"""
 
 	attributes = node.attributes
 	fileName = str(attributes['href'].value)
 
+	content_file = os.path.join(contentPath, str(fileName))
+	if not os.path.exists(content_file):
+		logger.error("content file '%s' does not exists", content_file)
+		return
+		
 	title = get_title(node)
 	ntiid = get_ntiid(node)
 
 	if not ntiid:
 		return
 
+	related = get_related(node)
+	
 	logger.info( "Indexing (%s, %s, %s)", fileName, title, ntiid )
 
-	related = get_related(node)
-
-	contentFile = os.path.join(contentPath, str(fileName))
-	with open(contentFile, "r") as f:
+	with open(content_file, "r") as f:
 		rawContent = f.read()
 
 	section = get_ref(rawContent)
@@ -283,9 +286,9 @@ def _index_node(writer, node, contentPath, order=0, optimize=False):
 	pageRawContent = get_page_content(rawContent)
 	content = ' '.join(word_splitter(pageRawContent))
 
-	keywords = []
+	keywords = set()
 	for _, properties in get_microdata(rawContent):
-		keywords.extend(properties)
+		keywords.update(properties)
 		
 	try:
 		as_time = datetime.fromtimestamp(float(last_modified))
@@ -296,10 +299,10 @@ def _index_node(writer, node, contentPath, order=0, optimize=False):
 							related=related,
 							section=unicode(section),
 							order=order,
-							keywords=unicode(' '.join(keywords)),
+							keywords=unicode(' '.join(sorted(keywords))),
 							last_modified=as_time)
 	except Exception:
-		logger.exception( "Cannot index %s", contentFile )
+		logger.exception( "Cannot index %s", content_file )
 		writer.cancel()
 		raise
 
@@ -317,8 +320,15 @@ def get_nodes(tocFile):
 
 # -----------------------------
 
-def main(tocFile, contentPath=None, indexdir=None, indexname=None):
-	""" Main program routine """
+def main(tocFile, 
+		 contentPath=None,
+		 indexdir=None,
+		 indexname=None, 
+		 recreate_index=True, 
+		 optimize=True):
+	""" 
+	Main program routine
+	"""
 
 	if not contentPath:
 		contentPath = os.path.dirname(tocFile)
@@ -330,18 +340,21 @@ def main(tocFile, contentPath=None, indexdir=None, indexname=None):
 	
 	order = 0
 	nodes = get_nodes(tocFile)
-	idx = get_or_create_index(indexdir, indexname)
+	idx = get_or_create_index(indexdir, indexname, recreate=recreate_index)
 
-	writer = whoosh.writing.BufferedWriter( idx, period=None, limit=100 )
+	writer = whoosh.writing.BufferedWriter( idx, period=None, limit=100, \
+											commitargs={'optimize' : False, 'merge': False})
+	
 	with ThreadPoolExecutor(multiprocessing.cpu_count()) as pool:
 		for node in nodes:
 			pool.submit( _index_node, writer, node, contentPath, order )
 			order += 1
 
 	writer.commit()
-	logger.info( "Optimizing index" )
-
-	idx.optimize()
+	
+	if optimize:
+		logger.info( "Optimizing index" )
+		idx.optimize()
 
 index_content = main
 
