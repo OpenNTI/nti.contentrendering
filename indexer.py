@@ -188,7 +188,9 @@ def _pop(stack, result):
 		_peek(stack).children.append(node)
 			
 def get_microdata(html, sort=True):
-		
+	"""
+	returns the NTI provide microdata from the specified html string
+	"""	
 	level = 0
 	scopes = []
 	objects = []
