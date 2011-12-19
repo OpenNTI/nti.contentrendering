@@ -52,6 +52,8 @@ MOVIE_POSTER = _sel( 'sf|movie-media sf|poster-image' )
 # Images
 IMAGE_DATA = _sel( 'sf|image-media sf|filtered-image sf|data' )
 
+TEXT_OR_IMAGE_DATA = _sel( 'sf|image-media sf|filtered-image sf|data, key|text, sf|text' )
+
 # Master slides define stylesheets, things can have stylesheet-refs
 
 def _localname( element ):
@@ -89,21 +91,25 @@ def extract_text( keynote ):
 		if new_section_title and new_section_title != cur_section_title:
 			print( "\section{" + _latex_escape( new_section_title, section=True ) + "}" )
 			cur_section_title = new_section_title
-		for text in TEXTS( slide ):
+		for text_or_img in TEXT_OR_IMAGE_DATA( slide ):
+		#for text in TEXTS( slide ):
 			# TODO: Some people do a poor job
 			# marking up the document, using linebreaks for
 			# separation of bullet items. Detect that.
 			# TODO: LaTeX literals
 			#print( b"\tXML: " + etree.tostring( text, encoding='utf-8' ) )
-			for p in P( text ):
-				if not p.text or p.text in master_text or p.text == cur_section_title: continue
-				print( _latex_escape( p.text ) )
-				try:
-					if _localname( p[-1] ) == 'br':
-						print( ' ' )
-				except IndexError: pass
-		for image_data in IMAGE_DATA( slide ):
-			print( "\includegraphics[width=400px]{" + image_data.get( '{' + _NAMESPACES['sf'] + '}path' ) + "}" )
+			if _localname( text_or_img ) == 'text':
+				text = text_or_img
+				for p in P( text ):
+					if not p.text or p.text in master_text: continue
+					print( _latex_escape( p.text ) )
+					try:
+						if _localname( p[-1] ) == 'br':
+							print( ' ' )
+					except IndexError: pass
+			else:
+				image_data = text_or_img
+				print( "\includegraphics[width=400px]{" + image_data.get( '{' + _NAMESPACES['sf'] + '}path' ) + "}" )
 
 if __name__ == '__main__':
 	doc = etree.parse( '/Users/jmadden/tmp/RainforestClean/index.apxl.gz' )
