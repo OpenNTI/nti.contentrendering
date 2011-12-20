@@ -254,7 +254,7 @@ def get_microdata(html, sort=True):
 		
 # -----------------------------
 
-def _index_node(writer, node, contentPath, order=0, optimize=False):
+def _index_node(writer, node, contentPath, optimize=False):
 	"""
 	Index a the information for a toc node
 	"""
@@ -298,7 +298,6 @@ def _index_node(writer, node, contentPath, order=0, optimize=False):
 							quick=unicode(content),
 							related=related,
 							section=unicode(section),
-							order=order,
 							keywords=sorted(keywords),
 							last_modified=as_time)
 	except Exception:
@@ -338,17 +337,17 @@ def main(tocFile,
 		
 	indexname = indexname or "prealgebra"
 	
-	order = 0
 	nodes = get_nodes(tocFile)
 	idx = get_or_create_index(indexdir, indexname, recreate=recreate_index)
 
-	writer = whoosh.writing.BufferedWriter( idx, period=None, limit=100, \
+	writer = whoosh.writing.BufferedWriter( idx,
+											period=None,
+											limit=100,
 											commitargs={'optimize' : False, 'merge': False})
 	
 	with ThreadPoolExecutor(multiprocessing.cpu_count()) as pool:
 		for node in nodes:
-			pool.submit( _index_node, writer, node, contentPath, order )
-			order += 1
+			pool.submit( _index_node, writer, node, contentPath)
 
 	writer.commit()
 	
