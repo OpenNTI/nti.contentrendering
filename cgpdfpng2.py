@@ -10,12 +10,8 @@ import sys, os
 from optparse import OptionParser
 import resources
 
-try:
-	from Quartz import *
-except ImportError:
-	print 'ERROR: cgpdfpng will not run on this platform'
-	sys.exit(1)
 
+from Quartz import *
 
 
 __version__ = '0.1'
