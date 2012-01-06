@@ -3,7 +3,7 @@ import sys
 import glob
 import shutil
 import thread
-import zipfile
+
 import tempfile
 import html5lib
 import subprocess
@@ -22,7 +22,7 @@ def main(url_or_path, out_dir="/tmp/mirror",
 		 zip_archive=True,
 		 zip_root_dir=None,
 		 process_links=True,
-		 archive_index=False,
+		 archive_index=False, # The Whoosh search index files, not 'index.html'
 		 port=7777):
 
 	global WGET_CMD
@@ -47,7 +47,7 @@ def main(url_or_path, out_dir="/tmp/mirror",
 		else:
 			tmp_dir = None
 			archive_dir = out_dir
-			log_file = '%s/_out.log' % archive_dir
+			log_file = '%s/_wget.log' % archive_dir
 
 		_remove_file(log_file)
 		WGET_CMD = "%s -a %s" % (WGET_CMD, log_file)
@@ -76,15 +76,17 @@ def main(url_or_path, out_dir="/tmp/mirror",
 			if zip_archive:
 				lpath = os.path.join(out_dir, '_out.log')
 				_remove_file(lpath)
-				os.rename(log_file, lpath)
+				try:
+					os.rename(log_file, lpath)
+				except OSError: pass
 
 def _zip_archive(source_path, out_dir, zip_name="archive.zip", zip_root_dir=None):
 
 	out_file = os.path.join(out_dir, zip_name)
 
-	print "Archiving '%s' to '%s'" % (source_path, zip_name)
+	logger.info( "Archiving '%s' to '%s'", source_path, zip_name )
 
-	zip_cmd = "zip -9 -r %s %s/*" % (zip_name, source_path)
+	zip_cmd = "zip -q -9 -r %s %s/*" % (zip_name, source_path)
 	new_dir = None
 	if zip_root_dir and os.path.split( source_path )[-1] != zip_root_dir:
 		# If they ask for a zip name (and we do not already match it)
@@ -102,29 +104,43 @@ def _zip_archive(source_path, out_dir, zip_name="archive.zip", zip_root_dir=None
 
 def _process_toc_file(url, out_dir, process_links, toc_file='eclipse-toc.xml'):
 
-	print "Processing TOC content"
-
 	e = pq(filename=toc_file)
-	e('toc').map(lambda i,e: _process_node(e, url, out_dir, process_links))
-	e('topic').map(lambda i,e: _process_node(e, url, out_dir, process_links))
-	e('page').map(lambda i,e: _process_node(e, url, out_dir, process_links))
+	# Mirror the main index and each referenced page (topic)
+	# Then mirror things only referenced in related items: they may have their
+	# own content and icons.
+	# By doing this with one expression we can optimize a hair and
+	# make sure not to fetch dups
+	accum = set()
+	e('toc,topic,page,video').map(lambda i,e: _process_node(e, url, out_dir, process_links, accum))
 
 	return True
 
-def _process_node(node, url, out_dir, process_links):
+def _process_node(node, url, out_dir, process_links,set_of_hrefs=None):
+	# note things we've fetched (minus fragments) and don't fetch again
+	if set_of_hrefs is None: set_of_hrefs = set()
 	result = True
 	attributes = node.attrib
 
-	for i, name  in enumerate (['href', 'qualifier', 'icon', 'thumbnail']):
+	attributes_to_inspect = ('icon','thumbnail')
+	if process_links:
+		attributes_to_inspect += ('href','qualifier')
 
-		if i <= 1 and not process_links:
-			continue
+	# It hurts nothing to actually force_html for all types. If wget
+	# gets a different Content-Type it doesn't try to parse anything
+	force_html = True
 
-		value =  attributes.get(name, None)
-		if value:
-			force_html = i <= 1
-			if i == 1 and attributes.get('type', None) != 'link':
+	for name  in attributes_to_inspect:
+		value = attributes.get(name, None)
+		# strip the fragment, if any
+		try:
+			value = value[0:value.index('#')]
+		except (ValueError,AttributeError):	pass
+		if value and value not in set_of_hrefs:
+			# TODO: We should only be handling relative links here. When
+			# we get absolute links, we'll be in trouble
+			if name == 'qualifier' and attributes.get('type', None) != 'link':
 				continue
+			set_of_hrefs.add( value )
 			result = _handle_attribute(value, url, out_dir, force_html) and result
 
 	return result
@@ -135,12 +151,9 @@ def _handle_attribute(target, url, out_dir, force_html=False):
 	return _get_file(url, out_dir, target, force_html)
 
 def _get_toc_file(url, out_dir, toc_file='eclipse-toc.xml'):
-	print "Getting TOC file"
 	return _get_file(url, out_dir, toc_file, True)
 
 def _get_index_dir(url, out_dir):
-
-	print "Getting [book]/index content"
 
 	tmp = tempfile.mktemp(".html", "index", out_dir)
 	try:
@@ -160,10 +173,10 @@ def _get_index_dir(url, out_dir):
 	finally:
 		_remove_file(tmp)
 
-def _launch_server(data_path, port = 7777):
+import SimpleHTTPServer
+import SocketServer
 
-	import SimpleHTTPServer
-	import SocketServer
+def _launch_server(data_path, port = 7777):
 
 	if not os.path.exists(data_path):
 		raise Exception("'%s' does not exists" % data_path)
@@ -190,8 +203,6 @@ def _get_url_content(url, out_dir="/tmp"):
 	specified URL
 	"""
 
-	print "Getting URL content"
-
 	# -m   --mirror
 	# -nH  no-host-directories
 	# --no-parent do not ever ascend to the parent directory when retrieving recursively
@@ -213,8 +224,13 @@ def _get_file(url, out_dir, target, force_html=False):
 	"""
 	Return the specified target from the specified url
 	"""
+	# wget with timestamping, no host directories, within a prefix dir
 	args = [WGET_CMD, '-N', '-nH', '-P %s' % out_dir]
 	if force_html:
+		# make it look for requisites, and force
+		# local disk files to be treated like HTML. Note
+		# that this makes no difference on retrieving remote
+		# resources like M4V movies
 		args.extend(['-p', '--force-html'])
 
 	cut_dirs = _get_cut_dirs(url)
@@ -247,7 +263,7 @@ def _execute_cmd(args):
 def _remove_file(target):
 	try:
 		os.remove(target)
-	except:
+	except OSError:
 		pass
 
 def _create_path(path):
@@ -263,7 +279,7 @@ def _is_valid_url(url_or_path):
 	except:
 		return False
 
-if __name__ == '__main__':
+def _run_main():
 	args = sys.argv[1:]
 	if args:
 		url_or_path = args.pop(0)
@@ -273,3 +289,6 @@ if __name__ == '__main__':
 	else:
 		print("Syntax URL_OR_PATH [output directory] [--disable-zip-archive]")
 		print("python mirror.py http://localhost/prealgebra /tmp/prealgebra")
+
+if __name__ == '__main__':
+	_run_main()
