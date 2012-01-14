@@ -10,6 +10,9 @@
 	<utility component=".relatedlinksetter.ExistingTOCRelatedAdder"
 			 name="ExistingTOCRelatedAdder" />
 
+	<utility component=".sectionvideoadder.YouTubeRelatedVideoAdder"
+			 name="YouTubeRelatedVideoAdder" />
+
 	<!-- Icon and image finders for the prealgebra book -->
 	<!-- TODO: Move this to a specific package and include it based on
 	the jobname. -->

@@ -11,6 +11,8 @@ from zope import interface
 from . import interfaces
 from . import minidom_writexml
 
+import html5lib
+from html5lib import treewalkers, serializer, treebuilders
 from lxml import etree
 
 import urllib
@@ -234,7 +236,7 @@ class _EclipseTOCMiniDomTopic(object):
 	filename, href: The filename-only portion of the location
 	topic, toc_dom_node: An minidom Element
 	"""
-	# TODO: Merge this class with RenderedBook.ContentPage
+
 	interface.implements( interfaces.IEclipseMiniDomTopic )
 
 	save_dom = True
@@ -363,7 +365,7 @@ class _EclipseTOCMiniDomTopic(object):
 	@property
 	def childTopics(self):
 		"""
-		:return: An iterable of :class:`_Topic` objects representing the topic element children
+		:return: An iterable of :class:`_EclipseTOCMiniDomTopic` objects representing the topic element children
 			of this object.
 		"""
 		if self._childTopics is None:
@@ -387,21 +389,40 @@ class _EclipseTOCMiniDomTopic(object):
 	def dom(self):
 		# TODO: Under some circumstances we should be discarding this dom for memory reasons
 		if not self._dom and self.sourceFile and os.path.exists( self.sourceFile ):
+			# By using the HTML5 parser, we can get more consistent results,
+			# regardless of how the templates were setup. And when we write, we'll
+			# be in a normalized form for all browsers. One immediate cost is that
+			# it's a bit slower to parse than pyquery's native methods
+			dom = None
+			p = html5lib.HTMLParser( tree=treebuilders.getTreeBuilder("lxml"), #PyQuery needs lxml doc
+									 namespaceHTMLElements=False )
+
+			with open(self.sourceFile) as f:
+				doc = p.parse( f, encoding='utf-8' )
+				dom = PyQuery( doc.getroot() )
+
+			# try:
 			# we've seen this throw ValueError: I/O operation on closed file
 			# we've also seen AttributeError: 'NoneType' object has no attribute 'xpath'
 			# on dom("body")
-			body_len = 0
-			dom = None
-			try:
-				dom = PyQuery( filename=self.sourceFile )
-				body_len = len(dom("body"))
-			except (ValueError,AttributeError):
-				logger.warn( "Failed to parse %s as XML. Will try HTML.", self.sourceFile, exc_info=False )
+			# 	dom = PyQuery( filename=self.sourceFile )
+			# 	body_len = len(dom("body"))
+			# except (ValueError,AttributeError):
+			# 	logger.warn( "Failed to parse %s as XML. Will try HTML.", self.sourceFile, exc_info=False )
+			# if body_len != 1:
+			# 	dom = PyQuery( filename=self.sourceFile, parser="html" )
 
-			if body_len != 1:
-				dom = PyQuery( filename=self.sourceFile, parser="html" )
 			self._dom = dom
 		return self._dom
+
+	def write_dom(self, force=False):
+		if not self._dom: return
+
+		if self.save_dom or force:
+			with open(self.sourceFile, 'w') as f:
+				f.write( etree.tostring( self._dom[0], method='html', encoding='utf-8' ) ) #dom.outerHtml().encode( "utf-8" ) )
+				#f.write( dom.outerHtml().encode( "utf-8" ) )
+				f.flush()
 
 	def set_ntiid( self ):
 		"""
@@ -439,11 +460,7 @@ class _EclipseTOCMiniDomTopic(object):
 			return False
 
 		dom("body").attr["style"] = r"background-image: url('" + image_path + r"')"
-		if self.save_dom:
-			with open(self.sourceFile, 'w') as f:
-				f.write( etree.tostring( dom[0], method='html', encoding='utf-8' ) ) #dom.outerHtml().encode( "utf-8" ) )
-				#f.write( dom.outerHtml().encode( "utf-8" ) )
-				f.flush()
+		self.write_dom()
 
 		self.modifiedDom = True
 		return self.modifiedDom
@@ -460,11 +477,7 @@ class _EclipseTOCMiniDomTopic(object):
 			return None
 		dom( "meta[name=NTIRelativeScrollHeight]" ).attr['content'] = str(contentHeight)
 		self.modifiedDom = True
-		# TODO: Unify this with set_background_image
-		if self.save_dom:
-			with open(self.sourceFile, 'w') as f:
-				f.write( etree.tostring( dom[0], method='html', encoding='utf-8' ) ) #dom.outerHtml().encode( "utf-8" ) )
-				f.flush()
+		self.write_dom()
 
 		pageNode = self.toc_dom_node
 

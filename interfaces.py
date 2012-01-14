@@ -29,6 +29,13 @@ class IEclipseMiniDomTopic(interface.Interface):
 
 	ordinal = schema.Int( title="The number (starting at 1) representing which nth child of the parent I am." )
 
+	childTopics = schema.Iterable( title="All the child topics of this topic." )
+
+	dom = interface.Attribute( 'The :class:`PyQuery` object representing the HTML contents. Will be None if not parsable' )
+
+	def write_dom( force=False ):
+		"Causes the in-memory `dom` to be written to disk at the file it was read from."
+
 class IRenderedBook(interface.Interface):
 
 	contentLocation = schema.TextLine(
@@ -103,4 +110,19 @@ class IStaticRelatedItemsAdder(IRenderedBookTransformer):
 	"""
 	Transforms the book's TOC by adding related items mined from
 	the book.
+	"""
+
+class IVideoAdder(IRenderedBookTransformer):
+	"""
+	Transforms the contents of the book by adding videos.
+	"""
+
+class IStaticVideoAdder(IVideoAdder):
+	"""
+	Adds videos using static information.
+	"""
+
+class IStaticYouTubeEmbedVideoAdder(IStaticVideoAdder):
+	"""
+	Uses static information to add embedded YouTube video references to the book content.
 	"""

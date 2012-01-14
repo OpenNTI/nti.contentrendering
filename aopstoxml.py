@@ -110,6 +110,7 @@ import html5cachefile
 import contentsizesetter
 import relatedlinksetter
 import contentthumbnails
+import sectionvideoadder
 
 from RenderedBook import RenderedBook
 
@@ -138,6 +139,9 @@ def postRender(document, contentLocation='.', jobname='prealgebra'):
 
 	print 'Adding related links to toc'
 	relatedlinksetter.performTransforms(book)
+
+	print 'Adding videos'
+	sectionvideoadder.performTransforms(book)
 
 	print 'Generating thumbnails for pages'
 	contentthumbnails.transform(book)
