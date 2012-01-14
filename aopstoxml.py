@@ -140,11 +140,15 @@ def postRender(document, contentLocation='.', jobname='prealgebra'):
 	print 'Adding related links to toc'
 	relatedlinksetter.performTransforms(book)
 
-	print 'Adding videos'
-	sectionvideoadder.performTransforms(book)
-
 	print 'Generating thumbnails for pages'
 	contentthumbnails.transform(book)
+
+	# PhantomJS doesn't cope well with the iframes
+	# for embedded videos: you get a black box, and we put them at the top
+	# of the pages, so many thumbnails end up looking the same, and looking
+	# bad. So do this after taking thumbnails.
+	print 'Adding videos'
+	sectionvideoadder.performTransforms(book)
 
 	print 'Running checks on content'
 	contentchecks.performChecks(book)
