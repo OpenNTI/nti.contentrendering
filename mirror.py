@@ -147,7 +147,7 @@ def _process_node(node, url, out_dir, process_links,set_of_hrefs=None):
 
 def _handle_attribute(target, url, out_dir, force_html=False):
 	head, _ = os.path.split(target)
-	out_dir = _create_path(os.path.join(out_dir, head))
+	_create_path(os.path.join(out_dir, head))
 	return _get_file(url, out_dir, target, force_html)
 
 def _get_toc_file(url, out_dir, toc_file='eclipse-toc.xml'):

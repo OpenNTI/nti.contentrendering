@@ -31,9 +31,15 @@ class TestMirror(ConfiguringTestBase):
 	def test_mirror_includes_video_excludes_fragments(self):
 		" Mirrored files should include vides, but not anything with a fragment. "
 		fetched_urls = []
+		parent_dirs = set()
 		def execute_fetch(arg):
+			# This is pretty fragile. We're depending on the way we construct the
+			# command string we use for wget.
 			path = arg[-1][len('http://localhost:7777/'):]
 			fetched_urls.append( path )
+			for p in arg:
+				if p.startswith( '-P' ):
+					parent_dirs.add( p )
 			return True
 		class MockServer(object):
 			def shutdown(self): pass
@@ -61,6 +67,8 @@ class TestMirror(ConfiguringTestBase):
 		# The video and the thumbnail
 		assert_that( fetched_urls, has_item('videos/addition-1.small.m4v') )
 		assert_that( fetched_urls, has_item('icons/videos/addition-1.png') )
+		# always fetched to the same root
+		assert_that( parent_dirs, has_length( 1 ) )
 		# No fragments
 		assert_that( fetched_urls, is_not( has_item( contains_string( '#' ) ) ) )
 		# And it's a set
