@@ -5,6 +5,12 @@ VERSION = '0.0.0'
 
 entry_points = {
 	'console_scripts': [
+		"nti_render = nti.contentrendering.nti_render:main",
+		"nti_create_book_archive = nti.contentrendering.archive:main",
+		"nti_content_indexer = nti.contentrendering.content_indexer:main",
+		"nti_jsonpbuilder = nti.contentrendering.jsonpbuilder:main",
+		"nti_gslopinionexport = nti.contentrendering.gslopinionexport:main",
+		"nti_default_root_sharing_setter = nti.contentrendering.default_root_sharing_setter:main",
 	],
 	"z3c.autoinclude.plugin": [
 		'target = nti.contentrendering',
