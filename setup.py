@@ -51,6 +51,8 @@ setup(
 		'html5lib',
         'isodate',
 		'lxml',
+		'Paste',
+		'PasteDeploy',
         'PyPDF2',
         'pyquery',
         'pytz',
