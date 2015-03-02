@@ -16,7 +16,7 @@ import zope.testing.cleanup
 class ExtractorTestLayer(ZopeComponentLayer,
                          ConfiguringLayerMixin):
 
-    set_up_packages = ('nti.contentrendering', 'nti.assessment', 'nti.externalization')
+    set_up_packages = ('nti.contentrendering', 'nti.externalization')
 
     @classmethod
     def setUp(cls):
