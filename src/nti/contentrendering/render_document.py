@@ -24,7 +24,12 @@ from plasTeX.Logging import getLogger
 
 logger = getLogger(__name__)
 
+import zope.browserpage
+
 from zope.configuration import xmlconfig
+from zope.container.contained import Contained
+
+from z3c.autoinclude.zcml import includePluginsDirective
 
 from nti.common import setupChameleonCache
 
@@ -37,6 +42,13 @@ from nti.contentrendering.transforms import performTransforms
 
 out_format_to_render_name = {'xhtml': 'XHTML', 'text': 'Text'}
 	
+class PluginPoint(Contained):
+
+	def __init__(self, name):
+		self.__name__ = name
+
+PP_CONTENT_RENDERING = PluginPoint('nti.contentrendering')
+
 def parse_tex(sourceFile, outFormat='xhtml', outdir=None, 
 			  perform_transforms=True, set_chameleon_cache=True, 
 			  xml_conf_context=None):
@@ -74,6 +86,13 @@ def parse_tex(sourceFile, outFormat='xhtml', outdir=None,
 									   package=nti.contentrendering,
 									   context=xml_conf_context)
 
+	# Include zope.browserpage.meta.zcml for tales:expressiontype
+	# before including the products
+	xmlconfig.include(xml_conf_context, file="meta.zcml", package=zope.browserpage)
+
+	# include plugins
+	includePluginsDirective(xml_conf_context, PP_CONTENT_RENDERING)
+	
 	# Create document instance that output will be put into
 	document = TeXDocument()
 	
