@@ -90,6 +90,7 @@ setup(
 		'nti.contentfragments',
 		'nti.contentindexing',
 		'nti.contentprocessing',
+		'nti.contenttypes.presentation',
 		'nti.externalization',
 		'nti.futures',
 		'nti.mimetype',
