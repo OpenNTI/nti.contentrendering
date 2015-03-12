@@ -113,7 +113,7 @@ class _RelatedWorkExtractor(object):
 					'visibility': el.visibility,
 					'target-ntiid': el.target_ntiid,
 					'ntiid': el.ntiid,
-					MIMETYPE: u'application/vnd.nextthought.relatedwork'
+					MIMETYPE: u'application/vnd.nextthought.relatedworkref'
 				}
 				if lesson_el:
 					result.append((content, lesson_el))
