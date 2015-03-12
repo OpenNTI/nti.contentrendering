@@ -20,10 +20,14 @@ from zope import interface
 
 from nti.common.sets import OrderedSet
 
+from nti.externalization.interfaces import StandardExternalFields
+
 from ._utils import _render_children
 
 from ...interfaces import IRenderedBook
 from ...interfaces import ITimelineExtractor
+
+MIMETYPE = StandardExternalFields.MIMETYPE
 
 @component.adapter(IRenderedBook)
 @interface.implementer(ITimelineExtractor)
@@ -65,6 +69,7 @@ class _TimelineExtractor(object):
 				'label': title,
 				'ntiid': ntiid,
 				'desc': description,
+				MIMETYPE: u'application/vnd.nextthought.timeline'
 			}
 			# find parent document
 			parent = el.parentNode

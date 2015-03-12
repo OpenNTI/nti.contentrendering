@@ -18,11 +18,15 @@ from zope import interface
 
 from nti.common.sets import OrderedSet
 
+from nti.externalization.interfaces import StandardExternalFields
+
 from ._utils import _render_children
 
 from ...interfaces import IRenderedBook
 from ...interfaces import IRelatedWorkExtractor
 	
+MIMETYPE = StandardExternalFields.MIMETYPE
+
 @interface.implementer(IRelatedWorkExtractor)
 @component.adapter(IRenderedBook)
 class _RelatedWorkExtractor(object):
@@ -108,7 +112,8 @@ class _RelatedWorkExtractor(object):
 					'section': el.category,
 					'visibility': el.visibility,
 					'target-ntiid': el.target_ntiid,
-					'ntiid': el.ntiid
+					'ntiid': el.ntiid,
+					MIMETYPE: u'application/vnd.nextthought.relatedworkref'
 				}
 				if lesson_el:
 					result.append((content, lesson_el))
