@@ -155,7 +155,8 @@ class _RelatedWorkExtractor(object):
 				'desc': description,
 				'visibility': el.visibility,
 				'target-ntiid': el.target_ntiid,
-				'ntiid': el.ntiid
+				'ntiid': el.ntiid,
+				MIMETYPE: u'application/vnd.nextthought.relatedworkref'
 			}
 			result.append((content, dom.childNodes[0]))
 		return result
