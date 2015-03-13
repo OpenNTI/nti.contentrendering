@@ -16,6 +16,9 @@ from plasTeX.Packages.graphics import DeclareGraphicsExtensions as BaseDeclareGr
 
 from .graphics import DeclareGraphicsRule as BaseDeclareGraphicsRule
 
+# SAJ: Monkey patch to cover files with capital extentions on case-sensitive filesystems
+includegraphics.default_extensions = ('.png','.jpg','.jpeg','.gif','.pdf','.ps','.eps', '.PNG','.JPG','.JPEG','.GIF','.PDF','.PS','.EPS')
+
 class DeclareGraphicsExtensions(BaseDeclareGraphicsExtensions):
 	packageName = 'graphicx'
 
