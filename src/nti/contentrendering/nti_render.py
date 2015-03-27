@@ -264,7 +264,7 @@ def write_dc_metadata(document, jobname):
 	if not mapping:
 		return
 
-	xml_string = unicode(zope.dublincore.xmlmetadata.dumpString(mapping))
+	xml_string = unicode(zope.dublincore.xmlmetadata.dumpString(mapping).decode('utf-8'))
 	with open('dc_metadata.xml', 'w') as f:
 		f.write(xml_string.encode('utf-8'))
 
