@@ -58,35 +58,25 @@ def _archive(source_path, out_dir=None, verbose=False):
 		os.chdir(source_path)
 		dname = os.path.basename(source_path[0:-1])
 
+		def _add_2_archive(pattern):
+			for pathname in glob.glob(pattern):
+				name = os.path.basename(pathname)
+				if is_black_listed(name):
+					continue
+				if os.path.isdir(pathname):
+					_process(pathname)
+				else:
+					arcname = dname + '/' + pathname[len(source_path):]
+					added.add(arcname)
+					if verbose:
+						print("Adding %s" % arcname)
+					zf.write(pathname, arcname=arcname, 
+							 compress_type=zipfile.ZIP_DEFLATED)
+			
 		def _process(path):
-			pattern = os.path.join(path, "*")
-			for pathname in glob.glob(pattern):
-				name = os.path.basename(pathname)
-				if is_black_listed(name):
-					continue
-				if os.path.isdir(pathname):
-					_process(pathname)
-				else:
-					arcname = dname + '/' + pathname[len(source_path):]
-					added.add(arcname)
-					if verbose:
-						print("Adding %s" % arcname)
-					zf.write(pathname, arcname=arcname, 
-							 compress_type=zipfile.ZIP_DEFLATED)
-			pattern = os.path.join(path, ".*")
-			for pathname in glob.glob(pattern):
-				name = os.path.basename(pathname)
-				if is_black_listed(name):
-					continue
-				if os.path.isdir(pathname):
-					_process(pathname)
-				else:
-					arcname = dname + '/' + pathname[len(source_path):]
-					added.add(arcname)
-					if verbose:
-						print("Adding %s" % arcname)
-					zf.write(pathname, arcname=arcname, 
-							 compress_type=zipfile.ZIP_DEFLATED)
+			_add_2_archive(os.path.join(path, "*"))
+			_add_2_archive(os.path.join(path, ".*"))
+	
 		_process(source_path)
 	finally:
 		zf.close()
