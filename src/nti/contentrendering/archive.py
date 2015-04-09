@@ -27,7 +27,7 @@ from nti.contentrendering.interfaces import IRenderedBookArchiver
 from nti.contentrendering.utils import NoConcurrentPhantomRenderedBook, EmptyMockDocument
 
 BLACK_LIST = (r'.*\.jsonp', r'indexdir', r'cache-manifest', r'archive\.zip',
-			  r'htaccess', r'assessment_index\.json')
+			  r'htaccess', r'assessment_index\.json', r'\.nti_acl', r'\.htaccess')
 BLACK_LIST_RE = tuple([re.compile(x) for x in BLACK_LIST])
 
 interface.moduleProvides(IRenderedBookArchiver)
@@ -60,6 +60,20 @@ def _archive(source_path, out_dir=None, verbose=False):
 
 		def _process(path):
 			pattern = os.path.join(path, "*")
+			for pathname in glob.glob(pattern):
+				name = os.path.basename(pathname)
+				if is_black_listed(name):
+					continue
+				if os.path.isdir(pathname):
+					_process(pathname)
+				else:
+					arcname = dname + '/' + pathname[len(source_path):]
+					added.add(arcname)
+					if verbose:
+						print("Adding %s" % arcname)
+					zf.write(pathname, arcname=arcname, 
+							 compress_type=zipfile.ZIP_DEFLATED)
+			pattern = os.path.join(path, ".*")
 			for pathname in glob.glob(pattern):
 				name = os.path.basename(pathname)
 				if is_black_listed(name):
