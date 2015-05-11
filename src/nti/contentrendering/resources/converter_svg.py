@@ -22,43 +22,52 @@ from .. import ConcurrentExecutor as ProcessPoolExecutor
 
 from PyPDF2 import PdfFileReader
 
-def _do_convert(page, input_filename='images.pdf'):
+def _do_convert(page, input_filename='images.pdf', _converter_program='pdf2svg'):
 	"""
 	Convert a page of a PDF into SVG using ``pdf2svg`` (which must be
 	accessible on the system PATH).
 
-	FIXME: We assume the existence of ``images.pdf`` in the current directory.
-
-	:param int page: The page of the document to convert, in the current directory. 1-based, not 0-based.
-	:return: A string giving the relative path of the SVG filename,  or None of the conversion failed.
+	:param int page: The page of the document to convert, in the
+		current directory. 1-based, not 0-based.
+	:keyword str input_filename: The name or path to the pdf file to convert.
+	:return: A string giving the relative path of the SVG filename, or None of the conversion
+		failed.
 	"""
 	# convert to svg
 	# must be toplevel function so it can be pickled
-	filename = 'img%d.svg' % page
-	# TODO: in other converters we've observed hangs if exceptions are raised
-	# in the process pool. Happen here?
-	__traceback_info__ = ('pdf2svg', filename)
-	subprocess.check_call( ('pdf2svg', input_filename, filename, str(page) ) )
+	output_filename = 'img%d.svg' % page
 
-	with open(filename, 'rb') as f:
-		if not f.read().strip():
-			os.remove(filename)
-			logger.warn( 'Failed to convert %s', filename )
-			return None
+	# Remember to try to avoid exceptions, we've seen them hang the
+	# process pool
+	__traceback_info__ = (_converter_program, output_filename)
+	try:
+		subprocess.check_call( (_converter_program, input_filename, output_filename, str(page) ) )
 
-	# Then remove the width and height boxes since this interacts badly with
-	# HTML embedding.
-	# NOTE: The behaviour of -i is different between GNU sed and BSD sed;
-	# On OS X we assume BSD sed, otherwise we assume GNU sed
-	pattern = 's/width=.*pt\"//'
+		with open(output_filename, 'rb') as f:
+			if not f.read().strip():
+				os.remove(output_filename)
+				raise IOError("Empty output") # just like it didn't exist
 
-	if platform.system() == 'Darwin':
-		sed_args = ('sed', '-i', '', '-e', pattern, filename)
-	else:
-		sed_args = ('sed', '-i', '-e', pattern, filename)
-	subprocess.check_call(sed_args)
+		# Then remove the width and height boxes since this interacts badly with
+		# HTML embedding.
+		# NOTE: The behaviour of -i is different between GNU sed and BSD sed;
+		# On OS X we assume BSD sed, otherwise we assume GNU sed
+		pattern = 's/width=.*pt\"//'
 
-	return filename
+		if platform.system() == 'Darwin':
+			sed_args = ('sed', '-i', '', '-e', pattern, output_filename)
+		else:
+			sed_args = ('sed', '-i', '-e', pattern, output_filename)
+		subprocess.check_call(sed_args)
+
+	except (IOError,OSError,subprocess.CalledProcessError):
+		# OSError if _converter_program does not exist; IOError if it failed
+		# to write the file and we can't open() it or if empty;
+		# CalledProcessError if _converter_program or sed exited non-zero
+		logger.exception("Failed to convert %s", output_filename)
+		return None
+
+	return output_filename
 
 class PDF2SVG(plasTeX.Imagers.VectorImager):
 	"""
