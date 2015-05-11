@@ -34,7 +34,7 @@ def check(book):
 		mtexts = page.dom("span[class=mtext]")
 		errors = []
 		for mtext in mtexts:
-			if 'color:' in mtext.attrib['style'] and 'red' in mtext.attrib['style']:
+			if hasattr(mtext,'style') and 'color:' in mtext.attrib['style'] and 'red' in mtext.attrib['style']:
 				# This is a really tacky way of checking for 'color: red'
 				errors.append( mtext )
 
