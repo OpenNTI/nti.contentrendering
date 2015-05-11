@@ -52,13 +52,15 @@ class TestNTIRender(ContentrenderingLayerTest):
 		# This is 'mathematical italic small tau', a character
 		# that lives outside the BMP. It requires four utf-8 bytes
 		# to encode, or two in utf-16 and cannot be encoded in ascii.
-		# if we are on a "narrow" python build, it will require two
-		# chars of storage, whereas a "wide" python build will use one char
-		# (Python 3 will always use one char)
+		# if we are on a "narrow" CPython build, it will require two
+		# chars of storage, whereas a "wide" CPython build will use one char
+		# (Python 3, and PyPy, and Jython will always use one char)
 		tau = u"\U0001D70F"
 
-		# right now, we expect to be on narrow builds
-		assert_that( tau, has_length(2) )
+		# right now, we expect to be on narrow builds of CPython2
+		import platform
+		if platform.python_implementation() == 'CPython':
+			assert_that( tau, has_length(2) )
 
 		body = "\\includegraphics{Glossary.png} This is some text $z^2$ \\[t^3\\]" + tau
 
