@@ -37,7 +37,8 @@ def skipIfNotOnPath(f):
 	@functools.wraps(f)
 	def test(self):
 		try:
-			subprocess.check_call(('pdf2svg', '--help'))
+			with open('/dev/null', 'wb') as null:
+				subprocess.check_call(('pdf2svg', '--help'), stdout=null, stderr=null)
 		except OSError:
 			raise unittest.SkipTest("Program not on path")
 		except subprocess.CalledProcessError:
