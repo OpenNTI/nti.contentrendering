@@ -301,6 +301,8 @@ name: relatedworkref
 
 name: ntidiscussion
 
+name: discussionuri
+
 name: ntidiscussionref
 <object class="ntidiscussionref">
 	<param name="mimeType" value="MIME type" tal:attributes="value self/discussion/targetMimeType" />

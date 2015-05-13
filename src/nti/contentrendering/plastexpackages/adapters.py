@@ -97,6 +97,8 @@ class _DiscussionRefJSONTransformer(object):
 		output[NTIID] = self.el.discussion.topic_ntiid
 		output['title'] = _render_children(self.el.discussion.renderer, 
 										   self.el.discussion.subtitle)
+		if self.el.discussion.autogenuri:
+			output['id'] = self.el.discussion.autogenuri
 		return output
 
 

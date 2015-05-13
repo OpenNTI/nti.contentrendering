@@ -1252,6 +1252,7 @@ class ntidiscussion(Base.Environment):
 	title = ''
 	subtitle = ''
 	topic_ntiid = ''
+	autogenuri = ''
 
 	class discussiontitle(Base.Command):
 		args = 'title'
@@ -1267,6 +1268,14 @@ class ntidiscussion(Base.Environment):
 		def digest(self, tokens):
 			tok = super(ntidiscussion.discussionsubtitle,self).digest(tokens)
 			self.parentNode.subtitle = self.attributes['subtitle']
+			return tok
+
+	class discussionuri(Base.Command):
+		args = 'uri:url'
+
+		def digest(self, tokens):
+			tok = super(ntidiscussion.discussionuri,self).digest(tokens)
+			self.parentNode.autogenuri =  self.attributes['uri'].source.replace( ' ', '' ).replace( '\\&', '&' ).replace( '\\_', '_' ).replace( '\\%', '%' ).replace(u'\u2013', u'--').replace(u'\u2014', u'---')
 			return tok
 
 	class topicntiid(Base.Command):
