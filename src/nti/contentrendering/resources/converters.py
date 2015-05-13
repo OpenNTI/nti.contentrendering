@@ -100,6 +100,15 @@ class AbstractContentUnitRepresentationBatchConverter(object):
 				pass
 		self._batch_drivers = []
 
+	def verify(self):
+		result = True
+		for driver in self._batch_drivers:
+			try:
+				result &= driver.verify()
+			except AttributeError:
+				pass
+		return result
+
 @interface.implementer(interfaces.IContentUnitRepresentationBatchCompilingConverter)
 class AbstractCompilingContentUnitRepresentationBatchConverter(AbstractContentUnitRepresentationBatchConverter):
 	"""

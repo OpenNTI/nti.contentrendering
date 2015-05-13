@@ -88,6 +88,17 @@ class ResourceDB(object):
 	def _create_representations(self, resourceType, nodes):
 		# Load a resource generate
 		generator = self._loadGenerator(resourceType)
+		try:
+			verify = generator.verify
+		except AttributeError:
+			pass
+		else:
+			verify = verify()
+			if not verify:
+				raise interfaces.ConverterUnusableError(
+					"Resource verification failed for %s: %s" % (resourceType, verify))
+
+
 		sources = generator.process_batch(nodes)
 		for new_representations in sources:
 			if not isinstance(new_representations, (list, tuple)):

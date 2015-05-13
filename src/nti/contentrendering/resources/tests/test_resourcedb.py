@@ -15,6 +15,7 @@ logger = __import__('logging').getLogger(__name__)
 #pylint: disable=W0212,R0904
 
 import os
+import unittest
 
 from hamcrest import assert_that
 from hamcrest import is_
@@ -22,14 +23,12 @@ from hamcrest import not_none
 from hamcrest import same_instance
 from hamcrest import none
 
-
 from nti.contentrendering.tests import simpleLatexDocumentText
 from nti.contentrendering.tests import RenderContext
 from nti.contentrendering.tests import ContentrenderingLayerTest
 
 
-from nti.contentrendering.resources.converters import ImagerContentUnitRepresentationBatchConverter, AbstractCompilingContentUnitRepresentationBatchConverter
-
+from ..interfaces import ConverterUnusableError
 
 from nti.contentrendering.resources.ResourceDB import ResourceDB
 
@@ -50,7 +49,10 @@ class TestResourceDB(ContentrenderingLayerTest):
 		rdb = ResourceDB( self.ctx.dom )
 		rdb.overrides['$z^2$'] = ('png',)
 		rdb.overrides[r'\[t^3\]'] = ('svg',)
-		rdb.generateResourceSets()
+		try:
+			rdb.generateResourceSets()
+		except ConverterUnusableError as e:
+			raise unittest.SkipTest(e)
 
 		assert_that( rdb.getResource( '$x^2$', ('mathjax_inline',)), is_( not_none() ) )
 		assert_that( rdb.getResource( '$z^2$', ('png', 'orig', 1)), is_( not_none() ) )
@@ -132,7 +134,10 @@ class TestResourceDBTabular(ContentrenderingLayerTest):
 		tabular = self.ctx.dom.getElementsByTagName( 'tabular' )[0]
 		assert_that( tabular.source.count( br'\hline' ), is_( self.body.count( br'\hline') ) )
 
-		rdb.generateResourceSets()
+		try:
+			rdb.generateResourceSets()
+		except ConverterUnusableError as e:
+			raise unittest.SkipTest(e)
 		# Make sure the hlines make it to the resources
 		# Our verification is simple, based just on equality to existing files. This is probable
 		# fragile.
@@ -171,7 +176,10 @@ class TestResourceDBAnimatedGIF(ContentrenderingLayerTest):
 	def test_system_generate(self):
 		# This runs a full test and actually invokes renderers.
 		rdb = ResourceDB( self.ctx.dom )
-		rdb.generateResourceSets()
+		try:
+			rdb.generateResourceSets()
+		except ConverterUnusableError as e:
+			raise unittest.SkipTest(e)
 
 		assert_that(rdb.getResource(br'\includegraphics[width=208pt,keepaspectratio=true]{h0EAC0F25.gif}', ('png', 'orig', 1)),
 					is_( not_none() ))

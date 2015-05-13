@@ -19,10 +19,11 @@ import plasTeX.Imagers
 
 from . import converters
 from .. import ConcurrentExecutor as ProcessPoolExecutor
+from .. import _programs
 
 from PyPDF2 import PdfFileReader
 
-def _do_convert(page, input_filename='images.pdf', _converter_program='pdf2svg'):
+def _do_convert(page, input_filename='images.pdf', _converter_program=None):
 	"""
 	Convert a page of a PDF into SVG using ``pdf2svg`` (which must be
 	accessible on the system PATH).
@@ -39,6 +40,7 @@ def _do_convert(page, input_filename='images.pdf', _converter_program='pdf2svg')
 
 	# Remember to try to avoid exceptions, we've seen them hang the
 	# process pool
+	_converter_program = _converter_program or _programs.pdf2svg
 	__traceback_info__ = (_converter_program, output_filename)
 	try:
 		subprocess.check_call( (_converter_program, input_filename, output_filename, str(page) ) )
@@ -80,13 +82,16 @@ class PDF2SVG(plasTeX.Imagers.VectorImager):
 	verification = 'pdf2svg --help'
 	compiler = 'pdflatex'
 
+	def verify(self):
+		return _programs.verify(('pdf2svg', 'pdfcrop'))
+
 	def executeConverter(self, output):
 		with open('images.pdf', 'wb') as f:
 			f.write(output.read())
 		# Crop all the pages of the PDF to the exact size
 		# os.system( "pdfcrop --hires --margin 0 images.pdf images.pdf" )
 		with open('/dev/null', 'w') as dev_null:
-			cmd = ('pdfcrop', '--hires', '--margin', '0', 'images.pdf', 'images.pdf')
+			cmd = (_programs.pdfcrop, '--hires', '--margin', '0', 'images.pdf', 'images.pdf')
 			__traceback_info__ = cmd
 			subprocess.check_call(
 				cmd,
@@ -118,12 +123,12 @@ class PDF2SVG(plasTeX.Imagers.VectorImager):
 
 		return 0, filenames
 
-	def verify(self):
-		return True
-
 Imager = PDF2SVG # An alias for use as a plastex imager module
 
 class PDF2SVGBatchConverter(converters.ImagerContentUnitRepresentationBatchConverter):
 
 	def __init__(self, document):
 		super(PDF2SVGBatchConverter, self).__init__(document, PDF2SVG)
+
+	def verify(self):
+		return _programs.verify(('pdf2svg', 'pdfcrop'))

@@ -21,6 +21,7 @@ import glob
 import time
 
 from nti.contentrendering import ConcurrentExecutor as ProcessPoolExecutor
+from nti.contentrendering import _programs
 from nti.contentrendering.resources import converters, interfaces
 from zope import interface
 
@@ -30,18 +31,14 @@ from plasTeX.Imagers import Dimension, Image
 import subprocess
 import math
 
-gs = 'gs'
+
 
 import plasTeX.Imagers.gspdfpng
-
-## def _size(page,key):
-## 	width_in_pt, height_in_pt = subprocess.Popen( "pdfinfo -box -f %d images.out | grep MediaBox | awk '{print $4,$5}'" % (page), shell=True, stdout=subprocess.PIPE).communicate()[0].split()
-## 	return (key, width_in_pt, height_in_pt)
 
 def _size(key, png):
 	# identify, from ImageMagick, is much easier to work with than pdfinfo --box
 	# ImageMagick @6.8.8-0 does not like the two format params separated
-	command = ['identify', '-format', '"%w %h"', png]
+	command = [_programs.identify, '-format', '"%w %h"', png]
 	output = subprocess.check_output( command )
 	output = output.replace('"', '').replace("'", '')
 	output_parts = output.split()
@@ -65,13 +62,14 @@ def _scale(input, output, scale, defaultScale):
 	# Use IM to scale. Must be top-level to pickle
 	# Scale is the fraction of defaultScale that we wise to scale the image to.  For example, if scale is 2 and
 	# defaultScale is 1, then the image would be scaled to 1/2 the original size.
-	command = [ 'convert', input, '-resize', '%f%%' % (100 * ( defaultScale / scale ) ), '%s' % output ]
+	command = [_programs.convert, input, '-resize', '%f%%' % (100 * ( defaultScale / scale ) ), '%s' % output]
 	__traceback_info__ = command
 	retval1 = subprocess.call( command )
 
 	# Check that the out put file is not 0 bytes, if it is try, try again because something odd happened.
 	while os.stat(output).st_size == 0:
-		logger.warning('%s is empty!!!! Input was %s with size %s. Output scale was %s. Attempting to convert again.' % (output, input, os.stat(input).st_size, unicode(100 * ( defaultScale / scale ))))
+		logger.warning('%s is empty!!!! Input was %s with size %s. Output scale was %s. Attempting to convert again.'
+					   % (output, input, os.stat(input).st_size, unicode(100 * ( defaultScale / scale ))))
 		retval1 = subprocess.call( command )
 
 	# SAJ: Only run PNG crush on non-zero length PNG files
@@ -93,7 +91,7 @@ def _sanitize_png( image_file ):
 
 	prefix = hex(int(time.time()*1000))
 	tmp_fd, tmp_file = tempfile.mkstemp(suffix='.png', prefix=prefix)
-	command = [ 'pngcrush', '-q', image_file, tmp_file ]
+	command = [_programs.pngcrush, '-q', image_file, tmp_file]
 	__traceback_info__ = command
 
 	retval = subprocess.call( command )
@@ -117,10 +115,7 @@ class _GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 	some features are removed.
 
 	"""
-	#command = ('%s -q -dSAFER -dBATCH -dNOPAUSE -sDEVICE=pngalpha ' % gs) + \
-	#    '-dGraphicsAlphaBits=4 -sOutputFile=img%d.png'
-	command = [ gs, '-q', '-dSAFER', '-dBATCH', '-dNOPAUSE', '-sDEVICE=pngalpha', '-dGraphicsAlphaBits=4',
-		    '-sOutputFile=img%d.png']
+
 	compiler = 'pdflatex'
 	fileExtension = '.png'
 	# SAJ: The relationship between resolution and defaultScaleFator is important to prevent the distortion of
@@ -128,6 +123,17 @@ class _GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 	resolution = 144 # SAJ: Integer multiples of 72 work best.
 	defaultScaleFactor = 1.0
 	scaleFactor = 1
+
+	def __init__(self, *args, **kwargs):
+		super(_GSPDFPNG2,self).__init__(*args, **kwargs)
+		self.command = [ _programs.gs,
+						 '-q',
+						 '-dSAFER', '-dBATCH', '-dNOPAUSE',
+						 '-sDEVICE=pngalpha', '-dGraphicsAlphaBits=4',
+						 '-sOutputFile=img%d.png']
+
+	def verify(self):
+		return _programs.verify()
 
 	def executeConverter(self, output):
 		# Must have been called from the converter
@@ -141,7 +147,7 @@ class _GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 		#os.system( "pdfcrop --hires images.out images.out" )
 		# pdfcrop produces useless stdout data
 		with open('/dev/null', 'w') as dev_null:
-			command = ('pdfcrop', '--hires', 'images.out', 'images.out' )
+			command = (_programs.pdfcrop, '--hires', 'images.out', 'images.out' )
 			__traceback_info__ = command
 			subprocess.call( command, stdout=dev_null, stderr=dev_null )
 
@@ -197,7 +203,7 @@ class _GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 	def writePreamble( self, document ):
 		""" Because we do our own cropping, we don't need the registration mark. Hence, we define that to do nothing; the
 		superclass then does NOT define it. """
-		self.source.write( "\\newcommand{\plasTeXregister}{}" )
+		self.source.write( r"\newcommand{\plasTeXregister}{}" )
 		super(_GSPDFPNG2,self).writePreamble( document )
 		self.source.write('\\usepackage[b0paper]{geometry}\n')
 		self.source.write('\\setlength{\\pdfpagewidth}{100.0cm}\n\\setlength{\\pdfpageheight}{141.4cm}\n')
@@ -272,6 +278,9 @@ class GSPDFPNG2BatchConverter(converters.ImagerContentUnitRepresentationBatchCon
 
 	def __init__(self, document):
 		super(GSPDFPNG2BatchConverter, self).__init__(document, _GSPDFPNG2)
+
+	def verify(self):
+		return _programs.verify()
 
 	def process_batch(self, content_units):
 

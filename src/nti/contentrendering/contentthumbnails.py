@@ -17,9 +17,10 @@ import subprocess
 
 from zope import component
 
-from nti.contentrendering import interfaces
-from nti.contentrendering import ConcurrentExecutor
-from nti.contentrendering import javascript_path, run_phantom_on_page
+from . import interfaces
+from . import ConcurrentExecutor
+from . import javascript_path, run_phantom_on_page
+from . import _programs
 
 _rasterize_script = javascript_path( 'rasterize.js')
 thumbnailsLocationName = 'thumbnails'
@@ -55,7 +56,9 @@ def _create_thumbnail_of_pdf(pdf_path, page=1, height=792, width=612):
 	# We generate a PNG of the complete thing at full size, and then
 	# scale it to the various resource sizes when rendering
 	# (TODO: Use pyPDF or gs itself to find the actual size of the first page?)
-	GHOSTSCRIPT = os.environ.get("GHOSTSCRIPT", "gs")
+	if not _programs.verify('gs'):
+		raise ValueError("Unable to create thumbnail, GS not available")
+	GHOSTSCRIPT = _programs.gs
 
 	fd, output_file = tempfile.mkstemp( '.png', 'thumbnail' )
 	# DEVICE=jpeg is another option; using png works better with the image renderer

@@ -11,6 +11,7 @@ import unittest
 from nti.contentrendering.tests import buildDomFromString as _buildDomFromString
 from nti.contentrendering.tests import simpleLatexDocumentText
 from nti.contentrendering.tests import RenderContext
+from nti.contentrendering import _programs
 
 import fudge
 
@@ -24,6 +25,7 @@ def _simpleLatexDocument(maths):
 from zope import interface
 from nti.contentrendering import interfaces as cdr_interfaces
 from nti.contentrendering.resources import ResourceRenderer
+from nti.contentrendering.resources.interfaces import ConverterUnusableError
 import io
 
 @interface.implementer(cdr_interfaces.IRenderedBook)
@@ -70,7 +72,10 @@ class TestNTICard(unittest.TestCase):
 			res_db = None
 			if do_images:
 				from nti.contentrendering import nti_render
-				res_db = nti_render.generateImages( dom )
+				try:
+					res_db = nti_render.generateImages( dom )
+				except ConverterUnusableError as e:
+					raise unittest.SkipTest(e)
 
 			render = ResourceRenderer.createResourceRenderer('XHTML', res_db)
 			render.importDirectory( os.path.join( os.path.dirname(__file__), '..' ) )
@@ -97,8 +102,23 @@ class TestNTICard(unittest.TestCase):
 
 			return index
 
+	def test_render_bad_environment(self):
+		# Make sure verification works
+		gs = os.environ.get('GHOSTSCRIPT')
+		os.environ['GHOSTSCRIPT'] = 'command-that-does-not-exist-on-anyones-path'
+		try:
+			self.assertRaises(unittest.SkipTest,
+							  self._do_test_render,
+							  r'\label{testcard}',
+							  'tag:nextthought.com,2011-10:testing-NTICard-temp.nticard.testcard')
+		finally:
+			if gs:
+				os.environ['GHOSTSCRIPT'] = gs
+			else:
+				del os.environ['GHOSTSCRIPT']
+
 	def test_render_id(self):
-		"The label for the question becomes part of its NTIID."
+		#"The label for the question becomes part of its NTIID."
 		self._do_test_render( r'\label{testcard}', 'tag:nextthought.com,2011-10:testing-NTICard-temp.nticard.testcard')
 
 	def test_render_counter(self):
@@ -181,6 +201,7 @@ class TestNTICard(unittest.TestCase):
 		assert_that( index, contains_string( '<img src="http://www.newyorker.com/images/2013/01/07/g120/130107_r23011_g120_cropth.jpg" height="120" width="120"' ) )
 
 
+	@unittest.skipUnless(_programs.verify('gs'), _programs.verify('gs'))
 	def test_auto_populate_local_pdf(self):
 		index = self._do_test_render(
 			r'\label{testcard}',
@@ -197,6 +218,7 @@ class TestNTICard(unittest.TestCase):
 		# And we got a generated thumbnail
 		assert_that( index, contains_string( '<img src="resources') )
 
+	@unittest.skipUnless(_programs.verify('gs'), _programs.verify('gs'))
 	@fudge.patch('requests.get')
 	def test_auto_populate_remote_pdf(self, fake_get=None):
 		# By commenting out the patch line, we can test with a real file

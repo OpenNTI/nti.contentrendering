@@ -87,6 +87,18 @@ class IContentUnitRepresentationBatchConverter(interface.Interface):
 		batches have been used.
 		"""
 
+	def verify():
+		"""
+		An optional method, called before batch processing begins. If it returns
+		a true value, batch processing will commence. If it does not, this converter
+		will not be used.
+		"""
+
+class ConverterUnusableError(interface.interfaces.ComponentLookupError):
+	"""
+	Can be raised if a converter cannot be used.
+	"""
+
 class IContentUnitRepresentationBatchCompilingConverter(IContentUnitRepresentationBatchConverter):
 	"""
 	A specialized converter that drives an *external* compiler programe to convert
