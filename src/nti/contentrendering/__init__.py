@@ -35,6 +35,22 @@ class _NotFound(object):
 	def __str__(self):
 		return self.msg
 
+class _programproperty(object):
+	"""
+	A readproperty (meaning you can override in the instance)
+	that knows how to hold verification arguments.
+	"""
+
+	def __init__(self, env_name, prog_name, verify_arg=''):
+		self.env_name = env_name
+		self.prog_name = prog_name
+		self.verify_arg = verify_arg
+
+	def __get__(self, inst, klass):
+		if inst is None:
+			return self
+		return os.environ.get(self.env_name, self.prog_name)
+
 class _ExternalProgramSettings(object):
 	"""
 	Provisional API to standardize the way we find and run
@@ -46,26 +62,14 @@ class _ExternalProgramSettings(object):
 	def __init__(self):
 		self._verify_cache = {}
 
-	@property
-	def gs(self):
-		return os.environ.get('GHOSTSCRIPT', 'gs')
-	@property
-	def identify(self):
-		# Identify is provided by ImageMagick
-		return os.environ.get('IDENTIFY', 'identify')
-	@property
-	def convert(self):
-		# convert is provided by ImageMagick
-		return os.environ.get('CONVERT', 'convert')
-	@property
-	def pngcrush(self):
-		return os.environ.get('PNGCRUSH', 'pngcrush')
-	@property
-	def pdfcrop(self):
-		return os.environ.get("PDFCROP", 'pdfcrop')
-	@property
-	def pdf2svg(self):
-		return os.environ.get("PDF2SVG", 'pdf2svg')
+	gs = _programproperty('GHOSTSCRIPT', 'gs', '--help')
+	# Identify is provided by ImageMagick
+	identify = _programproperty('IDENTIFY', 'identify')
+	# convert is provided by ImageMagick
+	convert = _programproperty('CONVERT', 'convert')
+	pngcrush = _programproperty('PNGCRUSH', 'pngcrush')
+	pdfcrop = _programproperty("PDFCROP", 'pdfcrop')
+	pdf2svg = _programproperty("PDF2SVG", 'pdf2svg')
 
 	def verify(self, programs=None):
 		"""
@@ -76,7 +80,7 @@ class _ExternalProgramSettings(object):
 		if programs is not None and isinstance(programs, six.string_types):
 			programs = (programs,)
 		for k, v in self.__class__.__dict__.items():
-			if not isinstance(v, property):
+			if not isinstance(v, _programproperty):
 				continue
 			if programs is not None and k not in programs:
 				continue
@@ -85,10 +89,12 @@ class _ExternalProgramSettings(object):
 			if k in self._verify_cache and self._verify_cache[k][0] == program:
 				if not self._verify_cache[k][1]:
 					return self._verify_cache[k][1]
+				continue
 
 			__traceback_info__ = k, program
 			try:
-				proc = subprocess.Popen(program,
+				command = [program, v.verify_arg] if v.verify_arg else program
+				proc = subprocess.Popen(command,
 										shell=False,
 										stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
 										close_fds=True)
