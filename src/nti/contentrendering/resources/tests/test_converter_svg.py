@@ -24,7 +24,7 @@ from hamcrest import has_property
 from hamcrest import close_to
 
 
-from .. converter_svg import _do_convert, PDF2SVG
+from .. converter_svg import _do_convert, PDF2SVG, _programs
 import unittest
 import shutil
 import tempfile
@@ -33,16 +33,11 @@ import functools
 from .. import converter_svg
 
 def skipIfNotOnPath(f):
-	import subprocess
 	@functools.wraps(f)
 	def test(self):
-		try:
-			with open('/dev/null', 'wb') as null:
-				subprocess.check_call(('pdf2svg', '--help'), stdout=null, stderr=null)
-		except OSError:
-			raise unittest.SkipTest("Program not on path")
-		except subprocess.CalledProcessError:
-			pass
+		verify = _programs.verify(('pdf2svg', 'pdfcrop'))
+		if not verify:
+			raise unittest.SkipTest("Program not on path: %s" % verify)
 		f(self)
 
 	return test
