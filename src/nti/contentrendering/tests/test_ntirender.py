@@ -25,6 +25,7 @@ from nti.contentrendering import nti_render
 from nti.contentrendering import transforms
 
 from nti.contentrendering.resources.ResourceDB import ResourceDB
+from nti.contentrendering.resources.interfaces import ConverterUnusableError
 
 from zope.dublincore import xmlmetadata
 
@@ -77,7 +78,10 @@ class TestNTIRender(ContentrenderingLayerTest):
 			rdb.overrides['$z^2$'] = ('png',)
 			rdb.overrides[r'\[t^3\]'] = ('svg',)
 
-			rdb.generateResourceSets()
+			try:
+				rdb.generateResourceSets()
+			except ConverterUnusableError as e:
+				raise unittest.SkipTest(e)
 
 			nti_render.render(ctx.dom, 'XHTML', rdb)
 			fname = os.path.join(ctx.docdir, 'tag_nextthought_com_2011-10_testing-HTML-temp_0.html')
