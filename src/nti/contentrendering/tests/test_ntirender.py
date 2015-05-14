@@ -14,6 +14,7 @@ from hamcrest import assert_that
 from hamcrest import has_entry
 from hamcrest import has_length
 from hamcrest import contains_string
+import unittest
 
 import os.path
 
