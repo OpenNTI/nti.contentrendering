@@ -10,8 +10,11 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import codecs
 import os
 import hashlib
+
+import simplejson as json
 
 from zope import interface
 from zope.cachedescriptors.property import readproperty
@@ -1276,6 +1279,19 @@ class ntidiscussion(Base.Environment):
 		def digest(self, tokens):
 			tok = super(ntidiscussion.discussionuri,self).digest(tokens)
 			self.parentNode.autogenuri =  self.attributes['uri'].source.replace( ' ', '' ).replace( '\\&', '&' ).replace( '\\_', '_' ).replace( '\\%', '%' ).replace(u'\u2013', u'--').replace(u'\u2014', u'---')
+			discussion_path = self.parentNode.autogenuri.split(r'nti-course-bundle://')[1]
+			discussion_path = os.path.join(self.ownerDocument.userdata['course_bundle_path'],discussion_path)
+			discussion = None
+			if os.path.exists(discussion_path):
+				with codecs.open(discussion_path, 'rb', 'utf-8') as file:
+					discussion = json.load(file)
+			else:
+				logger.warning('Unable to find discussion definition at %s' % discussion_path)
+			if discussion is not None:
+				if 'label' in discussion:
+					self.parentNode.title = discussion['label']
+				if 'title' in discussion:
+					self.parentNode.subtitle = discussion['title']
 			return tok
 
 	class topicntiid(Base.Command):

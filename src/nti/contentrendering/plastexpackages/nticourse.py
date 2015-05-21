@@ -14,6 +14,7 @@ from datetime import datetime
 from datetime import timedelta
 
 import pytz
+import os
 
 from plasTeX import Command
 from plasTeX import Environment
@@ -103,6 +104,15 @@ class course(Environment, plastexids.NTIIDMixin):
 
 			return tok
 
+	class coursebundle(Command):
+		args = '[ options:dict ] bundle_path:str:raw'
+
+		def digest(self, tokens):
+			super(course.coursebundle, self).digest(tokens)
+			self.ownerDocument.userdata['course_bundle_path'] = os.path.abspath(os.path.join(self.ownerDocument.userdata['working-dir'], self.attributes.get('bundle_path')))
+			if not os.path.exists(os.path.join(self.ownerDocument.userdata['course_bundle_path'],'bundle_meta_info.json')):
+				logger.warning('Course bundle not found at %s' % self.ownerDocument.userdata['course_bundle_path'])
+				self.ownerDocument.userdata.pop('course_bundle_path', None)
 
 class courseunitname(Command):
 	pass
