@@ -13,7 +13,10 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import codecs
 import os
+
+from nti.contentrendering.tests import buildDomFromString
 
 def _lwarn( *args ):
 	logger.warn( *args )
@@ -53,7 +56,7 @@ def _load_overrides_from_file(location, warn):
 		return result
 
 
-	with open(overridesFile, 'r') as f:
+	with codecs.open(overridesFile, 'rb', 'utf8') as f:
 		for line in f.readlines():
 			sourceFileName, types = line.split('=')
 			types = types.split(',')
@@ -65,7 +68,7 @@ def _load_overrides_from_file(location, warn):
 				warn("Can't apply override for %s.  File does not exist", sourcePath)
 				continue
 
-			with open(sourcePath, 'r') as sourceFile:
+			with codecs.open(sourcePath, 'rb', 'utf8') as sourceFile:
 				source = sourceFile.read()
 				result[normalize_source(source)] = types
 
