@@ -16,8 +16,6 @@ logger = __import__('logging').getLogger(__name__)
 import codecs
 import os
 
-from nti.contentrendering.tests import buildDomFromString
-
 def _lwarn( *args ):
 	logger.warn( *args )
 
