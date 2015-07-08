@@ -26,7 +26,7 @@ name: ntixydisplaymath
 #<span tal:condition="python: not hasattr(self, 'resource')" class="math tex2jax_process mathquill-embedded-latex" tal:content="python: '\\(' + self.source[1:-1] + '\\)'" />
 
 name: displaymath equation equation* eqnarray eqnarray* align align* gather gather* falign falign* \
-      multiline multiline* alignat alignat* split
+      multiline multiline* alignat alignat* split multline multline*
 <div class="math equation" tal:attributes="id self/id">
 	<div class="equation-body">
 		<p tal:condition="python: hasattr(self, 'resource')" tal:replace="self/resource"/>
