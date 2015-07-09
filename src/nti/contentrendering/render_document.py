@@ -109,6 +109,7 @@ def parse_tex(sourceFile, outFormat='xhtml', outdir=None,
 	document.config['files']['split-level'] = 1
 	document.config['document']['toc-non-files'] = True
 	document.config['document']['toc-depth'] = sys.maxint
+	document.config['document']['sec-num-depth'] = 10
 
 	if outFormat and outFormat in out_format_to_render_name:
 		document.config['general']['renderer'] = out_format_to_render_name[outFormat]
