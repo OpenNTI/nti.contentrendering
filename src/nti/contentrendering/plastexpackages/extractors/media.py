@@ -11,6 +11,7 @@ logger = __import__('logging').getLogger(__name__)
 
 import os
 import simplejson as json
+from collections import namedtuple
 from collections import defaultdict
 from collections import OrderedDict
 
@@ -27,12 +28,14 @@ from ...interfaces import IRenderedBook
 from ...interfaces import INTIAudioExtractor
 from ...interfaces import INTIVideoExtractor
 
+_Reference = namedtuple('Reference', 'media containers')
+
 @component.adapter(IRenderedBook)
 class _NTIMediaExtractor(object):
 
 	ntimedia = u'ntimedia'
 	ntimediaref = u'ntimediaref'
-	index_file  = u'media_index.json'
+	index_file = u'media_index.json'
 	media_mimeType = u'application/vnd.nextthought.ntimedia'
 	index_mimeType = u'application/vnd.nextthought.mediaindex'
 
@@ -42,7 +45,7 @@ class _NTIMediaExtractor(object):
 	def transform(self, book, savetoc=True, outpath=None):
 		outpath = outpath or book.contentLocation
 		outpath = os.path.expanduser(outpath)
-		
+
 		dom = book.toc.dom
 		media_els = book.document.getElementsByTagName(self.ntimedia)
 		reference_els = book.document.getElementsByTagName(self.ntimediaref)
@@ -51,8 +54,8 @@ class _NTIMediaExtractor(object):
 
 		# cache topics
 		topic_map = self._get_topic_map(dom)
-		self._process_references(dom, reference_els, topic_map)
-		self._process_media_els(dom, media_els, outpath, topic_map)
+		references = self._process_references(dom, reference_els, topic_map)
+		self._process_media_els(dom, media_els, references, topic_map, outpath)
 		if savetoc:
 			book.toc.save()
 
@@ -64,13 +67,14 @@ class _NTIMediaExtractor(object):
 				result[ntiid] = topic_el
 		return result
 
-	def _add_2_od(self, od, key, value):
-		s = od.get(key)
-		if s is None:
-			s = od[key] = OrderedSet()
-		s.add(value)
-		
 	def _find_toc_media(self, topic_map):
+
+		def  _add_2_od(self, od, key, value):
+			s = od.get(key)
+			if s is None:
+				s = od[key] = OrderedSet()
+			s.add(value)
+
 		result = OrderedDict()
 		inverted = OrderedDict()
 		for topic_ntiid, topic_el in topic_map.items():
@@ -79,11 +83,26 @@ class _NTIMediaExtractor(object):
 					continue
 				ntiid = obj.getAttribute('ntiid')
 				if ntiid and topic_ntiid:
-					self._add_2_od(result, ntiid, topic_ntiid)
-					self._add_2_od(inverted, topic_ntiid, ntiid)
+					_add_2_od(result, ntiid, topic_ntiid)
+					_add_2_od(inverted, topic_ntiid, ntiid)
+
 		return result, inverted
-	
-	def _process_media(self, dom, media, topic_map):
+
+	def _get_parent_node(self, node, topic_map):
+		parent = node.parentNode
+		while parent is not None and not isinstance(parent, LaTexDocument.document):
+			ntiid = getattr(parent, 'ntiid', None) or u''
+			if ntiid in topic_map:
+				break
+			else:
+				parent = parent.parentNode
+		return parent
+
+	def _get_parent_node_ntiid(self, node, topic_map):
+		parent = self._get_parent_node(node, topic_map)
+		return getattr(parent, 'ntiid', None)
+
+	def _get_media_entry(self, media):
 		entry = {'sources':[], 'transcripts':[]}
 
 		entry['ntiid'] = media.ntiid
@@ -93,8 +112,7 @@ class _NTIMediaExtractor(object):
 		else:
 			entry['title'] = media.title
 
-		entry['mimeType'] = media.mimeType
-
+		entry['MimeType'] = entry['mimeType'] = media.mimeType
 		for transcript in media.getElementsByTagName('mediatranscript'):
 			val = {}
 			val['src'] = transcript.raw.url
@@ -103,119 +121,97 @@ class _NTIMediaExtractor(object):
 			val['type'] = transcript.transcript_mime_type
 			val['purpose'] = transcript.attributes['purpose']
 			entry['transcripts'].append(val)
+		return entry
 
-		# find parent document
-		parent = media.parentNode
-		while parent is not None and not isinstance(parent, LaTexDocument.document):
-			ntiid = getattr(parent, 'ntiid', None) or u''
-			if ntiid in topic_map:
-				break
-			else:
-				parent = parent.parentNode
-
-		container = getattr(parent, 'ntiid', None) if parent else None
-		return entry, container
-
-	def _process_media_els(self, dom, elements, outpath, topic_map):
+	def _process_media_els(self, dom, elements, references, topic_map, outpath):
 		filename = self.index_file
-		
-		## We'd like these things, especially Containers, to be
-		## ordered as they are in the source. We can preserve it here,
-		## if we try. The original list of elements must be in order
-		## of how they appear in the source, and it is more-or-less.
 
-		## In practice, it's not nearly that simple because of the
-		## "overrides". In practice, all ntivideo elements are children
-		## of the document for some reason, and ntivideoref elements
-		## are scattered about through the content to refer to these
-		## elements. In turn, these ntivideoref elements get added to
-		## the ToC dom (NOT the content dom) as "<object>" tags...we go
-		## through and "re-parent" ntivideo elements in the Containers
-		## collection based on where references appear to them
+		# In practice, it's not nearly that simple because of the
+		# "overrides". In practice, all ntivideo elements are children
+		# of the document for some reason, and ntivideoref elements
+		# are scattered about through the content to refer to these
+		# elements. In turn, these ntivideoref elements get added to
+		# the ToC dom (NOT the content dom) as "<object>" tags...we go
+		# through and "re-parent" ntivideo elements in the Containers
+		# collection based on where references appear to them
 
-		## Therefore, we maintain yet another parallel data structure
-		## recording the original iteration order of the elements,
-		## and at the very end, when we have assigned videos
-		## to containers, we sort that list by this original order.
-		
 		items = {}
 		inverted = defaultdict(set)
 		containers = defaultdict(set)
-		original_media_iteration_order = []
-		
-		## parse all elements
+		doc_ntiid = dom.documentElement.getAttribute('ntiid')
+
+		# parse all elements
 		for element in elements:
-			## build media elemenet
-			media, containerId = self._process_media(dom, element, topic_map)
-			ntiid = media['ntiid']
-			items[ntiid] = media
-			
-			## add to tracking maps
+			entry = self._get_media_entry(element)
+			ntiid = entry.get('ntiid')
+			if not ntiid:
+				continue
+			items[ntiid] = entry
+
+			containerId = self._get_parent_node_ntiid(element, topic_map)
 			if containerId:
 				inverted[ntiid].add(containerId)
 				containers[containerId].add(ntiid)
 
-			## keep sort order for default containers
-			original_media_iteration_order.append(ntiid)
-			
-		## add video objects to toc and compute re-parent locations based on references
+		# add references to items
+		for ntiid, reference in references.items():
+			entry = items.get(ntiid)
+			if entry is None:
+				entry = self._get_media_entry(reference.media)
+				items[ntiid] = entry
+			inverted[ntiid].update(reference.containers)
+			for containerId in reference.containers:
+				containers[containerId].add(ntiid)
+
+		# add video objects to toc
 		overrides = defaultdict(set)
-		doc_ntiid = dom.documentElement.getAttribute('ntiid')
-		media_in_toc, inverted_media_in_toc = self._find_toc_media(topic_map)
-		for mid_ntiid, cnt_ids in inverted.items():
-			toc_entries = media_in_toc.get(mid_ntiid)
+		media_in_toc, _ = self._find_toc_media(topic_map)
+		for media_ntiid, container_ntiids in inverted.items():
+			toc_entries = media_in_toc.get(media_ntiid)
 			if toc_entries:
 				for toc_container_id in toc_entries:
-					overrides[mid_ntiid].add(toc_container_id)
+					overrides[media_ntiid].add(toc_container_id)
 			else:
-				for container in cnt_ids:
-					if container == doc_ntiid:
+				for container_ntiid in container_ntiids:
+					if container_ntiid == doc_ntiid:
 						parent = dom.documentElement
 					else:
-						parent = topic_map.get(container)
-						if parent is None:
-							continue
-
+						parent = topic_map.get(container_ntiid)
+					if parent is None:  # check
+						continue
+					# check element has not already been added
+					reference = references.get(media_ntiid)
+					if reference and container_ntiid in reference.containers:
+						continue
 					# create new elemenet
-					media = items.get(mid_ntiid)
+					media = items.get(media_ntiid)
 					obj_el = dom.createElement('object')
-					label = media.get('title') if media else None
-					obj_el.setAttribute(u'label', label or u'')
-					obj_el.setAttribute(u'ntiid', mid_ntiid)
+					obj_el.setAttribute(u'label', media.get('title') or u'')
+					obj_el.setAttribute(u'ntiid', media_ntiid)
 					obj_el.setAttribute(u'mimeType', self.media_mimeType)
 
 					# add to parent
 					parent.childNodes.append(obj_el)
 
-		## apply overrides, remove all existing. TOC always win
-		for mid_ntiid in overrides.keys():
+		# apply overrides, remove all existing. TOC always win # legacy
+		for media_ntiid, container_ntiids in overrides.items():
 			for container in containers.values():
-				container.discard(mid_ntiid)
+				container.discard(media_ntiid)
+			for container_ntiid in container_ntiids:
+				containers[container_ntiid].add(media_ntiid)
 
-		for mid_ntiid, cnt_ids in overrides.items():
-			for container in cnt_ids:
-				containers[container].add(mid_ntiid)
+		# make JSON serializable
+		json_containers = {}
+		for containerId, media_ntiids in containers.items():
+			if media_ntiids:
+				json_containers[containerId] = list(media_ntiids)
 
-		## remove any empty elements
-		for ntiid, mid_ids in list(containers.items()):
-			if not mid_ids:
-				containers.pop(ntiid)
-			else:
-				sort_order = inverted_media_in_toc.get(ntiid) or \
-							 original_media_iteration_order
-				## Make JSON Serializable (a plain list object),
-				## and also sort according to original iteration order
-				## either from the TOC override or the default media order
-				containers[ntiid] = [orig_media_id
-									 for orig_media_id in sort_order
-									 if orig_media_id in mid_ids]
-
-		## Write the normal version
-		media_index = {'Items': items, 'Containers':containers}
+		# write the normal version
+		media_index = {'Items': items, 'Containers':json_containers}
 		with open(os.path.join(outpath, filename), "wb") as fp:
 			json.dump(media_index, fp, indent=4)
 
-		## Write the JSONP version
+		# write the JSONP version
 		with open(os.path.join(outpath, filename + 'p'), "wb") as fp:
 			fp.write('jsonpReceiveContent(')
 			json.dump({'ntiid': dom.childNodes[0].getAttribute('ntiid'),
@@ -231,38 +227,41 @@ class _NTIMediaExtractor(object):
 
 		dom.childNodes[0].appendChild(toc_el)
 
-	def _process_references(self, dom, els, topic_map):
-		for el in els:
-			if el.parentNode:
-				lesson_el = None
-				
-				## Discover the nearest topic in the toc that is a 'course' node
-				parent_el = el.parentNode
-				if 	hasattr(parent_el, 'ntiid') and \
-					parent_el.tagName.startswith('course'):
-					lesson_el = topic_map.get(parent_el.ntiid)
+	def _process_references(self, dom, elements, topic_map):
 
-				while lesson_el is None and parent_el.parentNode is not None:
-					parent_el = parent_el.parentNode
-					if hasattr(parent_el, 'ntiid') and \
-						parent_el.tagName.startswith('course'):
-						lesson_el = topic_map.get(parent_el.ntiid)
+		def _set_attributes(source, target, *names):
+			for name in names:
+				if hasattr(source, name):
+					target.setAttribute(name, getattr(source, name))
 
-				media_title = getattr(el.media, 'title', u'')
-				title = _render_children(el.media.renderer, media_title)
+		result = {}
+		for element in elements:
+			parent = self._get_parent_node(element, topic_map)
+			if 	isinstance(parent, LaTexDocument.document) or \
+				not getattr(parent, 'ntiid', None):
+				continue
 
-				toc_el = dom.createElement('object')
-				toc_el.setAttribute('label', title)
+			ntiid = getattr(element.media, 'ntiid', None)
+			if not ntiid:
+				continue
 
-				for name in ('poster', 'ntiid', 'mimeType'):
-					if hasattr(el.media, name):
-						toc_el.setAttribute(name, getattr(el.media , name, None))
+			toc_el = dom.createElement('object')
+			media_title = getattr(element.media, 'title', u'')
+			title = _render_children(element.media.renderer, media_title)
+			toc_el.setAttribute('label', title)
 
-				if hasattr(el, 'visibility'):
-					toc_el.setAttribute('visibility', el.visibility)
+			_set_attributes(element, toc_el, 'visibility')
+			_set_attributes(element.media, toc_el, 'poster', 'ntiid', 'mimeType')
 
-				if lesson_el is not None:
-					lesson_el.appendChild(toc_el)
+			parent.appendChild(toc_el)
+
+			ref = result.get(ntiid)
+			if ref is None:
+				ref = _Reference(element.media, set())
+				result[ntiid] = ref
+			ref.containers.add(parent.ntiid)
+
+		return result
 
 @interface.implementer(INTIVideoExtractor)
 class _NTIVideoExtractor(_NTIMediaExtractor):
@@ -273,10 +272,8 @@ class _NTIVideoExtractor(_NTIMediaExtractor):
 	media_mimeType = u'application/vnd.nextthought.ntivideo'
 	index_mimeType = u'application/vnd.nextthought.videoindex'
 
-	def _process_media(self, dom, video, topic_map):
-		entry, container = super(_NTIVideoExtractor, self)._process_media(dom, video,
-																		  topic_map)
-		
+	def _get_media_entry(self, video):
+		entry = super(_NTIVideoExtractor, self)._get_media_entry(video)
 		entry['description'] = video.description
 		entry['closedCaptions'] = video.closed_caption
 		if hasattr(video, 'slidedeck'):
@@ -306,21 +303,19 @@ class _NTIVideoExtractor(_NTIMediaExtractor):
 				val['type'].append('video/vimeo')
 				val['source'].append(source.src['other'])
 			entry['sources'].append(val)
-
-		return entry, container
+		return entry
 
 @interface.implementer(INTIAudioExtractor)
 class _NTIAudioExtractor(_NTIMediaExtractor):
 
 	ntimedia = u'ntiaudio'
 	ntimediaref = u'ntiaudioref'
-	index_file  = u'audio_index.json'
+	index_file = u'audio_index.json'
 	media_mimeType = u'application/vnd.nextthought.ntiaudio'
 	index_mimeType = u'application/vnd.nextthought.audioindex'
 
-	def _process_media(self, dom, audio, topic_map):
-		entry, container = super(_NTIAudioExtractor, self)._process_media(dom, audio,
-																		  topic_map)
+	def _get_media_entry(self, audio):
+		entry = super(_NTIAudioExtractor, self)._get_media_entry(audio)
 		entry['description'] = getattr(audio, 'description', None)
 		for source in audio.getElementsByTagName('ntiaudiosource'):
 			val = {'source':[], 'type':[]}
@@ -332,4 +327,4 @@ class _NTIAudioExtractor(_NTIMediaExtractor):
 				val['source'].append(source.src['mp3'])
 				val['source'].append(source.src['wav'])
 			entry['sources'].append(val)
-		return entry, container
+		return entry
