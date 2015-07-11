@@ -69,7 +69,7 @@ class _NTIMediaExtractor(object):
 
 	def _find_toc_media(self, topic_map):
 
-		def  _add_2_od(self, od, key, value):
+		def  _add_2_od(od, key, value):
 			s = od.get(key)
 			if s is None:
 				s = od[key] = OrderedSet()
@@ -249,7 +249,7 @@ class _NTIMediaExtractor(object):
 			ntiid = getattr(element.media, 'ntiid', None)
 			if not ntiid:
 				continue
-
+			
 			toc_el = dom.createElement('object')
 			media_title = getattr(element.media, 'title', u'')
 			title = _render_children(element.media.renderer, media_title)
@@ -257,8 +257,15 @@ class _NTIMediaExtractor(object):
 
 			_set_attributes(element, toc_el, 'visibility')
 			_set_attributes(element.media, toc_el, 'poster', 'ntiid', 'mimeType')
-
+			
+			# add to course/section
 			parent.appendChild(toc_el)
+
+			# if topic in ToC is not parent then added to TOC
+			# this will cause and override
+			# topic = topic_map.get(parent.ntiid)
+			# if topic is not None and parent is not topic:
+			# 	topic.appendChild(toc_el)
 
 			ref = result.get(ntiid)
 			if ref is None:
