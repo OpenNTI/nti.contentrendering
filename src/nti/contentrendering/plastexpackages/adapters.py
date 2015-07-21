@@ -59,10 +59,10 @@ class _CourseOverviewGroupJSONTransformer(object):
 
 	def transform(self):
 		output = {}
-		output[MIMETYPE] =  self.el.mime_type
+		output[MIMETYPE] = self.el.mime_type
 		output['title'] = _render_children(self.el.renderer, self.el.title, False)
 		output['accentColor'] = _render_children(self.el.renderer,
-												 self.el.title_background_color, 
+												 self.el.title_background_color,
 												 False)
 		output[ITEMS] = items = []
 		for child in self.el.childNodes:
@@ -79,7 +79,7 @@ class _CourseOverviewSpacerJSONTransformer(object):
 
 	def transform(self):
 		output = {}
-		output[MIMETYPE] =  self.el.mime_type
+		output[MIMETYPE] = self.el.mime_type
 		return output
 
 @interface.implementer(IJSONTransformer)
@@ -92,15 +92,14 @@ class _DiscussionRefJSONTransformer(object):
 		output = {}
 		output[MIMETYPE] = self.el.discussion.targetMimeType
 		output['icon'] = self.el.discussion.iconResource.image.url
-		output['label'] = _render_children(self.el.discussion.renderer, 
+		output['label'] = _render_children(self.el.discussion.renderer,
 										   self.el.discussion.title)
 		output[NTIID] = self.el.discussion.topic_ntiid
-		output['title'] = _render_children(self.el.discussion.renderer, 
+		output['title'] = _render_children(self.el.discussion.renderer,
 										   self.el.discussion.subtitle)
 		if self.el.discussion.autogenuri:
 			output['id'] = self.el.discussion.autogenuri
 		return output
-
 
 @interface.implementer(IJSONTransformer)
 class _NTIAudioRefJSONTransformer(object):
@@ -139,15 +138,15 @@ class _RelatedWorkRefJSONTransformer(object):
 
 	def transform(self):
 		output = {}
-		output['creator'] = _render_children(self.el.relatedwork.renderer, 
+		output['creator'] = _render_children(self.el.relatedwork.renderer,
 											 self.el.creator)
-		output['desc'] = _render_children(self.el.relatedwork.renderer, 
+		output['desc'] = _render_children(self.el.relatedwork.renderer,
 										  self.el.description)
 		output[HREF] = self.el.uri
 		output[MIMETYPE] = self.el.mimeType
 		output['targetMimeType'] = self.el.targetMimeType
 		output['icon'] = self.el.relatedwork.iconResource.image.url
-		output['label'] = _render_children(self.el.relatedwork.renderer, 
+		output['label'] = _render_children(self.el.relatedwork.renderer,
 										   self.el.title)
 		output[NTIID] = self.el.ntiid
 		output['target-NTIID'] = self.el.target_ntiid
@@ -165,7 +164,7 @@ class _TimelineJSONTransformer(object):
 
 	def transform(self):
 		output = {}
-		output['desc'] = _render_children( self.el.renderer, self.el.description)
+		output['desc'] = _render_children(self.el.renderer, self.el.description)
 		output[HREF] = self.el.uri
 		output[MIMETYPE] = self.el.mime_type
 		output['icon'] = self.el.icon.image.url
