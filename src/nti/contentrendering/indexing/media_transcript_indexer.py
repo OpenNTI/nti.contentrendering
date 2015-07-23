@@ -21,7 +21,7 @@ from nti.contentindexing.utils import sanitize_content
 from nti.contentprocessing import tokenize_content
 from nti.contentprocessing import get_content_translation_table
 
-from nti.contentrendering import ConcurrentExecutor
+from nti.futures.futures import ConcurrentExecutor
 
 from . _utils import get_attribute
 
@@ -345,4 +345,4 @@ class WhooshMediaTranscriptIndexer(BasicWhooshIndexer):
 		count = self._parse_and_index_media(result, writer)
 		return count
 
-_WhooshMediaTranscriptIndexer = WhooshMediaTranscriptIndexer #BWC
+_WhooshMediaTranscriptIndexer = WhooshMediaTranscriptIndexer  # BWC
