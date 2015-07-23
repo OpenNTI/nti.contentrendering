@@ -67,18 +67,13 @@ class MathjaxInlineCompilerDriver(converters.AbstractOneOutputDocumentCompilerDr
 		<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">\
 		<head>\
 		<link rel="stylesheet" href="styles/styles.css" />\
-		<script type="text/javascript" src="%s/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>' % \
-		os.path.dirname(self.mathjaxconfigfile))
+		<link rel="stylesheet" href="styles/content.css" />\
+		<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>\
+		<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML,https://s3.amazonaws.com/dev.nextthought.com/mathjaxconfig.js"></script>\
+		')
 
-		self.write('<script type="text/javascript" src="%s"></script>' % self.mathjaxconfigfile)
-		self.write('<script type="text/javascript" src="%s"></script>' % self.configName)
-
-		self.write('<script type="text/javascript"\
-		src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>\
-		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js">\
-		</script>\
-		</head>\
-		<body>')
+		self.write('</head>\
+		<body id="NTIContent">')
 
 	def _compilation_source_for_content_unit( self, content_unit ):
 		tex_without_delimiters = content_unit.source[1:-1]
@@ -136,7 +131,7 @@ class MathjaxInlineCompilerDriver(converters.AbstractOneOutputDocumentCompilerDr
 
 		maths = [math.strip() for math in output.split('\n') if math.strip()]
 		if len(maths) != len(self._generatables):
-			raise ValueError( "Wrong number of math expressions produced", maths, self._generatables )
+			raise ValueError( "Wrong number of math expressions produced. Expected %s, produced %s, number of spans %s" % (len(self._generatables), len(maths), output.count(u'</span>')), maths, self._generatables )
 
 		files = list()
 		for i, math in enumerate(maths):
