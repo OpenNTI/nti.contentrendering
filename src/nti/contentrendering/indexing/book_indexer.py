@@ -13,8 +13,8 @@ logger = __import__('logging').getLogger(__name__)
 
 import os
 import re
-import isodate
 import codecs
+import isodate
 from datetime import datetime
 
 import lxml.etree as etree
@@ -25,17 +25,17 @@ from zope import interface
 from nti.contentprocessing import tokenize_content
 from nti.contentprocessing import get_content_translation_table
 
-from nti.contentrendering import ConcurrentExecutor
-
 from nti.contentindexing.utils import sanitize_content
 from nti.contentindexing.whooshidx.interfaces import IWhooshBookIndexer
 from nti.contentindexing.whooshidx.interfaces import IWhooshBookSchemaCreator
 
+from nti.futures.futures import ConcurrentExecutor
+
+from ._extract import extract_key_words
+
 from ._utils import get_related
 from ._utils import get_attribute
 from ._utils import get_node_content
-
-from ._extract import extract_key_words
 
 from .common_indexer import BasicWhooshIndexer
 
@@ -108,7 +108,7 @@ class WhooshBookIndexer(BasicWhooshIndexer):
 			writer.cancel()
 			raise
 
-_WhooshBookIndexer = WhooshBookIndexer #BWC
+_WhooshBookIndexer = WhooshBookIndexer  # BWC
 
 # Indexing topic children nodes that either have an id or data_ntiid attribute
 
@@ -170,7 +170,7 @@ class IdentifiableNodeWhooshIndexer(WhooshBookIndexer):
 		logger.info("%s document(s) produced" % count)
 		return count
 
-_IdentifiableNodeWhooshIndexer = IdentifiableNodeWhooshIndexer #BWC
+_IdentifiableNodeWhooshIndexer = IdentifiableNodeWhooshIndexer  # BWC
 
 # Index each topic (file) as a whole. 1 index document per topic
 
@@ -234,7 +234,7 @@ class BookFileWhooshIndexer(WhooshBookIndexer):
 		with ConcurrentExecutor() as executor:
 			langs = [lang] * len(nodes)
 			for node in executor.map(_process_datanode, nodes, langs):
-				if isinstance(node,Exception):
+				if isinstance(node, Exception):
 					raise node
 				docs += self._index_datanode(node, writer, lang)
 		return docs
