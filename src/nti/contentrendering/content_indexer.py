@@ -15,9 +15,14 @@ import os
 import logging
 import argparse
 
-from zope import interface
 from zope import component
+from zope import interface
+
 from zope.configuration import xmlconfig, config
+
+from zope.container.contained import Contained
+
+from z3c.autoinclude.zcml import includePluginsDirective
 
 from nti.contentindexing.interfaces import IBookIndexer
 from nti.contentindexing.interfaces import INTICardIndexer
@@ -29,6 +34,13 @@ from nti.contentrendering.interfaces import IRenderedBookIndexer
 
 from nti.contentrendering.utils import EmptyMockDocument
 from nti.contentrendering.utils import NoConcurrentPhantomRenderedBook
+
+class PluginPoint(Contained):
+
+	def __init__(self, name):
+		self.__name__ = name
+
+PP_CONTENT_RENDERING = PluginPoint('nti.contentrendering')
 
 _type_map = { 'book': IBookIndexer,
 			  'audio': IAudioTranscriptIndexer,
@@ -66,7 +78,10 @@ def main():
 	context = config.ConfigurationMachine()
 	xmlconfig.registerCommonDirectives(context)
 	xmlconfig.file("configure.zcml", nti.contentrendering, context=context)
-	
+
+	# include plugins
+	includePluginsDirective(context, PP_CONTENT_RENDERING)
+
 	# parse arguments
 	arg_parser = argparse.ArgumentParser(description="Content Transcript indexer")
 	arg_parser.add_argument('contentpath', help="Content book location")
