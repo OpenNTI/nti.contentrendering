@@ -70,7 +70,6 @@
 	<adapter factory=".tociconsetter.SimpleConventionIconFinder" name="testing" />
 	<adapter factory=".tociconsetter.SimpleConventionBackgroundImageFinder" name="testing" />
 
-	<include package=".indexing" />
 	<include package=".resources" />
 	<include package=".transforms" />
 	<include package=".contentchecks" />
