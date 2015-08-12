@@ -3,8 +3,9 @@
 """
 CMU macros
 
-$Id$
+.. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
@@ -22,7 +23,7 @@ class _Ignored(Base.Command):
 class lecture(Base.chapter):
 	args = '* [shorttitle] title { label }'
 
-# Parse the frame environment and \frametitle as if it was a \paragraph element 
+# Parse the frame environment and \frametitle as if it was a \paragraph element
 
 class frametitle(Base.paragraph):
 	pass
