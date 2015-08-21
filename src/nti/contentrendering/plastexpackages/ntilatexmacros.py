@@ -1276,17 +1276,33 @@ class ntidiscussion(Base.Environment):
 	class discussionuri(Base.Command):
 		args = 'uri:url'
 
+		to_replace = ( (' ', '' ), ('\\&', '&' ), ('\\_', '_' ), ( '\\%', '%' ),
+					   (u'\u2013', u'--'), (u'\u2014', u'---') )
+		
+		COURSE_BUNDLE = r'nti-course-bundle://'
+
+		def replacer(self, source):
+			for a, b in self.to_replace:
+				source = source.replace(a, b)
+			return source
+
 		def digest(self, tokens):
 			tok = super(ntidiscussion.discussionuri,self).digest(tokens)
-			self.parentNode.autogenuri =  self.attributes['uri'].source.replace( ' ', '' ).replace( '\\&', '&' ).replace( '\\_', '_' ).replace( '\\%', '%' ).replace(u'\u2013', u'--').replace(u'\u2014', u'---')
-			discussion_path = self.parentNode.autogenuri.split(r'nti-course-bundle://')[1]
-			discussion_path = os.path.join(self.ownerDocument.userdata['course_bundle_path'],discussion_path)
-			discussion = None
+			self.parentNode.autogenuri = self.replacer(self.attributes['uri'].source)
+			
+			# discussion_path
+			course_bundle_path = self.ownerDocument.userdata['course_bundle_path']
+			discussion_path = self.parentNode.autogenuri.split(self.COURSE_BUNDLE)[1]
+			discussion_path = os.path.join(course_bundle_path, discussion_path)
+			
+			# read discussion
 			if os.path.exists(discussion_path):
-				with codecs.open(discussion_path, 'rb', 'utf-8') as file:
-					discussion = json.load(file)
+				with codecs.open(discussion_path, 'rb', 'utf-8') as fp:
+					discussion = json.load(fp)
 			else:
-				logger.warning('Unable to find discussion definition at %s' % discussion_path)
+				discussion = None
+				logger.warning( 'Unable to find discussion definition at %s',
+								discussion_path)
 			if discussion is not None:
 				if 'label' in discussion:
 					self.parentNode.title = discussion['label']
