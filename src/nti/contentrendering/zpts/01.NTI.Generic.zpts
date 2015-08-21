@@ -52,7 +52,8 @@ name: displaymath equation equation* eqnarray eqnarray* align align* gather gath
 
 name: par
 <a tal:attributes="name self/id" tal:condition="python:self.id and self.source.strip()" ></a>
-<p class="par" tal:attributes="id self/id" tal:content="self" tal:condition="self/source/strip" tal:omit-tag="self/blockType"></p>
+<p class="par" tal:attributes="id self/id" tal:content="self" tal:condition="python:self.source.strip() and not self.continuation" tal:omit-tag="self/blockType"></p>
+<p class="par continued" tal:attributes="id self/id" tal:content="self" tal:condition="python:self.source.strip() and self.continuation" tal:omit-tag="self/blockType"></p>
 
 #name: tabular tabular* tabularx
 #<div tal:attributes="id self/id; class python: type(self).__name__" tal:content="self/resource"/>
