@@ -1022,9 +1022,17 @@ class relatedwork(LocalContentMixin, Base.Environment, plastexids.NTIIDMixin):
 	class worksource(Base.Command):
 		args = 'uri:url'
 
+		tokens = ( 	( ' ', '' ), ( '\\&', '&' ), ( '\\_', '_' ), ( '\\%', '%' ), 
+					(u'\u2013', u'--'), (u'\u2014', u'---') )
+		
+		def replacer(self, source):
+			for a, b in self.tokens:
+				source = source.replace(a, b)
+			return source
+
 		def digest(self, tokens):
 			tok = super(relatedwork.worksource,self).digest(tokens)
-			self.attributes['uri'] =  self.attributes['uri'].source.replace( ' ', '' ).replace( '\\&', '&' ).replace( '\\_', '_' ).replace( '\\%', '%' ).replace(u'\u2013', u'--').replace(u'\u2014', u'---')
+			self.attributes['uri'] = self.replacer(self.attributes['uri'].source)
 			return tok
 
 	class worksourceref(Base.Crossref.ref):
