@@ -175,9 +175,7 @@ class IEmbeddedContainer(IContentTypeAware):
 
 	ntiid = schema.TextLine(title="The NTIID of the embedded container itself.")
 
-####
 # Extractors
-####
 
 class IRenderedBookExtractor(IRenderedBookTransformer):
 	
@@ -229,7 +227,7 @@ class IJSONTransformer(interface.Interface):
 	Given a :class:`plasTeX.Node`, create a JSON serializable dictionary.
 	"""
 
-	def transform():
+	def transform(*args, **kwargs):
 		pass
 
 from zope.interface import registry
@@ -294,9 +292,7 @@ class JobComponents(registry.Components):
 															name=name,
 															default=default)
 
-####
 # Indexing
-####
 
 class IRenderedBookIndexer(IRenderedBookTransformer):
 

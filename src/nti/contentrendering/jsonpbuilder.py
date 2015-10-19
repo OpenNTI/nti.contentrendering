@@ -17,13 +17,14 @@ import mimetypes
 import simplejson as json
 
 from zope import interface
+
 from zope.configuration import xmlconfig
 
-import nti.contentrendering
-from nti.contentrendering import interfaces
 from nti.contentrendering import RenderedBook
+from nti.contentrendering.interfaces import JobComponents
+from nti.contentrendering.interfaces import IRenderedBookTransformer
 
-interface.moduleProvides( interfaces.IRenderedBookTransformer )
+interface.moduleProvides(IRenderedBookTransformer)
 
 class _JSONPWrapper(object):
 
@@ -36,63 +37,65 @@ class _JSONPWrapper(object):
 		self.data['version'] = '1'
 
 		# Read the ToC file and base64 encode
-		with io.open( filename, 'rb') as f:
+		with io.open(filename, 'rb') as f:
 			self.data['content'] = base64.standard_b64encode(f.read())
 			self.data['Content-Encoding'] = 'base64'
 
 	def writeJSONPToFile(self):
 		# Write the JSONP output
-		with io.open( self.filename + '.jsonp', 'wb') as f:
+		with io.open(self.filename + '.jsonp', 'wb') as f:
 			f.write(self.jsonpFunctionName + '(')
 			json.dump(self.data, f)
 			f.write(');')
 
 def main():
-	""" Main program routine """
+	"""
+	Main program routine
+	"""
 
 	contentLocation = sys.argv[1]
 
-	xmlconfig.file( 'configure.zcml', package=nti.contentrendering )
-	zope_conf_name = os.path.join( contentLocation, '..', 'configure.zcml' )
-	if os.path.exists( zope_conf_name ):
-		xmlconfig.file( os.path.abspath( zope_conf_name ), package=nti.contentrendering )
+	xmlconfig.file('configure.zcml', package="nti.contentrendering")
+	zope_conf_name = os.path.join(contentLocation, '..', 'configure.zcml')
+	if os.path.exists(zope_conf_name):
+		xmlconfig.file(os.path.abspath(zope_conf_name), package="nti.contentrendering")
 
-	context = interfaces.JobComponents( os.path.split( os.path.abspath( contentLocation ) )[-1] )
+	context = JobComponents(os.path.split(os.path.abspath(contentLocation))[-1])
 
-	book = RenderedBook.RenderedBook( None, contentLocation )
-	transform( book, context=context )
+	book = RenderedBook.RenderedBook(None, contentLocation)
+	transform(book, context=context)
 
-def transform( book, context=None ):
+def transform(book, context=None):
 	"""
-	Based on information in the RenderedBook, converts the ToC, content HTML files, and the root icon into 
-	a JSONP file for use working around CORS issues.  This transform is non-distructive and will not alter 
+	Based on information in the RenderedBook, converts the ToC, content HTML files, and the root icon into
+	a JSONP file for use working around CORS issues.  This transform is non-distructive and will not alter
 	the source files in any way.
 
 	The transform will always return true, because any failures in file IO will raise an IOError exception.
 	"""
 
 	# Export the ToC file as a JSONP file
-	_JSONPWrapper( book.toc.root_topic.ntiid, book.toc.filename, 'jsonpToc' ).writeJSONPToFile()
+	_JSONPWrapper(book.toc.root_topic.ntiid, book.toc.filename, 'jsonpToc').writeJSONPToFile()
 	# Export the root icon as a JSONP file if it exists
-	if( book.toc.root_topic.has_icon() ):
-		_JSONPWrapper( book.toc.root_topic.ntiid, 
-			       os.path.join(book.contentLocation, book.toc.root_topic.get_icon()), 
-			       'jsonpData' ).writeJSONPToFile()
+	if(book.toc.root_topic.has_icon()):
+		_JSONPWrapper(book.toc.root_topic.ntiid,
+				   os.path.join(book.contentLocation, book.toc.root_topic.get_icon()),
+				   'jsonpData').writeJSONPToFile()
 	# Export the topic HTML files as JSONP files
-	_process_topic( book.toc.root_topic, book.contentLocation )
+	_process_topic(book.toc.root_topic, book.contentLocation)
 
 	return True
 
-def _process_topic( topic, contentLocation ):
+def _process_topic(topic, contentLocation):
 	"""
 	This function will export a topic to JSONP format and then recursively process any child topics.
 	The function has no return value.
 	"""
-	_JSONPWrapper( topic.ntiid, os.path.join(contentLocation, topic.filename), 'jsonpContent' ).writeJSONPToFile()
+	_JSONPWrapper(topic.ntiid, os.path.join(contentLocation, topic.filename), 'jsonpContent').writeJSONPToFile()
 
 	# Process any child nodes
 	for child in topic.childTopics:
-		_process_topic( child, contentLocation )
+		_process_topic(child, contentLocation)
 
 if __name__ == '__main__':
 	main()

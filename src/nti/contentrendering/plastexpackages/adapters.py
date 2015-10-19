@@ -16,7 +16,13 @@ from zope import interface
 
 from plasTeX.Renderers import render_children
 
+from nti.common.property import Lazy
+
 from nti.externalization.interfaces import StandardExternalFields
+
+from nti.ntiids.ntiids import make_ntiid
+from nti.ntiids.ntiids import get_provider
+from nti.ntiids.ntiids import get_specific
 
 from ..interfaces import IJSONTransformer
 
@@ -24,6 +30,8 @@ HREF = StandardExternalFields.HREF
 ITEMS = StandardExternalFields.ITEMS
 NTIID = StandardExternalFields.NTIID
 MIMETYPE = StandardExternalFields.MIMETYPE
+
+NTI_COURSE_OVERVIEW_GROUP = u'NTICourseOverviewGroup'
 
 def _render_children(renderer, nodes, strip=True):
 	if not isinstance(nodes, six.string_types):
@@ -38,17 +46,37 @@ class _CourseLessonJSONTransformer(object):
 	def __init__(self, element):
 		self.el = element
 
+	@Lazy
+	def ntiid(self):
+		return self.el.ntiid
+
+	@Lazy
+	def _specific(self):
+		return get_specific(self.ntiid)
+
+	@Lazy
+	def _provider(self):
+		return get_provider(self.ntiid)
+
+	def group_ntiid(self, idx):
+		prov = self._provider
+		spec = self._specific + (".%s" % idx)
+		result = make_ntiid(base=self.ntiid, provider=prov, specific=spec,
+							nttype=NTI_COURSE_OVERVIEW_GROUP)
+		return result
+
 	def transform(self):
 		output = {}
+		output[ITEMS] = items = []
 		output[NTIID] = self.el.ntiid
 		output[MIMETYPE] = u"application/vnd.nextthought.ntilessonoverview"
 		output['title'] = _render_children(self.el.renderer, self.el.title, False)
-		output[ITEMS] = items = []
 		group_els = self.el.getElementsByTagName('courseoverviewgroup')
-		for group_el in group_els:
+		for idx, group_el in enumerate(group_els):
 			trx = IJSONTransformer(group_el, None)
 			if trx is not None:
-				items.append(trx.transform())
+				ntiid = self.group_ntiid(idx)
+				items.append(trx.transform(ntiid))
 		return output
 
 @interface.implementer(IJSONTransformer)
@@ -57,9 +85,11 @@ class _CourseOverviewGroupJSONTransformer(object):
 	def __init__(self, element):
 		self.el = element
 
-	def transform(self):
+	def transform(self, ntiid=None):
 		output = {}
 		output[MIMETYPE] = self.el.mime_type
+		if ntiid:
+			output[NTIID] = ntiid
 		output['title'] = _render_children(self.el.renderer, self.el.title, False)
 		output['accentColor'] = _render_children(self.el.renderer,
 												 self.el.title_background_color,
