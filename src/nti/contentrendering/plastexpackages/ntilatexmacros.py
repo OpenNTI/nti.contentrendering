@@ -721,6 +721,8 @@ class ntimediacollection(Base.Environment, plastexids.NTIIDMixin):
 	args = '[options] <title:str:source>'
 	blockType = True
 
+	_poster_override = None
+
 	def digest(self, tokens):
 		tok = super(ntimediacollection,self).digest(tokens)
 
@@ -737,6 +739,19 @@ class ntimediacollection(Base.Environment, plastexids.NTIIDMixin):
 			description = descriptions[0].attributes.get('content')
 		return description
 
+	class ntiposteroverride( Command ):
+		args = '[ options:dict ] url:str:source'
+		blockType = True
+
+		def digest(self, tokens):
+			tok = super(ntimediacollection.ntiposteroverride,self).digest(tokens)
+			self.parentNode._poster_override = self.attributes['url']
+			return tok
+
+	@readproperty
+	def poster(self):
+		return self._poster_override
+
 # Videos
 class ntivideorollname(Base.Command):
 	pass
@@ -748,6 +763,14 @@ class ntivideoroll(ntimediacollection):
 	_ntiid_suffix = 'ntivideoroll.'
 	_ntiid_title_attr_name = 'ref'
 	_ntiid_type = 'NTIVR'
+
+	@readproperty
+	def poster(self):
+		_first = None
+		contents = self.getElementsByTagName('ntivideoref')
+		if contents:
+			_first = contents[0].media.poster
+		return self._poster_override if self._poster_override else _first
 
 # Image collections
 class ntiimagecollectionname(Base.Command):

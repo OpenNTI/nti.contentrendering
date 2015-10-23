@@ -358,3 +358,103 @@ class TestSidebars(unittest.TestCase):
 		assert_that( sidebar_el.attributes.get('title').source, contains_string( 'Title' ) )
 		assert_that( sidebar_el.attributes.get('graphic_class'), contains_string( 'testing' ) )
 		assert_that( sidebar_el.childNodes[2].source, contains_string( 'Body Text' ) )
+
+class TestNTIMediaCollection(unittest.TestCase):
+
+	def test_videoroll(self):
+		example = br"""
+		\begin{ntivideo}[creator=LitWorld]
+		\label{video_praise3}
+		\caption{How to Give Praise and Affirmation}
+		\ntivideosource{youtube}{-NxxZibZiHo}
+		\end{ntivideo}
+
+		\begin{ntivideo}[creator=LitWorld]
+		\label{video_praise1}
+		\caption{Praise}
+		\ntivideosource{youtube}{Ms0gUweVQw4}
+		\end{ntivideo}
+
+		\begin{ntivideo}[creator=LitWorld]
+		\label{video_praise2}
+		\caption{Praise}
+		\ntivideosource{youtube}{byVdrE4YAws}
+		\end{ntivideo}
+
+		\begin{ntivideo}[creator=LitWorld]
+		\label{video_girls_club_praise}
+		\caption{Girls Club Praise Circle}
+		\ntivideosource{youtube}{CPH8drrA4Bs}
+		\end{ntivideo}
+
+		\begin{ntivideo}[creator=LitWorld]
+		\label{video_praise_circle_sample}
+		\caption{Praise Circle Sample Video}
+		\ntivideosource{youtube}{rM5HIVmE8G4}
+		\end{ntivideo}
+		
+		\begin{ntivideoroll}<How to Give Praise and Affirmation>
+		\ntidescription{Watch examples of Praise Circle, Shooting Star and Marshmallow}
+		\ntivideoref[to_render=true]{video_praise3}
+		\ntivideoref[to_render=true]{video_girls_club_praise}
+		\ntivideoref[to_render=true]{video_praise1}
+		\ntivideoref[to_render=true]{video_praise2}
+		\ntivideoref[to_render=true]{video_praise_circle_sample}
+		\end{ntivideoroll}
+		"""
+		dom = _buildDomFromString( _simpleLatexDocument( (example,) ) )
+		
+		# Check that the DOM has the expected structure
+		assert_that( dom.getElementsByTagName('ntivideoroll'), has_length( 1 ) )
+		video_roll = dom.getElementsByTagName('ntivideoroll')[0]
+		assert_that( video_roll.poster, contains_string('img.youtube.com') )
+
+	def test_videoroll_with_poster_override(self):
+		example = br"""
+		\begin{ntivideo}[creator=LitWorld]
+		\label{video_praise3}
+		\caption{How to Give Praise and Affirmation}
+		\ntivideosource{youtube}{-NxxZibZiHo}
+		\end{ntivideo}
+
+		\begin{ntivideo}[creator=LitWorld]
+		\label{video_praise1}
+		\caption{Praise}
+		\ntivideosource{youtube}{Ms0gUweVQw4}
+		\end{ntivideo}
+
+		\begin{ntivideo}[creator=LitWorld]
+		\label{video_praise2}
+		\caption{Praise}
+		\ntivideosource{youtube}{byVdrE4YAws}
+		\end{ntivideo}
+
+		\begin{ntivideo}[creator=LitWorld]
+		\label{video_girls_club_praise}
+		\caption{Girls Club Praise Circle}
+		\ntivideosource{youtube}{CPH8drrA4Bs}
+		\end{ntivideo}
+
+		\begin{ntivideo}[creator=LitWorld]
+		\label{video_praise_circle_sample}
+		\caption{Praise Circle Sample Video}
+		\ntivideosource{youtube}{rM5HIVmE8G4}
+		\end{ntivideo}
+		
+		\begin{ntivideoroll}<How to Give Praise and Affirmation>
+		\ntidescription{Watch examples of Praise Circle, Shooting Star and Marshmallow}
+		\ntiposteroverride{poster.jpg}
+		\ntivideoref[to_render=true]{video_praise3}
+		\ntivideoref[to_render=true]{video_girls_club_praise}
+		\ntivideoref[to_render=true]{video_praise1}
+		\ntivideoref[to_render=true]{video_praise2}
+		\ntivideoref[to_render=true]{video_praise_circle_sample}
+		\end{ntivideoroll}
+		"""
+		dom = _buildDomFromString( _simpleLatexDocument( (example,) ) )
+		
+		# Check that the DOM has the expected structure
+		assert_that( dom.getElementsByTagName('ntivideoroll'), has_length( 1 ) )
+		video_roll = dom.getElementsByTagName('ntivideoroll')[0]
+		assert_that( video_roll.poster, contains_string('poster.jpg') )
+		

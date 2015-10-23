@@ -122,6 +122,7 @@ name: ntivideoroll
 <param name="ntiid" value="the-ntiid" tal:attributes="value self/ntiid" />
 <param name="title" value="title" tal:condition="self/title" tal:attributes="value self/title" />
 <param name="description" value="description" tal:condition="self/description" tal:attributes="value self/description" />
+<param name="poster" value="poster image" tal:condition="self/poster" tal:attributes="value self/poster" />
 <span tal:replace="self"></span>
 </object>
 
@@ -141,6 +142,7 @@ name: ntiimagecollection
 <param name="ntiid" value="the-ntiid" tal:attributes="value self/ntiid" />
 <param name="title" value="title" tal:condition="self/title" tal:attributes="value self/title" />
 <param name="description" value="description" tal:condition="self/description" tal:attributes="value self/description" />
+<param name="poster" value="poster image" tal:condition="self/poster" tal:attributes="value self/poster" />
 <span tal:replace="self"></span>
 </object>
 
