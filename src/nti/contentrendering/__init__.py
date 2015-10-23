@@ -9,22 +9,25 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-## re-export
+import os
+import six
+import subprocess
+
+# BWC re-export
 from .phantom import _closing
 from .phantom import javascript_path
 from .phantom import run_phantom_on_page
 from .phantom import _PhantomProducedUnexpectedOutputError
 
-## BWC re-export
+# BWC re-export
 from nti.futures.futures import ConcurrentExecutor
 ConcurrentExecutor = ConcurrentExecutor
 
-import os
-import subprocess
-import six
-
 class _NotFound(object):
-	"""A descriptive False object"""
+	"""
+	A descriptive False object
+	"""
+
 	def __init__(self, msg):
 		self.msg = msg
 
@@ -79,6 +82,7 @@ class _ExternalProgramSettings(object):
 		"""
 		if programs is not None and isinstance(programs, six.string_types):
 			programs = (programs,)
+
 		for k, v in self.__class__.__dict__.items():
 			if not isinstance(v, _programproperty):
 				continue
@@ -111,6 +115,5 @@ class _ExternalProgramSettings(object):
 				logger.warn(found)
 				return found
 		return True
-
 
 _programs = _ExternalProgramSettings()

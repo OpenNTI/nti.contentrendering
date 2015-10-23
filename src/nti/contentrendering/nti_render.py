@@ -67,35 +67,34 @@ def _catching(f):
 	return y
 
 def _set_argparser():
-	arg_parser = argparse.ArgumentParser( description="Render NextThought content." )
+	arg_parser = argparse.ArgumentParser(description="Render NextThought content.")
 
-	arg_parser.add_argument( 'contentpath',
-							help="Path to top level content file." )
-	arg_parser.add_argument( '-c', '--config',
+	arg_parser.add_argument('contentpath',
+							help="Path to top level content file.")
+	arg_parser.add_argument('-c', '--config',
 							help='Used by render_content wrapper. Ignore if running '
 								 'nti_render standalone.')
-	arg_parser.add_argument( '--nochecking',
+	arg_parser.add_argument('--nochecking',
 							 action='store_true',
 							 default=False,
-							 help="Perform content checks." )
-	arg_parser.add_argument( '--noindexing',
+							 help="Perform content checks.")
+	arg_parser.add_argument('--noindexing',
 							 action='store_true',
 							 default=False,
-							 help="Index content files." )
+							 help="Index content files.")
 	arg_parser.add_argument('-o', '--outputformat',
 							 default='xhtml',
-							 help="Output format for rendered files. Default is xhtml" )
-	arg_parser.add_argument( '--loglevel',
+							 help="Output format for rendered files. Default is xhtml")
+	arg_parser.add_argument('--loglevel',
 							 default='INFO',
 							 help="Set logging level to INFO, DEBUG, WARNING, ERROR or "
-							 	  "CRITICAL. Default is INFO." )
+							 	  "CRITICAL. Default is INFO.")
 	return arg_parser
-
 
 @_catching
 def main():
-	""" 
-	Main program routine 
+	"""
+	Main program routine
 	"""
 	argv = sys.argv[1:]
 	arg_parser = _set_argparser()
@@ -110,7 +109,7 @@ def main():
 	logger.info("Start rendering for %s", sourceFile)
 	start_t = time.time()
 	document, components, jobname, _ = parse_tex(sourceFile, outFormat=outFormat)
-	
+
 	db = None
 	if outFormat in ('images', 'xhtml', 'text'):
 		logger.info("Generating images")
@@ -168,7 +167,7 @@ def postRender(document,
 	logger.info('Adding related links to toc')
 	relatedlinksetter.performTransforms(book, context=context)
 
-	# SAJ: Disabled until we determine what thumbnails we need and how to create them 
+	# SAJ: Disabled until we determine what thumbnails we need and how to create them
 	# in a useful manner.
 	# logger.info('Generating thumbnails for pages')
 	# contentthumbnails.transform(book, context=context)
@@ -209,7 +208,7 @@ def postRender(document,
 		# We'd like to be able to run this with pypy (it's /much/ faster)
 		# but some of the Zope libs we import during contentsearch (notably Persistent)
 		# are not quite compatible. A previous version of this code made the correct
-		# changes PYTHONPATH changes for this to work (before contentsearch grew 
+		# changes PYTHONPATH changes for this to work (before contentsearch grew
 		# those deps); now it just generates exceptions, so we don't try right now
 		start_t = time.time()
 		logger.info("Indexing content in-process.")
@@ -218,7 +217,7 @@ def postRender(document,
 			extractor.transform(book, jobname)
 		elapsed = time.time() - start_t
 		logger.info("Content indexing took %s(s)", elapsed)
-		
+
 	logger.info("Creating JSONP content")
 	jsonpbuilder.transform(book)
 
@@ -253,7 +252,7 @@ def write_dc_metadata(document, jobname):
 		# DC Title is an array, latex title is scalar
 		# Sometimes title may be a string or it may be a TeXElement, depending
 		# on what packages have dorked things up
-		mapping['Title'] = (getattr(metadata['title'], 'textContent', 
+		mapping['Title'] = (getattr(metadata['title'], 'textContent',
 							metadata['title']),)
 
 	# The 'date' command in latex is free form, which is not
@@ -269,8 +268,8 @@ def write_dc_metadata(document, jobname):
 		f.write(xml_string.encode('utf-8'))
 
 def generateImages(document):
-	## Generates required images ###
-	## Replace this with configuration/use of ZCA?
+	# Generates required images ###
+	# Replace this with configuration/use of ZCA?
 	OVERRIDE_INDEX_NAME = getattr(ResourceTypeOverrides, 'OVERRIDE_INDEX_NAME')
 	local_overrides = os.path.join(os.getcwd(), '../nti.resourceoverrides')
 	if os.path.exists(os.path.join(local_overrides, OVERRIDE_INDEX_NAME)):

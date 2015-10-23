@@ -17,15 +17,16 @@ import subprocess
 
 from zope import component
 
+from . import _programs
 from . import interfaces
 from . import ConcurrentExecutor
 from . import javascript_path, run_phantom_on_page
-from . import _programs
 
-_rasterize_script = javascript_path( 'rasterize.js')
+_rasterize_script = javascript_path('rasterize.js')
 thumbnailsLocationName = 'thumbnails'
 
-def _create_thumbnail_of_html(page_location, page_ntiid, output_file_path, width=180, height=251, zoom_factor=0.25):
+def _create_thumbnail_of_html(page_location, page_ntiid, output_file_path,
+							  width=180, height=251, zoom_factor=0.25):
 	"""
 	Given an absolute path pointing to an HTML file, produce a PNG
 	thumbnail image for the page in ``output_file_path``.
@@ -42,9 +43,9 @@ def _create_thumbnail_of_html(page_location, page_ntiid, output_file_path, width
 	# Rasterize the page to an image file as a side effect
 	# For BWC, the size is odd, at best:
 	# Generate a 180 x 251 image, at 25% scale
-	run_phantom_on_page( page_location, _rasterize_script,
+	run_phantom_on_page(page_location, _rasterize_script,
 						 args=(output_file_path, str(width), str(height), str(zoom_factor)),
-						 expect_no_output=True )
+						 expect_no_output=True)
 
 	return (page_ntiid, output_file_path)
 
@@ -60,12 +61,12 @@ def _create_thumbnail_of_pdf(pdf_path, page=1, height=792, width=612):
 		raise ValueError("Unable to create thumbnail, GS not available")
 	GHOSTSCRIPT = _programs.gs
 
-	fd, output_file = tempfile.mkstemp( '.png', 'thumbnail' )
+	fd, output_file = tempfile.mkstemp('.png', 'thumbnail')
 	# DEVICE=jpeg is another option; using png works better with the image renderer
 	cmd = [GHOSTSCRIPT, '-dNOPAUSE', '-dSAFER',
 		   '-dBATCH', '-q',
 		   "-dFirstPage=%d" % page,
-		   "-dLastPage=%d"  % page,
+		   "-dLastPage=%d" % page,
 		   "-dPDFFitPage",
 		   "-dTextAlphaBits=4",
 		   "-dGraphicsAlphaBits=4",
@@ -79,7 +80,7 @@ def _create_thumbnail_of_pdf(pdf_path, page=1, height=792, width=612):
 	# in memory
 	__traceback_info__ = cmd
 	try:
-		subprocess.check_output( cmd, stderr=subprocess.STDOUT )
+		subprocess.check_output(cmd, stderr=subprocess.STDOUT)
 	finally:
 		os.close(fd)
 	return output_file
@@ -104,20 +105,21 @@ def transform(book, context=None):
 	thumbnail_paths = []
 
 	for page in book.pages.values():
-		page_paths.append( os.path.join( book.contentLocation, page.location ) )
-		page_ntiids.append( page.ntiid )
+		page_paths.append(os.path.join(book.contentLocation, page.location))
+		page_ntiids.append(page.ntiid)
 		thumbnail_name = '%s.png' % os.path.splitext(page.filename)[0]
-		thumbnail_paths.append( os.path.join( thumbnails_dir, thumbnail_name ) )
+		thumbnail_paths.append(os.path.join(thumbnails_dir, thumbnail_name))
 
 	with ConcurrentExecutor() as executor:
 		# If _generateImage raises an exception, we will fail to
 		# unpack the tuple result (because the exception is returned)
 		# and this function will fail
 
-		for ntiid, thumbnail_file in executor.map( _create_thumbnail_of_html,
-												   page_paths, page_ntiids, thumbnail_paths ):
+		for ntiid, thumbnail_file in executor.map(_create_thumbnail_of_html,
+												   page_paths, page_ntiids, thumbnail_paths):
 
-			eclipseTOC.getPageNodeWithNTIID(ntiid).attributes['thumbnail'] = os.path.relpath(thumbnail_file, start=book.contentLocation)
+			eclipseTOC.getPageNodeWithNTIID(ntiid).attributes['thumbnail'] =  \
+								os.path.relpath(thumbnail_file, start=book.contentLocation)
 	eclipseTOC.save()
 
 component.moduleProvides(interfaces.IRenderedBookTransformer)

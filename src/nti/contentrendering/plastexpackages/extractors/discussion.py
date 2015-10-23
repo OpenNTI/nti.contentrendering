@@ -12,10 +12,10 @@ logger = __import__('logging').getLogger(__name__)
 from zope import component
 from zope import interface
 
-from ._utils import _render_children
-
 from ...interfaces import IRenderedBook
 from ...interfaces import IDiscussionExtractor
+
+from ._utils import _render_children
 	
 @interface.implementer(IDiscussionExtractor)
 @component.adapter(IRenderedBook)

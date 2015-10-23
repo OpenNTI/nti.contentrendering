@@ -5,18 +5,20 @@ Define NTI Latex Macros
 
 .. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-import codecs
 import os
+import codecs
 import hashlib
 
 import simplejson as json
 
 from zope import interface
+
 from zope.cachedescriptors.property import readproperty
 
 from plasTeX import Base
@@ -376,7 +378,9 @@ class ntivideo(ntimedia):
 		priority = 0
 
 		def digest(self, tokens):
-			"""Handle creating the necessary datastructures for each video type."""
+			"""
+			Handle creating the necessary datastructures for each video type.
+			"""
 			super(ntivideo.ntivideosource, self).digest(tokens)
 
 			# options = self.attributes['options'] or {}
@@ -1272,7 +1276,6 @@ class ntidiscussionref(Base.Crossref.ref):
 	def discussion(self):
 		return self.idref['label']
 
-
 class ntidiscussion(Base.Environment):
 	args = '[ options:dict ] '
 
@@ -1419,7 +1422,6 @@ class sidebar(Environment, plastexids.NTIIDMixin):
 	_ntiid_title_attr_name = 'title'
 	_ntiid_type = 'HTML:NTISidebar'
 	embedded_doc_cross_ref_url = property(plastexids._embedded_node_cross_ref_url)
-
 
 class flatsidebar(sidebar):
 	pass

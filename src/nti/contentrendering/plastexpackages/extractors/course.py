@@ -21,11 +21,11 @@ from zope import interface
 from nti.externalization.externalization import to_external_object
 from nti.externalization.interfaces import INonExternalizableReplacement 
 
-from ._utils import _render_children
-
 from ...interfaces import IRenderedBook
 from ...interfaces import ICourseExtractor
 from ...interfaces import IJSONTransformer
+
+from ._utils import _render_children
 	
 @interface.implementer(ICourseExtractor)
 @component.adapter(IRenderedBook)
@@ -76,8 +76,8 @@ class _CourseExtractor(object):
 			
 		units = doc_el.getElementsByTagName('courseunit')
 
-		## SAJ: All courses should now have a course_info.json file,
-		## so always add this node
+		# SAJ: All courses should now have a course_info.json file,
+		# so always add this node
 		info = dom.createElement('info')
 		info.setAttribute('src', u'course_info.json')
 		toc_el.appendChild(info)
@@ -115,6 +115,7 @@ class _CourseExtractor(object):
 	def _process_lesson(self, dom, outpath, course_node, lesson_node,
 						lesson_dates=None, level=1):
 		date_strings = [] if lesson_dates else None
+
 		# TODO: These might be relative to the parent (e.g., +1 week)
 		for date in lesson_dates or ():
 			# The correct timezone information has already been taken care of
