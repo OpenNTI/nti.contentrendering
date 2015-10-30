@@ -63,7 +63,6 @@ setup(
 		'PyPDF2',
 		'pyquery',
 		'pytz',
-		'rdflib',
 		'requests',
 		'repoze.lru',
 		'simplejson',
