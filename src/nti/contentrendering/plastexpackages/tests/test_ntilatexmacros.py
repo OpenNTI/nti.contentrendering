@@ -1,39 +1,46 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" """
-from __future__ import print_function, unicode_literals, absolute_import
 
+from __future__ import print_function, unicode_literals, absolute_import, division
+__docformat__ = "restructuredtext en"
+
+# disable: accessing protected members, too many methods
+# pylint: disable=W0212,R0904
+
+from hamcrest import has_length
+from hamcrest import assert_that
+from hamcrest import contains_string
+
+import io
 import os
-from hamcrest import assert_that, contains_string, has_length, is_, has_property
-
 import unittest
 
-from nti.contentrendering.tests import buildDomFromString as _buildDomFromString
-from nti.contentrendering.tests import simpleLatexDocumentText
-from nti.contentrendering.tests import RenderContext
-from nti.contentrendering import _programs
+from zope import interface
 
 import fudge
 
+from nti.contentrendering import _programs
+
+from nti.contentrendering import interfaces as cdr_interfaces
+
+from nti.contentrendering.resources import ResourceRenderer
+from nti.contentrendering.resources.interfaces import ConverterUnusableError
+
+from nti.contentrendering.tests import RenderContext
+from nti.contentrendering.tests import simpleLatexDocumentText
+from nti.contentrendering.tests import buildDomFromString as _buildDomFromString
+
+from nti.contentrendering.plastexpackages.tests import ExtractorTestLayer
 
 def _simpleLatexDocument(maths):
 	return simpleLatexDocumentText( preludes=(br'\usepackage{nti.contentrendering.plastexpackages.ntilatexmacros}',
 											  br'\usepackage{graphicx}'),
 									bodies=maths )
 
-
-from zope import interface
-from nti.contentrendering import interfaces as cdr_interfaces
-from nti.contentrendering.resources import ResourceRenderer
-from nti.contentrendering.resources.interfaces import ConverterUnusableError
-import io
-
 @interface.implementer(cdr_interfaces.IRenderedBook)
 class _MockRenderedBook(object):
 	document = None
 	contentLocation = None
-
-from . import ExtractorTestLayer
 
 class TestNTICard(unittest.TestCase):
 	layer = ExtractorTestLayer
@@ -168,38 +175,6 @@ class TestNTICard(unittest.TestCase):
 									  do_images=True)
 		assert_that( value, contains_string( '<span class="description">This is the description.</span>' ) )
 		assert_that( value, contains_string( '<img ' ) )
-
-	@fudge.patch('requests.get')
-	def test_auto_populate_remote_html(self, fake_get):
-		# This real URL has been download locally
-		html_file = os.path.join( os.path.dirname( __file__ ), '130107fa_fact_green.html' )
-		jpeg_file = os.path.join( os.path.dirname( __file__ ), '130107_r23011_g120_cropth.jpg' )
-
-		class R1(object):
-			def __init__(self):
-				self.headers = {'content-type': 'text/html'}
-			@property
-			def text(self):
-				return open(html_file, 'r').read()
-
-		class R2(object):
-			@property
-			def content(self):
-				return open(jpeg_file, 'rb').read()
-
-		fake_get.is_callable().returns( R1() ).next_call().returns( R2() )
-		url = '{http://www.newyorker.com/reporting/2013/01/07/130107fa_fact_green?currentPage=all}'
-		index = self._do_test_render(
-			r'\label{testcard}',
-			'tag:nextthought.com,2011-10:testing-NTICard-temp.nticard.testcard',
-			caption='', caption_html='',
-			options='<auto=True>',
-			href=url,
-			image='' )
-
-		assert_that(index, contains_string('<span class="description">Apollo Robbins takes things from people’s jackets, pants, purses, wrists, fingers, and necks, then returns them in amusing and mind-boggling ways.</span>'))
-		assert_that( index, contains_string( '<img src="http://www.newyorker.com/images/2013/01/07/g120/130107_r23011_g120_cropth.jpg" height="120" width="120"' ) )
-
 
 	@unittest.skipUnless(_programs.verify('gs'), _programs.verify('gs'))
 	def test_auto_populate_local_pdf(self):
