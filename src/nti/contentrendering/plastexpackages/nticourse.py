@@ -3,18 +3,19 @@
 """
 NTI course macros
 
-$Id$
+.. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import os
 from datetime import datetime
 from datetime import timedelta
 
 import pytz
-import os
 
 from plasTeX import Command
 from plasTeX import Environment
@@ -46,19 +47,19 @@ class course(Environment, plastexids.NTIIDMixin):
 	tz = None
 
 	def invoke(self, tex):
-		res = super(course,self).invoke(tex)
+		res = super(course, self).invoke(tex)
 		if self.macroMode == self.MODE_BEGIN:
 			self.title = self.attributes['title']
 			self.number = self.attributes['number']
 		return res
 
 	def digest(self, tokens):
-		tok = super(course,self).digest(tokens)
+		tok = super(course, self).digest(tokens)
 		if self.macroMode == self.MODE_BEGIN:
 			if not getattr(self, 'title', ''):
 				raise ValueError("Must specify a title using \\caption")
 
-			options = self.attributes.get( 'options', {} ) or {}
+			options = self.attributes.get('options', {}) or {}
 			if 'tz' in options:
 				# Blow up if the user gave us a bad timezone, rather
 				# then silently producing the wrong output
@@ -67,7 +68,7 @@ class course(Environment, plastexids.NTIIDMixin):
 				self.ownerDocument.userdata['document_timezone_name'] = options['tz']
 			else:
 				logger.warn('No valid timezone specified')
-				self.tz = pytz.timezone( DEFAULT_TZ )
+				self.tz = pytz.timezone(DEFAULT_TZ)
 				self.ownerDocument.userdata['document_timezone_name'] = DEFAULT_TZ
 
 			__traceback_info__ = options, self.attributes
@@ -92,9 +93,9 @@ class course(Environment, plastexids.NTIIDMixin):
 		args = '[ options:dict ] ntiid:str'
 
 		def digest(self, tokens):
-			tok = super(course.coursecommunity,self).digest(tokens)
+			tok = super(course.coursecommunity, self).digest(tokens)
 
-			options = self.attributes.get( 'options', {} ) or {}
+			options = self.attributes.get('options', {}) or {}
 			if 'scope' in options:
 				self.scope = options['scope']
 			else:
@@ -110,7 +111,7 @@ class course(Environment, plastexids.NTIIDMixin):
 		def digest(self, tokens):
 			super(course.coursebundle, self).digest(tokens)
 			self.ownerDocument.userdata['course_bundle_path'] = os.path.abspath(os.path.join(self.ownerDocument.userdata['working-dir'], self.attributes.get('bundle_path')))
-			if not os.path.exists(os.path.join(self.ownerDocument.userdata['course_bundle_path'],'bundle_meta_info.json')):
+			if not os.path.exists(os.path.join(self.ownerDocument.userdata['course_bundle_path'], 'bundle_meta_info.json')):
 				logger.warning('Course bundle not found at %s' % self.ownerDocument.userdata['course_bundle_path'])
 				self.ownerDocument.userdata.pop('course_bundle_path', None)
 
@@ -130,18 +131,18 @@ class courseunit(Environment, plastexids.NTIIDMixin):
 	_ntiid_type = 'NTICourseUnit'
 
 	def invoke(self, tex):
-		res = super(courseunit,self).invoke(tex)
+		res = super(courseunit, self).invoke(tex)
 		if self.macroMode == self.MODE_BEGIN:
 			self.title = self.attributes['title']
 		return res
 
 	def digest(self, tokens):
-		res = super(courseunit,self).digest(tokens)
+		res = super(courseunit, self).digest(tokens)
 		if self.macroMode == self.MODE_BEGIN:
 			if not getattr(self, 'title', ''):
 				raise ValueError("Must specify a title using \\caption")
 
-			options = self.attributes.get( 'options', {} ) or {}
+			options = self.attributes.get('options', {}) or {}
 			__traceback_info__ = options, self.attributes
 
 		return res
@@ -151,9 +152,9 @@ from nti.externalization.datetime import datetime_from_string
 def _parse_local_date(self, val):
 	# If they gave no timezone information,
 	# use the document's
-	return datetime_from_string( val,
+	return datetime_from_string(val,
 								 assume_local=True,
-								 local_tzname=self.ownerDocument.userdata.get('document_timezone_name') )
+								 local_tzname=self.ownerDocument.userdata.get('document_timezone_name'))
 
 class coursepartname(Command):
 	pass
@@ -166,8 +167,8 @@ class courselessonref(ref):
 
 	date = ()
 
-	def invoke( self, tex ):
-		res = super(courselessonref, self).invoke( tex )
+	def invoke(self, tex):
+		res = super(courselessonref, self).invoke(tex)
 		if self.attributes.get('date'):
 			__traceback_info__ = self.attributes['date']
 			dates = self.attributes['date'].split(',')
@@ -178,7 +179,7 @@ class courselessonref(ref):
 						date = date.split('/')
 						# FIXME: Non-standard date representation
 						iso_date = '%s-%s-%s' % (date[2], date[0], date[1])
-						logger.info("Interpreting %s to mean %s in ISO format (YYYY-MM-DD)", 
+						logger.info("Interpreting %s to mean %s in ISO format (YYYY-MM-DD)",
 									date, iso_date)
 						date = iso_date
 					if 'T' not in date:
@@ -193,7 +194,7 @@ class courselessonname(Command):
 	pass
 
 class courselesson(chapter):
-	args = '* [ toc ] title label:id {options:dict:str}' # TODO: Move towards dates at this level
+	args = '* [ toc ] title label:id {options:dict:str}'  # TODO: Move towards dates at this level
 	blockType = True
 	counter = 'courselesson'
 	forcePars = False
@@ -252,7 +253,6 @@ class courselessonsection(section):
 	Example::
 
 		\courselessonsection{Title}{not_after_date=2014-01-13}
-
 	"""
 	counter = 'course' + section.counter
 	args = '* [ toc ] title {options:dict:str}'
@@ -267,7 +267,6 @@ class courselessonsubsection(subsection):
 	Example::
 
 		\courselessonsubsection{Title}{not_after_date=2014-01-13}
-
 	"""
 
 	counter = 'course' + subsection.counter
@@ -283,7 +282,6 @@ class courselessonsubsubsection(subsubsection):
 	Example::
 
 		\courselessonsubsubsection{Title}{not_after_date=2014-01-13}
-
 	"""
 	counter = 'course' + subsubsection.counter
 	args = '* [ toc ] title {options:dict:str}'
@@ -308,7 +306,7 @@ class courseoverviewgroupname(Command):
 
 class courseoverviewgroup(Environment):
 	"""
-	Data structure to organize a 'lessons' resources on the overview page. 
+	Data structure to organize a 'lessons' resources on the overview page.
 	If the content author does not sepecify and overview groups, then the
 	resources will be grouped by resource type.
 	"""
@@ -328,13 +326,12 @@ class courseoverviewgroup(Environment):
 
 		def digest(self, tokens):
 			super(courseoverviewgroup.titlebackgroundcolor, self).digest(tokens)
-
 			self.parentNode.title_background_color = self.attributes.get('color')
 
 class courseoverviewspacer(Command):
 	mime_type = "application/vnd.nextthought.nticourseoverviewspacer"
 
-def ProcessOptions( options, document ):
+def ProcessOptions(options, document):
 	for counter_cls in (course, courseinfo, courseunit, coursepart, courselesson,
 						courselessonsection, courselessonsubsection,
 						courselessonsubsubsection, courseoverviewgroup):

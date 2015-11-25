@@ -1,24 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-$Id$
+.. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
+
 from zope.cachedescriptors.property import readproperty
-
-from nti.contentfragments import interfaces as cfg_interfaces
-
-from nti.contentrendering import plastexids
-from nti.contentrendering import interfaces as crd_interfaces
-from nti.contentrendering.plastexpackages._util import LocalContentMixin
-from nti.contentrendering.plastexpackages.ntilatexmacros import ntiaudio
-from nti.contentrendering.plastexpackages.ntilatexmacros import ntivideo
-from nti.contentrendering.plastexpackages.graphicx import includegraphics
 
 from plasTeX.Base import Float
 from plasTeX.Base import Floats
@@ -27,8 +20,22 @@ from plasTeX.Base import Crossref
 from plasTeX.Base import Environment
 from plasTeX.Renderers import render_children
 
-def _timeconvert( timestring ):
-	"""Convert a time in the form HH:MM:SS, with hours and minutes optional, to seconds."""
+from nti.contentfragments.interfaces import HTMLContentFragment
+from nti.contentfragments.interfaces import ILatexContentFragment
+from nti.contentfragments.interfaces import IPlainTextContentFragment
+
+from nti.contentrendering.plastexids import NTIIDMixin
+from nti.contentrendering.interfaces import IEmbeddedContainer
+
+from nti.contentrendering.plastexpackages._util import LocalContentMixin
+from nti.contentrendering.plastexpackages.ntilatexmacros import ntiaudio
+from nti.contentrendering.plastexpackages.ntilatexmacros import ntivideo
+from nti.contentrendering.plastexpackages.graphicx import includegraphics
+
+def _timeconvert(timestring):
+	"""
+	Convert a time in the form HH:MM:SS, with hours and minutes optional, to seconds.
+	"""
 	_t = timestring.split(':')
 	t_out = 0
 	if len(_t) == 3:
@@ -49,17 +56,20 @@ class ntislidedeckname(Command):
 	pass
 
 class ntislidedeckref(Crossref.ref):
-	"""Used to link a ntislide to a ntislidedeck"""
+	"""
+	Used to link a ntislide to a ntislidedeck
+	"""
 
 	def digest(self, tex):
 		super(ntislidedeckref, self).digest(tex)
 		self.parentNode.slidedeck = self
 
-@interface.implementer(crd_interfaces.IEmbeddedContainer)
-class ntislidedeck(LocalContentMixin, Float, plastexids.NTIIDMixin):
+@interface.implementer(IEmbeddedContainer)
+class ntislidedeck(LocalContentMixin, Float, NTIIDMixin):
 	"""
-	The ntislidedeck environment stores the metadata for a 'PowerPoint' style presentation.  
-	Each slide that is a part of a presentation uses a ntislidedeckref command to link it to the approriate presentation.
+	The ntislidedeck environment stores the metadata for a 'PowerPoint' style presentation.
+	Each slide that is a part of a presentation uses a ntislidedeckref command to link it
+	to the approriate presentation.
 	"""
 
 	args = '[ options:dict ]'
@@ -69,35 +79,37 @@ class ntislidedeck(LocalContentMixin, Float, plastexids.NTIIDMixin):
 		counter = 'ntislidedeck'
 
 	# Only classes with counters can be labeled, and \label sets the
-	# id property, which in turn is used as part of the NTIID (when no NTIID is set explicitly)
+	# id property, which in turn is used as part of the NTIID
+	# (when no NTIID is set explicitly)
 	counter = "ntislidedeck"
 	blockType = True
 	forcePars = False
+
+	_ntiid_suffix = 'nsd.'
+	_ntiid_type = 'NTISlideDeck'
+	_ntiid_title_attr_name = 'ref'
 	_ntiid_cache_map_name = '_ntislide_ntiid_map'
 	_ntiid_allow_missing_title = False
-	_ntiid_suffix = 'nsd.'
-	_ntiid_title_attr_name = 'ref'
-	_ntiid_type = 'NTISlideDeck'
 
-	creator = None
 	image = None
-	type = 'application/vnd.nextthought.ntislidedeck'
+	creator = None
 	title = 'No Title'
+	type = 'application/vnd.nextthought.ntislidedeck'
 
 	mimeType = 'application/vnd.nextthought.ntislidedeck'
 
 	def digest(self, tokens):
-		res = super(ntislidedeck,self).digest(tokens)
+		res = super(ntislidedeck, self).digest(tokens)
 		if self.macroMode == self.MODE_BEGIN:
 			if not getattr(self, 'title', ''):
 				raise ValueError("Must specify a title using \\caption")
 
-			options = self.attributes.get( 'options', {} ) or {}
+			options = self.attributes.get('options', {}) or {}
 			__traceback_info__ = options, self.attributes
 			if 'creator' in options:
 				self.creator = options['creator']
 
-			images = self.getElementsByTagName( 'includegraphics' )
+			images = self.getElementsByTagName('includegraphics')
 			if images:
 				# Must leave the image in the dom so it can be found by the resourceDB
 				self.image = images[0]
@@ -110,15 +122,14 @@ class ntislidedeck(LocalContentMixin, Float, plastexids.NTIIDMixin):
 			# Try to extract the text children, ignoring the caption and label, etc
 			if 	child.nodeType == self.TEXT_NODE and \
 				(child.parentNode == self or child.parentNode.nodeName == 'par'):
-				texts.append( unicode( child ) )
+				texts.append(unicode(child))
 
-		return cfg_interfaces.IPlainTextContentFragment(
-								cfg_interfaces.ILatexContentFragment(''.join(texts).strip()))
+		return IPlainTextContentFragment(ILatexContentFragment(''.join(texts).strip()))
 
 class ntislideaudioname(Command):
 	unicode = u''
 
-class ntislideaudio(LocalContentMixin, Float, plastexids.NTIIDMixin):
+class ntislideaudio(LocalContentMixin, Float, NTIIDMixin):
 	"""
 	This environment encapsulates ntiincludeaudio objects so that we can tag them with a
 	label and reference them elsewhere.
@@ -161,7 +172,6 @@ class ntislideaudio(LocalContentMixin, Float, plastexids.NTIIDMixin):
 			if 'show-audio' in options and options['show-audio']:
 				self.itemprop = 'presentation-audio'
 
-
 			audio_els = self.getElementsByTagName('ntiaudio')
 			if audio_els:
 				self._title = audio_els[0].title
@@ -198,7 +208,7 @@ class ntislideaudio(LocalContentMixin, Float, plastexids.NTIIDMixin):
 		audio_els = self.getElementsByTagName('ntiaudio')
 		if audio_els:
 			return audio_els[0].description
-		return cfg_interfaces.IPlainTextContentFragment(cfg_interfaces.ILatexContentFragment(''))
+		return IPlainTextContentFragment(ILatexContentFragment(''))
 
 	@readproperty
 	def title(self):
@@ -264,14 +274,15 @@ class ntislideaudio(LocalContentMixin, Float, plastexids.NTIIDMixin):
 	def media_sources(self):
 		sources = self.getElementsByTagName('ntiaudio')
 		output = render_children(self.renderer, sources)
-		return cfg_interfaces.HTMLContentFragment(''.join(output).strip())
+		return HTMLContentFragment(''.join(output).strip())
 
 class ntislidevideoname(Command):
 	unicode = u''
 
-class ntislidevideo(LocalContentMixin, Float, plastexids.NTIIDMixin):
+class ntislidevideo(LocalContentMixin, Float, NTIIDMixin):
 	"""
-	This environment encapsulates ntiincludevideo objects so that we can tag them with a label and reference them elsewhere.
+	This environment encapsulates ntiincludevideo objects so that we can tag them
+	with a label and reference them elsewhere.
 	"""
 	args = '[ options:dict ]'
 
@@ -280,8 +291,8 @@ class ntislidevideo(LocalContentMixin, Float, plastexids.NTIIDMixin):
 		counter = 'ntislidevideo'
 
 	counter = "ntislidevideo"
-	blockType=True
-	forcePars=False
+	blockType = True
+	forcePars = False
 	_ntiid_cache_map_name = '_ntislidevideo_ntiid_map'
 	_ntiid_allow_missing_title = False
 	_ntiid_suffix = 'nsd.'
@@ -300,7 +311,7 @@ class ntislidevideo(LocalContentMixin, Float, plastexids.NTIIDMixin):
 	def digest(self, tokens):
 		res = super(ntislidevideo, self).digest(tokens)
 		if self.macroMode == self.MODE_BEGIN:
-			options = self.attributes.get( 'options', {} ) or {}
+			options = self.attributes.get('options', {}) or {}
 			__traceback_info__ = options, self.attributes
 			if 'presentationonly' in options and options['presentationonly']:
 				self.itemprop = 'presentation-none'
@@ -309,19 +320,19 @@ class ntislidevideo(LocalContentMixin, Float, plastexids.NTIIDMixin):
 				self.itemprop = 'presentation-video'
 
 
-			video_els = self.getElementsByTagName( 'ntivideo' )
+			video_els = self.getElementsByTagName('ntivideo')
 			if video_els:
 				self._title = video_els[0].title
 				self._creator = video_els[0].creator
 				video_els[0].itemprop = 'presentation-none'
 
-			video_els = self.getElementsByTagName( 'ntiincludevideo' )
+			video_els = self.getElementsByTagName('ntiincludevideo')
 			if video_els:
 				multimedia = ntivideo()
 				multimedia.title = self._title
 				multimedia.creator = self._creator
 				multimedia.itemprop = 'presentation-none'
-				
+
 				multimedia_source = ntivideo.ntivideosource()
 				multimedia_source.service = video_els[0].attributes['service']
 				multimedia_source.src = {}
@@ -329,11 +340,11 @@ class ntislidevideo(LocalContentMixin, Float, plastexids.NTIIDMixin):
 				multimedia_source.thumbnail = video_els[0].attributes['thumbnail']
 
 				multimedia.append(multimedia_source)
-				multimedia.num_sources +=1
+				multimedia.num_sources += 1
 				self.append(multimedia)
 
 			# Populate our thumbnail attribute. This is probably not the best way...
-			video_source_els = self.getElementsByTagName( 'ntivideosource' )
+			video_source_els = self.getElementsByTagName('ntivideosource')
 			for video_source_el in video_source_els:
 				if video_source_el.thumbnail is not None:
 					self._thumbnail = video_source_el.thumbnail
@@ -342,16 +353,16 @@ class ntislidevideo(LocalContentMixin, Float, plastexids.NTIIDMixin):
 
 	@property
 	def description(self):
-		els = self.getElementsByTagName( 'ntivideo' )
+		els = self.getElementsByTagName('ntivideo')
 		if(els):
 			return els[0].description
-		return cfg_interfaces.IPlainTextContentFragment( cfg_interfaces.ILatexContentFragment( '' ) )
+		return IPlainTextContentFragment(ILatexContentFragment(''))
 
 	@readproperty
 	def title(self):
 		title = 'No Title'
-		video_els = self.getElementsByTagName( 'ntivideo' )
-		videoref_els = self.getElementsByTagName( 'ntivideoref' )
+		video_els = self.getElementsByTagName('ntivideo')
+		videoref_els = self.getElementsByTagName('ntivideoref')
 		if self._title:
 			title = self._title
 		elif video_els:
@@ -363,8 +374,8 @@ class ntislidevideo(LocalContentMixin, Float, plastexids.NTIIDMixin):
 	@readproperty
 	def creator(self):
 		creator = 'Unknown'
-		video_els = self.getElementsByTagName( 'ntivideo' )
-		videoref_els = self.getElementsByTagName( 'ntivideoref' )
+		video_els = self.getElementsByTagName('ntivideo')
+		videoref_els = self.getElementsByTagName('ntivideoref')
 		if self._creator:
 			creator = self._creator
 		elif video_els:
@@ -376,8 +387,8 @@ class ntislidevideo(LocalContentMixin, Float, plastexids.NTIIDMixin):
 	@readproperty
 	def video_ntiid(self):
 		video_ntiid = None
-		video_els = self.getElementsByTagName( 'ntivideo' )
-		videoref_els = self.getElementsByTagName( 'ntivideoref' )
+		video_els = self.getElementsByTagName('ntivideo')
+		videoref_els = self.getElementsByTagName('ntivideoref')
 		if video_els:
 			video_ntiid = video_els[0].ntiid
 			if not hasattr(video_els[0], 'slidedeck'):
@@ -391,43 +402,42 @@ class ntislidevideo(LocalContentMixin, Float, plastexids.NTIIDMixin):
 	@readproperty
 	def thumbnail(self):
 		thumbnail = None
-		video_els = self.getElementsByTagName( 'ntivideo' )
-		videoref_els = self.getElementsByTagName( 'ntivideoref' )
+		video_els = self.getElementsByTagName('ntivideo')
+		videoref_els = self.getElementsByTagName('ntivideoref')
 		if self._thumbnail:
 			thumbnail = self._thumbnail
 		elif video_els:
-			video_source_els = video_els[0].getElementsByTagName( 'ntivideosource' )
+			video_source_els = video_els[0].getElementsByTagName('ntivideosource')
 			for video_source_el in video_source_els:
 				if video_source_el.thumbnail is not None:
 					thumbnail = video_source_el.thumbnail
 		elif videoref_els:
-			video_source_els = videoref_els[0].idref['label'].getElementsByTagName( 'ntivideosource' )
+			video_source_els = videoref_els[0].idref['label'].getElementsByTagName('ntivideosource')
 			for video_source_el in video_source_els:
 				if video_source_el.thumbnail is not None:
 					thumbnail = video_source_el.thumbnail
 		return thumbnail
 
-
 	@readproperty
 	def media_sources(self):
 		sources = self.getElementsByTagName('ntivideo')
 		output = render_children(self.renderer, sources)
-		return cfg_interfaces.HTMLContentFragment(''.join(output).strip())
+		return HTMLContentFragment(''.join(output).strip())
 
 class ntislidename(Command):
 	unicode = u''
 
-class ntislide(LocalContentMixin, Float, plastexids.NTIIDMixin):
+class ntislide(LocalContentMixin, Float, NTIIDMixin):
 	"""
-	The ntislide environment represents a single slide from a "PowerPoint" style presentation. 
+	The ntislide environment represents a single slide from a "PowerPoint" style presentation.
 
 	\begin{ntislide}
-	    \caption{title} or \ntislidetitle{title} [depreciated]
-	    \includegraphics{imagepath} or \ntislideimage{imagepath} [depreciated]
-	    \ntislidevideoref[start=time,stop=time]{video label}
-	    \begin{ntislidetext}
-	        Arbitrary text goes here
-	    \end{ntislidetext}
+		\caption{title} or \ntislidetitle{title} [depreciated]
+		\includegraphics{imagepath} or \ntislideimage{imagepath} [depreciated]
+		\ntislidevideoref[start=time,stop=time]{video label}
+		\begin{ntislidetext}
+			Arbitrary text goes here
+		\end{ntislidetext}
 	\end{ntislide}
 	"""
 	args = '[ options:dict ]'
@@ -461,8 +471,8 @@ class ntislide(LocalContentMixin, Float, plastexids.NTIIDMixin):
 		super(ntislide, self).digest(tokens)
 		if not hasattr(self, 'slidenumber'):
 			self.slidenumber = self.ownerDocument.context.counters[self.counter].value
-			
-		images = self.getElementsByTagName( 'includegraphics' )
+
+		images = self.getElementsByTagName('includegraphics')
 		if images:
 			# Must leave the image in the dom so it can be found by the resourceDB
 			self.slideimage = images[0]
@@ -501,7 +511,7 @@ class ntislide(LocalContentMixin, Float, plastexids.NTIIDMixin):
 
 		def digest(self, tokens):
 			super(ntislide.ntislidevideoref, self).digest(tokens)
-			self.starttime = _timeconvert( self.attributes['options']['start'] )
+			self.starttime = _timeconvert(self.attributes['options']['start'])
 			self.endtime = _timeconvert(self.attributes['options']['end'])
 			self.parentNode.slidevideo = self
 
@@ -517,7 +527,7 @@ class ntislide(LocalContentMixin, Float, plastexids.NTIIDMixin):
 	class ntislidetext(LocalContentMixin, Environment):
 		pass
 
-def ProcessOptions( options, document ):
+def ProcessOptions(options, document):
 	document.context.newcounter('ntislide')
 	document.context.newcounter('ntislidedeck')
 	document.context.newcounter('ntislideaudio')

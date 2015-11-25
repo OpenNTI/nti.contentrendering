@@ -49,14 +49,11 @@ Base.minipage.blockType = True
 Base.centerline.blockType = True
 
 # BWC
-import zope.deferredimport
-zope.deferredimport.initialize()
+from .eurosym import eur
+from .eurosym import euro
 
-zope.deferredimport.deprecatedFrom(
-	"Moved to nti.contentrendering.plastexpackages.eurosym",
-	"nti.contentrendering.plastexpackages.eurosym",
-	"eur",
-	"euro")
+eur = eur
+euro = euro
 
 class _OneText(Base.Command):
 	args = 'text:str'
