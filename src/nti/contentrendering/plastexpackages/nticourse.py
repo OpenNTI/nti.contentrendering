@@ -36,15 +36,16 @@ class coursename(Command):
 class course(Environment, plastexids.NTIIDMixin):
 	args = '[ options:dict ] title number'
 
+	tz = None
 	counter = 'course'
 	blockType = True
 	forcePars = False
-	_ntiid_cache_map_name = '_course_ntiid_map'
-	_ntiid_allow_missing_title = False
+	
 	_ntiid_suffix = 'course.'
-	_ntiid_title_attr_name = 'ref'
 	_ntiid_type = 'NTICourse'
-	tz = None
+	_ntiid_title_attr_name = 'ref'
+	_ntiid_allow_missing_title = False
+	_ntiid_cache_map_name = '_course_ntiid_map'
 
 	def invoke(self, tex):
 		res = super(course, self).invoke(tex)
@@ -60,6 +61,8 @@ class course(Environment, plastexids.NTIIDMixin):
 				raise ValueError("Must specify a title using \\caption")
 
 			options = self.attributes.get('options', {}) or {}
+			__traceback_info__ = options, self.attributes
+
 			if 'tz' in options:
 				# Blow up if the user gave us a bad timezone, rather
 				# then silently producing the wrong output
@@ -70,8 +73,6 @@ class course(Environment, plastexids.NTIIDMixin):
 				logger.warn('No valid timezone specified')
 				self.tz = pytz.timezone(DEFAULT_TZ)
 				self.ownerDocument.userdata['document_timezone_name'] = DEFAULT_TZ
-
-			__traceback_info__ = options, self.attributes
 
 		return tok
 
@@ -110,10 +111,13 @@ class course(Environment, plastexids.NTIIDMixin):
 
 		def digest(self, tokens):
 			super(course.coursebundle, self).digest(tokens)
-			self.ownerDocument.userdata['course_bundle_path'] = os.path.abspath(os.path.join(self.ownerDocument.userdata['working-dir'], self.attributes.get('bundle_path')))
-			if not os.path.exists(os.path.join(self.ownerDocument.userdata['course_bundle_path'], 'bundle_meta_info.json')):
-				logger.warning('Course bundle not found at %s' % self.ownerDocument.userdata['course_bundle_path'])
-				self.ownerDocument.userdata.pop('course_bundle_path', None)
+			bundle_path = self.attributes.get('bundle_path')
+			working_dir = self.ownerDocument.userdata['working-dir']
+			course_bundle_path = os.path.abspath(os.path.join(working_dir, bundle_path))
+			self.ownerDocument.userdata['course_bundle_path'] = course_bundle_path # set before cmp
+			if not os.path.exists(os.path.join(course_bundle_path, 'bundle_meta_info.json')):
+				logger.warn('Course bundle not found at %s', course_bundle_path)
+				self.ownerDocument.userdata.pop('course_bundle_path', None) # reset
 
 class courseunitname(Command):
 	pass
@@ -121,15 +125,16 @@ class courseunitname(Command):
 class courseunit(Environment, plastexids.NTIIDMixin):
 	args = '[ options:dict ] title:str'
 
-	counter = "courseunit"
 	blockType = True
 	forcePars = False
-	_ntiid_cache_map_name = '_courseunit_ntiid_map'
-	_ntiid_allow_missing_title = False
-	_ntiid_suffix = 'course.unit.'
-	_ntiid_title_attr_name = 'ref'
-	_ntiid_type = 'NTICourseUnit'
+	counter = "courseunit"
 
+	_ntiid_suffix = 'course.unit.'
+	_ntiid_type = 'NTICourseUnit'
+	_ntiid_title_attr_name = 'ref'
+	_ntiid_allow_missing_title = False
+	_ntiid_cache_map_name = '_courseunit_ntiid_map'
+	
 	def invoke(self, tex):
 		res = super(courseunit, self).invoke(tex)
 		if self.macroMode == self.MODE_BEGIN:
@@ -152,9 +157,10 @@ from nti.externalization.datetime import datetime_from_string
 def _parse_local_date(self, val):
 	# If they gave no timezone information,
 	# use the document's
+	local_tzname = self.ownerDocument.userdata.get('document_timezone_name')
 	return datetime_from_string(val,
-								 assume_local=True,
-								 local_tzname=self.ownerDocument.userdata.get('document_timezone_name'))
+								assume_local=True,
+								local_tzname=local_tzname)
 
 class coursepartname(Command):
 	pass
