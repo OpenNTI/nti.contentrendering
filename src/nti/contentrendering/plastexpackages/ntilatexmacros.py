@@ -1456,6 +1456,48 @@ class ntifileview(Command, plastexids.NTIIDMixin):
 		self.attributes['presentation'] = 'popup'
 		return result
 
+class embedwidgetname(Command):
+	pass
+
+class ntiembedwidget(Command, plastexids.NTIIDMixin):
+	args = '[ options:dict ] url:str:source <splash:str:source>'
+	blockType = True
+
+	counter = 'embedwidget'
+	_ntiid_type = 'EmbedWidget'
+	_ntiid_suffix = 'embedwidget.'
+	_ntiid_cache_map_name = '_embedwidget_ntiid_map'
+
+	itemprop = "presentation-embedwidget"
+	mimeType = "application/vnd.nextthought.content.embeded.widget"
+	
+	def digest(self, tokens):
+		res = super(ntiembedwidget, self).digest(tokens)
+		options = self.attributes.get( 'options', {} ) or {}
+		__traceback_info__ = options, self.attributes
+
+		itemprop = options.get('show-card')
+		if itemprop is not None:
+			self.itemprop = 'presentation-card'
+
+		defer = options.get('defer')
+		if defer is not None:
+			self.attributes['defer'] = defer
+
+		height = options.get('height')
+		if height is not None:
+			self.attributes['height'] = height
+
+		uid = options.get('uid')
+		if uid is not None:
+			self.attributes['uid'] = uid
+
+		uidname = options.get('uidname')
+		if uidname is not None:
+			self.attributes['uidname'] = uidname
+
+		return res
+
 def ProcessOptions( options, document ):
 	document.context.newcounter('ntiaudio')
 	document.context.newcounter('ntivideo')
@@ -1468,6 +1510,7 @@ def ProcessOptions( options, document ):
 	document.context.newcounter('ntidiscussion')
 	document.context.newcounter('sidebar')
 	document.context.newcounter('fileview')
+	document.context.newcounter('embedwidget')
 
 from plasTeX.interfaces import IOptionAwarePythonPackage
 interface.moduleProvides(IOptionAwarePythonPackage)

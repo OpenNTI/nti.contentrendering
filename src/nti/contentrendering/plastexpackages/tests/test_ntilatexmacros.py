@@ -433,3 +433,31 @@ class TestNTIMediaCollection(unittest.TestCase):
 		video_roll = dom.getElementsByTagName('ntivideoroll')[0]
 		assert_that( video_roll.poster, contains_string('poster.jpg') )
 		
+class TestNTIEmbedWidget(unittest.TestCase):
+
+	def test_embedwidget_basic(self):
+		example = br"""
+		\ntiembedwidget{https://www.example.com/mywidget/}
+		"""
+		dom = _buildDomFromString( _simpleLatexDocument( (example,) ) )
+		
+		# Check that the DOM has the expected structure
+		assert_that( dom.getElementsByTagName('ntiembedwidget'), has_length( 1 ) )
+		widget = dom.getElementsByTagName('ntiembedwidget')[0]
+		assert_that( widget.attributes['url'], contains_string('https://www.example.com/mywidget/') )
+
+	def test_embedwidget_complete(self):
+		example = br"""
+		\ntiembedwidget[height=900px,uid=mywidget,uidname=sourceName,defer=false]{https://www.example.com/mywidget/}<https://www.example.com/images/splash.jpg>
+		"""
+		dom = _buildDomFromString( _simpleLatexDocument( (example,) ) )
+		
+		# Check that the DOM has the expected structure
+		assert_that( dom.getElementsByTagName('ntiembedwidget'), has_length( 1 ) )
+		widget = dom.getElementsByTagName('ntiembedwidget')[0]
+		assert_that( widget.attributes['url'], contains_string('https://www.example.com/mywidget/') )
+		assert_that( widget.attributes['splash'], contains_string('https://www.example.com/images/splash.jpg') )
+		assert_that( widget.attributes['height'], contains_string('900px') )
+		assert_that( widget.attributes['uid'], contains_string('mywidget') )
+		assert_that( widget.attributes['uidname'], contains_string('sourceName') )
+		assert_that( widget.attributes['defer'], contains_string('false') )
