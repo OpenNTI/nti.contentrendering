@@ -445,6 +445,7 @@ class TestNTIEmbedWidget(unittest.TestCase):
 		assert_that( dom.getElementsByTagName('ntiembedwidget'), has_length( 1 ) )
 		widget = dom.getElementsByTagName('ntiembedwidget')[0]
 		assert_that( widget.attributes['url'], contains_string('https://www.example.com/mywidget/') )
+		assert_that( widget.attributes['uid'], contains_string('widget66e71b15d9227f6ed5f19ec73a698529') )
 
 	def test_embedwidget_complete(self):
 		example = br"""
