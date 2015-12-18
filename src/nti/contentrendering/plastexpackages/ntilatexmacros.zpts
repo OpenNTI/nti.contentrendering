@@ -345,11 +345,11 @@ name: embedwidgetname
 
 name: ntiembedwidget
 <object class="nti-content-embeded-widget" tal:attributes="type self/mimeType; itemprop self/itemprop; data-ntiid self/ntiid">
-    <param name="source" tal:attributes="source self/attributes/url"/>
-    <param name="height" tal:attributes="height self/attributes/height" tal:condition="self/attributes/height"/>
-    <param name="splash" tal:attributes="splash self/attributes/splash"/ tal:condition="self/attributes/splash">
-    <param name="defer" tal:attributes="defer self/attributes/defer" tal:condition="self/attributes/defer"/>
-    <param name="uid" tal:attributes="uid self/attributes/uid" tal:condition="self/attributes/uid"/>
-    <param name="uidname" tal:attributes="uidname self/attributes/uidname" tal:condition="self/attributes/uidname"/>
+    <param name="source" tal:attributes="value self/attributes/url"/>
+    <param name="height" tal:attributes="value self/attributes/height" tal:condition="self/attributes/height"/>
+    <param name="splash" tal:attributes="value self/attributes/splash" tal:condition="self/attributes/splash"/>
+    <param name="defer" tal:attributes="value self/attributes/defer" tal:condition="self/attributes/defer"/>
+    <param name="uid" tal:attributes="value self/attributes/uid"/>
+    <param name="uidname" tal:attributes="value self/attributes/uidname" tal:condition="self/attributes/uidname"/>
 </object>
 
