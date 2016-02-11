@@ -866,16 +866,15 @@ class nticard(LocalContentMixin,Base.Float,plastexids.NTIIDMixin):
 
 	_href_override = None
 
-
 	def _pdf_to_thumbnail(self, pdf_path, page=1, height=792, width=612):
 		from nti.contentrendering.contentthumbnails import _create_thumbnail_of_pdf
 		return _create_thumbnail_of_pdf( pdf_path, page=page, height=height, width=width )
 
-
 	def _auto_populate(self):
+		from nti.contentprocessing.interfaces import IContentMetadata
 		from nti.contentprocessing.metadata_extractors import get_metadata_from_content_location
 		metadata = get_metadata_from_content_location( self._href_override or self.href )
-		if metadata is not None:
+		if IContentMetadata.providedBy(metadata):
 			self.title = metadata.title or self.title
 			self.description = metadata.description or self.description
 			self.href = metadata.contentLocation or self.href
@@ -889,7 +888,7 @@ class nticard(LocalContentMixin,Base.Float,plastexids.NTIIDMixin):
 				def __init__(self,px):
 					self.px = px
 
-			if metadata.mimeType == 'application/pdf':
+			if metadata.contentMimeType == 'application/pdf':
 				# Generate and use the real thing
 				thumb_file = self._pdf_to_thumbnail( metadata.sourcePath )
 				include = includegraphics()
@@ -918,7 +917,6 @@ class nticard(LocalContentMixin,Base.Float,plastexids.NTIIDMixin):
 				self.image.image.url = val
 				self.image.image.height = Dimen(height)
 				self.image.image.width = Dimen(width)
-
 
 	def invoke( self, tex ):
 		res = super(nticard,self).invoke( tex )
@@ -984,7 +982,6 @@ class nticard(LocalContentMixin,Base.Float,plastexids.NTIIDMixin):
 												nttype=TYPE_UUID,
 												specific=md5(self.href).hexdigest() )
 		return res
-
 
 	@readproperty
 	def description(self):
