@@ -447,6 +447,18 @@ class TestNTIEmbedWidget(unittest.TestCase):
 		assert_that( widget.attributes['url'], contains_string('https://www.example.com/mywidget/') )
 		assert_that( widget.attributes['uid'], contains_string('widget66e71b15d9227f6ed5f19ec73a698529') )
 
+	def test_embedwidget_queryparam(self):
+		example = br"""
+		\ntiembedwidget{https://widgets.nextthought.com/santafesouth-integers/?type=subtracting&equations=2-3,1-4,3--4}
+		"""
+		dom = _buildDomFromString( _simpleLatexDocument( (example,) ) )
+		
+		# Check that the DOM has the expected structure
+		assert_that( dom.getElementsByTagName('ntiembedwidget'), has_length( 1 ) )
+		widget = dom.getElementsByTagName('ntiembedwidget')[0]
+		assert_that( widget.attributes['url'], contains_string('https://widgets.nextthought.com/santafesouth-integers/?type=subtracting&equations=2-3,1-4,3--4') )
+		assert_that( widget.attributes['uid'], contains_string('widget51919f7cfe3b30396d4de1a53243859a') )
+
 	def test_embedwidget_complete(self):
 		example = br"""
 		\ntiembedwidget[height=900px,uid=mywidget,uidname=sourceName,defer=false]{https://www.example.com/mywidget/}<https://www.example.com/images/splash.jpg>

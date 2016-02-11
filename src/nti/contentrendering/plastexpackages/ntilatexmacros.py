@@ -1471,10 +1471,21 @@ class ntiembedwidget(Command, plastexids.NTIIDMixin):
 	itemprop = "presentation-embedwidget"
 	mimeType = "application/vnd.nextthought.content.embeded.widget"
 	
+	to_replace = ( (' ', '' ), ('\\&', '&' ), ('\\_', '_' ), ( '\\%', '%' ),
+				 (u'\u2013', u'--'), (u'\u2014', u'---') )
+		
+	def replacer(self, source):
+		for a, b in self.to_replace:
+			source = source.replace(a, b)
+		return source
+
 	def digest(self, tokens):
 		res = super(ntiembedwidget, self).digest(tokens)
 		options = self.attributes.get( 'options', {} ) or {}
 		__traceback_info__ = options, self.attributes
+
+		# process the parsed URI to workaround extra spaces added by the parcer
+		self.attributes['url'] = self.replacer(self.attributes['url'])
 
 		itemprop = options.get('show-card')
 		if itemprop is not None:
