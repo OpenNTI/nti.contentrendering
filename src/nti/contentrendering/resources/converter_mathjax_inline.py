@@ -69,7 +69,7 @@ class MathjaxInlineCompilerDriver(converters.AbstractOneOutputDocumentCompilerDr
 		<link rel="stylesheet" href="styles/styles.css" />\
 		<link rel="stylesheet" href="styles/content.css" />\
 		<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>\
-		<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML,https://s3.amazonaws.com/dev.nextthought.com/mathjaxconfig.js"></script>\
+		<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS_HTML,https://s3.amazonaws.com/dev.nextthought.com/mathjaxconfig.js"></script>\
 		')
 
 		self.write('</head>\
