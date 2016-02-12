@@ -5,6 +5,7 @@ of portions of a document (such as images and math expressions).
 
 .. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
@@ -13,16 +14,19 @@ logger = __import__('logging').getLogger(__name__)
 from zope import interface
 
 from zope.deprecation import deprecated
-import zope.dottedname.resolve as dottedname
 
-from . import interfaces
+from zope.dottedname import resolve as dottedname
+
+from nti.contentrendering.resources.interfaces import IRepresentableContentUnit
+from nti.contentrendering.resources.interfaces import IRepresentationPreferences
+from nti.contentrendering.resources.interfaces import IContentUnitRepresentation
 
 def _set_default_resource_types(tabular=False):
 
-	def _implement( cls, types ):
-		interface.classImplements( cls,
-								   interfaces.IRepresentableContentUnit,
-								   interfaces.IRepresentationPreferences )
+	def _implement(cls, types):
+		interface.classImplements(cls,
+								  IRepresentableContentUnit,
+								  IRepresentationPreferences)
 		cls.resourceTypes = types
 
 	if tabular:
@@ -32,25 +36,26 @@ def _set_default_resource_types(tabular=False):
 		_implement(Arrays.tabularx, tabularTypes)
 		_implement(Arrays.TabularStar, tabularTypes)
 
-	Boxes = dottedname.resolve( 'plasTeX.Base.Boxes' )
-	_implement( Boxes.raisebox, ( 'png','svg' ) )
+	Boxes = dottedname.resolve('plasTeX.Base.Boxes')
+	_implement(Boxes.raisebox, ('png', 'svg'))
 
-	Math = dottedname.resolve( 'plasTeX.Base.Math' )
-	inlineMathTypes = ('mathjax_inline', )
-	#displayMathTypes = ('png', 'svg', 'mathjax_display', )
+	Math = dottedname.resolve('plasTeX.Base.Math')
+	inlineMathTypes = ('mathjax_inline',)
+	# displayMathTypes = ('png', 'svg', 'mathjax_display', )
 
 	# inlineMathTypes = ['mathjax_inline', 'png', 'svg']
-	displayMathTypes = ('mathjax_display', )
+	displayMathTypes = ('mathjax_display',)
 	_implement(Math.math, inlineMathTypes)
 	_implement(Math.ensuremath, inlineMathTypes)
 
 	_implement(Math.displaymath, displayMathTypes)
 	_implement(Math.EqnarrayStar, displayMathTypes)
+
 	# TODO: What about eqnarry?
 	_implement(Math.equation, displayMathTypes)
 
 	from nti.contentrendering.plastexpackages.graphicx import includegraphics
-	_implement( includegraphics, ('png',) )
+	_implement(includegraphics, ('png',))
 
 	from plasTeX.Packages import amsmath
 
@@ -66,9 +71,9 @@ def _set_default_resource_types(tabular=False):
 
 	# Make the image class into a resource
 	# FIXME: This needs more as Resource evolves
-	Image = dottedname.resolve( 'plasTeX.Imagers.Image' )
+	Image = dottedname.resolve('plasTeX.Imagers.Image')
 	Image._url = None
-	Image.url = property( lambda self: self._url, lambda self, nv: setattr( self, '_url', nv ) )
+	Image.url = property(lambda self: self._url, lambda self, nv: setattr(self, '_url', nv))
 
 	# XXX FIXME If we don't do this, then we can get
 	# a module called graphicx reloaded from this package
@@ -81,7 +86,7 @@ def _set_default_resource_types(tabular=False):
 # is extremely unlikely to cause any conflicts or difficulty
 _set_default_resource_types()
 
-@interface.implementer(interfaces.IContentUnitRepresentation)
+@interface.implementer(IContentUnitRepresentation)
 class Resource(object):
 
 	def __init__(self, path=None, url=None, resourceSet=None, checksum=None):
@@ -93,8 +98,8 @@ class Resource(object):
 	def __str__(self):
 		return '%s' % self.path
 
-from .contentunitrepresentations import ResourceRepresentations
-from .contentunitrepresentations import ContentUnitRepresentations
+from nti.contentrendering.resources.contentunitrepresentations import ResourceRepresentations
+from nti.contentrendering.resources.contentunitrepresentations import ContentUnitRepresentations
 
 ResourceSet = ResourceRepresentations
 deprecated('ResourceSet', 'Prefer the name ResourceRepresentations')

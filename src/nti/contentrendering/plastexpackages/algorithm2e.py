@@ -17,6 +17,7 @@ from plasTeX import Base
 
 class _Ignored(Base.Command):
 	unicode = ''
+
 	def invoke(self, tex):
 		return []
 

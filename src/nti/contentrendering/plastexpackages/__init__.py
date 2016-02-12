@@ -8,6 +8,8 @@ A best practice is to make these modules importable directly (as if this
 directory was on the PYTHONPATH). This allows the use of \usepackage{foo}
 rather than \usepackage{nti.contentrendering.plastexpackages.foo}.
 
+Don't Import anything in this module
+
 .. $Id$
 """
 

@@ -11,6 +11,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from plasTeX import Command
+
 from plasTeX.DOM import Text
 
 class eur(Command):
