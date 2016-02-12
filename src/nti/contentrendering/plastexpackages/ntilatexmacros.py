@@ -25,17 +25,27 @@ from plasTeX import Base
 from plasTeX import Command 
 from plasTeX import Environment 
 from plasTeX import TeXFragment
+
 from plasTeX.Base import Crossref
 from plasTeX.Base import TextCommand
-from plasTeX.Renderers import render_children
+
 from plasTeX.Packages.hyperref import href as base_href
+
+from plasTeX.Renderers import render_children
 
 from nti.contentfragments import interfaces as cfg_interfaces
 
+from nti.contentprocessing.interfaces import IContentMetadata
+from nti.contentprocessing.metadata_extractors import get_metadata_from_content_location
+		
 from nti.contentrendering import plastexids
 from nti.contentrendering import interfaces as crd_interfaces
+
+from nti.contentrendering.contentthumbnails import _create_thumbnail_of_pdf
+
 from nti.contentrendering.plastexpackages._util import LocalContentMixin
 from nti.contentrendering.plastexpackages.graphicx import includegraphics
+
 from nti.contentrendering.resources import interfaces as resource_interfaces
 
 from nti.ntiids import ntiids
@@ -49,20 +59,23 @@ Base.minipage.blockType = True
 Base.centerline.blockType = True
 
 # BWC
-from .eurosym import eur
-from .eurosym import euro
+from nti.contentrendering.plastexpackages.eurosym import eur
+from nti.contentrendering.plastexpackages.eurosym import euro
 
 eur = eur
 euro = euro
 
 class _OneText(Base.Command):
+	
 	args = 'text:str'
 
 	def invoke( self, tex ):
 		return super(_OneText, self).invoke( tex )
 
 class _Ignored(Base.Command):
+
 	unicode = ''
+
 	def invoke( self, tex ):
 		return []
 
@@ -100,10 +113,13 @@ class ntinavlist(Base.List):
 # The following block of commands concern general resource handling
 ###############################################################################
 
-@interface.implementer(resource_interfaces.IRepresentableContentUnit,
-		       resource_interfaces.IRepresentationPreferences)
+@interface.implementer(resource_interfaces.IRepresentableContentUnit,	
+					   resource_interfaces.IRepresentationPreferences)
 class DeclareMediaResource( Base.Command ):
-	"""This command is extremely experimental and should be avoided for now."""
+	"""
+	This command is extremely experimental and should be avoided for now.
+	"""
+
 	args = 'src:str label:id'
 	resourceTypes = ( 'jsonp', )
 
@@ -118,7 +134,7 @@ class DeclareMediaResource( Base.Command ):
 ###############################################################################
 
 @interface.implementer(resource_interfaces.IRepresentableContentUnit,
-		       resource_interfaces.IRepresentationPreferences)
+					   resource_interfaces.IRepresentationPreferences)
 class mediatranscript(Base.Command):
 	args = 'src:str type:str lang:str purpose:str'
 	resourceTypes = ( 'jsonp', )
@@ -198,7 +214,6 @@ class ntiincludekalturavideo(Command):
 							(partner_id, subpartner_id, uiconf_id, partner_id, player_id, entry_id)
 		self.width = u'640'
 		self.height = u'390'
-
 		return res
 
 class ntimediaref(Base.Crossref.ref):
@@ -867,12 +882,9 @@ class nticard(LocalContentMixin,Base.Float,plastexids.NTIIDMixin):
 	_href_override = None
 
 	def _pdf_to_thumbnail(self, pdf_path, page=1, height=792, width=612):
-		from nti.contentrendering.contentthumbnails import _create_thumbnail_of_pdf
 		return _create_thumbnail_of_pdf( pdf_path, page=page, height=height, width=width )
 
 	def _auto_populate(self):
-		from nti.contentprocessing.interfaces import IContentMetadata
-		from nti.contentprocessing.metadata_extractors import get_metadata_from_content_location
 		metadata = get_metadata_from_content_location( self._href_override or self.href )
 		if IContentMetadata.providedBy(metadata):
 			self.title = metadata.title or self.title
