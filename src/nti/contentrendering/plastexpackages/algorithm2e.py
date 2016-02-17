@@ -16,6 +16,7 @@ logger = __import__('logging').getLogger(__name__)
 from plasTeX import Base
 
 class _Ignored(Base.Command):
+
 	unicode = ''
 
 	def invoke(self, tex):

@@ -15,17 +15,18 @@ import re
 from zope import interface
 
 from nti.contentrendering import plastexids
-from nti.contentrendering.resources import interfaces as res_interfaces
+from nti.contentrendering.resources.interfaces import IRepresentationPreferences
 
-from .amsopn import DeclareMathOperator
-from .picins import picskip
-from .picins import parpic
+from nti.contentrendering.plastexpackages.picins import parpic
+from nti.contentrendering.plastexpackages.picins import picskip
+from nti.contentrendering.plastexpackages.amsopn import DeclareMathOperator
 
-from plasTeX import Base, Command
+from plasTeX import Base
+from plasTeX import Command
+from plasTeX.Base import Node
+from plasTeX.Base import Crossref
 from plasTeX.Base.LaTeX import Index
 from plasTeX.Packages import graphicx
-from plasTeX.Base import Crossref
-from plasTeX.Base import Node
 
 ###
 # FIXME: star imports!
@@ -33,14 +34,14 @@ from plasTeX.Base import Node
 # - unable to traverse to 'url' on an includegraphics
 # - "No resource types for align* using default renderer <type 'unicode'>"
 ###
+from plasTeX.Packages.amsmath import *
 from plasTeX.Packages.fancybox import *
 from plasTeX.Packages.graphicx import *
-from plasTeX.Packages.amsmath import *
 
 
 # Disable pylint warning about "too many methods" on the Command subclasses,
 # and "deprecated string" module
-#pylint: disable=R0904,W0402
+# pylint: disable=R0904,W0402
 
 class _OneText(Base.Command):
 	args = 'text:str'
@@ -50,12 +51,11 @@ class _OneText(Base.Command):
 
 class _Ignored(Base.Command):
 	unicode = ''
+
 	def invoke( self, tex ):
 		return []
 
-#
 # Presentation things to ignore
-#
 
 class rindent(_Ignored):
 	pass
@@ -66,17 +66,16 @@ class vupnud(_Ignored):
 class pagebreak(_Ignored):
 	pass
 
-#TODO:  In many cases phantom is used purely for spacing we don't care about
-#in our rendering.  At other times it's used for spaceing we do need to render (e.g. fill in the blank style blanks)
-#This looks like it will be a case by case basis.
-#included phantom doesn't allow for tex fragments as args
+# TODO: In many cases phantom is used purely for spacing we don't care about
+# in our rendering.  At other times it's used for spaceing we do need to render (e.g. fill in the blank style blanks)
+# This looks like it will be a case by case basis.
+# included phantom doesn't allow for tex fragments as args
 class phantom(Base.Space.phantom):
 	args = 'tex'
 
-@interface.implementer(res_interfaces.IRepresentationPreferences)
+@interface.implementer(IRepresentationPreferences)
 class Cube(_OneText):
 	resourceTypes = ['png', 'svg']
-
 
 class BlackCube(Cube):
 	pass
@@ -95,17 +94,16 @@ class multicols(Base.Environment):
 	def digest( self, tokens ):
 		return super(multicols,self).digest( tokens )
 
-## class newline(Base.Command):
-##	macroName = '\\'
+# class newline(Base.Command):
+#	macroName = '\\'
 
-##	def toXML(self):
-##		return '<newline/>'
+#	def toXML(self):
+#		return '<newline/>'
 
 def digestUntilNextTextSize(self, tokens):
 	return _digestAndCollect( self, tokens, Base.FontSelection.TextSizeDeclaration )
 
 Base.FontSelection.TextSizeDeclaration.digest = digestUntilNextTextSize
-
 
 class rule(Base.Boxes.rule):
 	""" Rules have no place in this DOM, except in math mode, where their presentation
@@ -123,16 +121,19 @@ class rule(Base.Boxes.rule):
 		return []
 
 class vspace(Base.Space.vspace):
+
 	def invoke( self, tex ):
 		super( vspace, self ).invoke( tex )
 		return []
 
 class vskip(Base.Primitives.vskip):
+
 	def invoke( self, tex ):
 		super( vskip, self ).invoke( tex )
 		return []
 
 class chapterpicture(_OneText):
+
 	def invoke( self, tex ):
 		super(chapterpicture,self).invoke( tex )
 		return []
@@ -177,7 +178,6 @@ class defns(Base.Environment):
 class picdefns(defns):
 	args = '{Picture}'
 
-
 class cancel(Base.Command):
 	args = 'text'
 
@@ -196,25 +196,21 @@ class text(Base.BoxCommand):
 		super(text,self).__init__()
 		self.arguments[0].options['stripLeadingWhitespace'] = True
 
-
-
-#TODO does this get handled like ^
+# TODO: does this get handled like ^
 class textsuperscript(Base.Command):
 	args = 'text:str'
 
-
-#We would like to be able to normalize math mode
-#at parse time such that expressions like $24$ automatically
-#become simple text nodes, but that's not (easily) possible: we cannot
-#make that decision until after the children are parsed, and by then
-#we're in the DOM (the digest() method does not yet have the proper parentNode)
-#to remove
+# We would like to be able to normalize math mode
+# at parse time such that expressions like $24$ automatically
+# become simple text nodes, but that's not (easily) possible: we cannot
+# make that decision until after the children are parsed, and by then
+# we're in the DOM (the digest() method does not yet have the proper parentNode)
+# to remove
 
 class angle(Base.Command):
 
 	def invoke( self, tex ):
 		super(angle, self).invoke(	tex )
-
 
 # The rlin command and the vv command break rendering of
 # vectors, so they are disabled.
@@ -239,10 +235,10 @@ class angle(Base.Command):
 #		arrow += expr
 #		return [arrow]
 
-
-## rlin is re-enabled for the sake of mathjax
+# rlin is re-enabled for the sake of mathjax
 class rlin(Base.Command):
-	""" A presentation command that means overleftrightarrow. However,
+	""" 
+	A presentation command that means overleftrightarrow. However,
 	we represent it in the DOM for MathJax--it needs to get the
 	grouping around the text. This corresponds to a custom macro in
 	the default-layout.html AoPS template. """
@@ -258,6 +254,7 @@ class source(Base.Command):
 
 class MathCounts(source):
 	args = ''
+
 	def invoke(self, tex):
 		res = super(MathCounts, self).invoke(tex)
 		self.attributes['source'] = 'MATHCOUNTS'
@@ -265,6 +262,7 @@ class MathCounts(source):
 
 class MOEMS(source):
 	args = ''
+
 	def invoke(self, tex):
 		res = super(MOEMS, self).invoke(tex)
 		self.attributes['source'] = 'MOEMS'
@@ -272,12 +270,14 @@ class MOEMS(source):
 
 class AMC(source):
 	args = '{text:str}'
+
 	def invoke(self, tex):
 		res = super(AMC, self).invoke(tex)
 		self.attributes['source'] = 'AMC %s' % self.attributes['text']
 		return res
 
 # Counters
+
 class partnumname(Base.Command):
 	unicode = ''
 
@@ -359,17 +359,20 @@ def removeCommasFromSectionWithHints(subsection):
 	for node in subsection.childNodes:
 		for child in node.childNodes:
 			if child.nextSibling != None and child.nextSibling.nextSibling != None:
-				if child.nodeName == hintName and child.nextSibling == ', ' and child.nextSibling.nextSibling.nodeName == hintName:
+				if 		child.nodeName == hintName \
+					and child.nextSibling == ', '  \
+					and child.nextSibling.nextSibling.nodeName == hintName:
 					node.removeChild(child.nextSibling)
-				elif child.nodeName == hintName and child.nextSibling == ',' and child.nextSibling.nextSibling.source == '~ ' and child.nextSibling.nextSibling.nextSibling != None and child.nextSibling.nextSibling.nextSibling.nodeName == hintName:
+				elif	child.nodeName == hintName and child.nextSibling == ',' \
+					and child.nextSibling.nextSibling.source == '~ ' \
+					and child.nextSibling.nextSibling.nextSibling != None \
+					and child.nextSibling.nextSibling.nextSibling.nodeName == hintName:
 					node.removeChild(child.nextSibling)
 
 def _number_to_lower_alpha_list(index):
 	if index:
 		return _number_to_lower_alpha_list( (index - 1) // 26 ) + chr( (index - 1) % 26 + 97 )
 	return ''
-
-
 
 # Exercises exist at the end of a section and are started with \exercises.  There is
 # no explicit stop.	Exercises end when a new section starts
@@ -412,8 +415,9 @@ class exer(plastexids.StableIDMixin, Base.subsubsection):
 
 	def invoke( self, tex ):
 		res = super(exer,self).invoke( tex )
-
-		self.attributes['exnumber'] = str(self.ownerDocument.context.counters['chapter'].value) + '.' + str(self.ownerDocument.context.counters['section'].value) + '.' + str(self.ownerDocument.context.counters['exnumber'].value)
+		self.attributes['exnumber'] = 	str(self.ownerDocument.context.counters['chapter'].value) \
+									  + '.' + str(self.ownerDocument.context.counters['section'].value) \
+									  + '.' + str(self.ownerDocument.context.counters['exnumber'].value)
 
 		return res
 
@@ -423,13 +427,11 @@ class exer(plastexids.StableIDMixin, Base.subsubsection):
 
 	def postParse(self, tex):
 		super(exer, self).postParse(tex)
-
-		#Because we are a subsubsection our deep section level causes the ref
-		#attribute to not be set in the super.	In a section with a lower sec number
-		#(I.E. subsection, section, chapter...) the super would also set a captionName attribute
+		# Because we are a subsubsection our deep section level causes the ref
+		# attribute to not be set in the super.	In a section with a lower sec number
+		# (I.E. subsection, section, chapter...) the super would also set a captionName attribute
 		self.ref = self.ownerDocument.createElement('the'+self.counter).expand(tex)
 		self.captionName = self.ownerDocument.createElement(self.counter+'name').expand(tex)
-
 
 class dfrac(Base.Command):
 	args = 'num den'
@@ -499,7 +501,9 @@ class _BasePicProblem(Base.Environment):
 	def invoke(self,tex):
 		res = super(_BasePicProblem,self).invoke( tex )
 
-		self.attributes['probnum'] = str(self.ownerDocument.context.counters['chapter'].value) + '.' + str(self.ownerDocument.context.counters['probnum'].value)
+		self.attributes['probnum'] =	str(self.ownerDocument.context.counters['chapter'].value) \
+									 +	'.' \
+									 + str(self.ownerDocument.context.counters['probnum'].value)
 
 		#if self.macroMode != Base.Environment.MODE_END:
 		#	self.refstepcounter(tex)
@@ -521,14 +525,13 @@ class problem(Base.Environment):
 	blockType = True
 
 	def invoke( self, tex ):
-		#if self.macroMode != Base.Environment.MODE_END:
+		# if self.macroMode != Base.Environment.MODE_END:
 		#	self.refstepcounter(tex)
-
-
 		res = super(problem,self).invoke( tex )
-		self.attributes['probnum'] = str(self.ownerDocument.context.counters['chapter'].value) + '.' + str(self.ownerDocument.context.counters['probnum'].value)
+		self.attributes['probnum'] =	str(self.ownerDocument.context.counters['chapter'].value) \
+									+	'.' \
+									+	str(self.ownerDocument.context.counters['probnum'].value)
 		return res
-
 
 class problemspec(problem):
 	pass
@@ -539,15 +542,13 @@ def _digestAndCollect( self, tokens, until ):
 	if getattr(self, 'forcePars', True):
 		self.paragraphs()
 
-
 class sectionproblems(Base.subsection):
 	counter = 'sectionprobsnotused'
 	args = ''
 	title = 'sectionproblems'
 
 	def invoke( self, tex ):
-		self.ownerDocument.context.counters['saveprobnum'].setcounter(
-			self.ownerDocument.context.counters['probnum'] )
+		self.ownerDocument.context.counters['saveprobnum'].setcounter(self.ownerDocument.context.counters['probnum'] )
 		return super(sectionproblems,self).invoke( tex )
 
 	def digest(self, tokens):
@@ -578,8 +579,6 @@ class sectionproblems(Base.subsection):
 					self.pop(i)
 					before.append(item)
 
-
-
 class picsecprobspec(_BasePicProblem):
 	pass
 
@@ -607,8 +606,9 @@ class beginsol( Base.subsection ):
 
 		#We encounter solutions right after the problem therefore our
 		#solutions probnum should be the current value of the probnum counter
-		self.attributes['probnum'] = str(self.ownerDocument.context.counters['chapter'].value) + '.' + str(self.ownerDocument.context.counters['probnum'].value)
-
+		self.attributes['probnum'] =	str(self.ownerDocument.context.counters['chapter'].value) \
+									+	'.' \
+									+	str(self.ownerDocument.context.counters['probnum'].value)
 		return res
 
 	def digest( self, tokens ):
@@ -627,15 +627,15 @@ class solution( Base.Environment ):
 
 		#We encounter solutions right after the problem therefore our
 		#solutions probnum should be the current value of the probnum counter
-		self.attributes['probnum'] = str(self.ownerDocument.context.counters['chapter'].value) + '.' + str(self.ownerDocument.context.counters['probnum'].value)
-
+		self.attributes['probnum'] =	str(self.ownerDocument.context.counters['chapter'].value) \
+									+	'.' \
+									+	str(self.ownerDocument.context.counters['probnum'].value)
 		return res
-###
-# FIXME The use of section types for individual problems and exercises
+
+# FIXME: The use of section types for individual problems and exercises
 # is probably not right. This causes them to appear in the table of contents,
 # partially, but they don't have real titles. It also causes them to get NTIIDs,
 # which may or may not be right.
-###
 
 # FIXME: These counters are not right?
 # If we don't override the args attribute, these consume one letter of text
@@ -686,7 +686,6 @@ class challengeprobs(Base.section):
 
 		return res
 
-
 class revprob(Base.subsection):
 	args = ''
 	counter = 'probnum'
@@ -694,7 +693,9 @@ class revprob(Base.subsection):
 
 	def invoke( self, tex ):
 		res = super(revprob,self).invoke( tex )
-		self.attributes['probnum'] = str(self.ownerDocument.context.counters['chapter'].value) + '.' + str(self.ownerDocument.context.counters['probnum'].value)
+		self.attributes['probnum'] =	str(self.ownerDocument.context.counters['chapter'].value) \
+									+	'.' \
+									+	str(self.ownerDocument.context.counters['probnum'].value)
 		return res
 
 	def digest(self, tokens):
@@ -708,7 +709,9 @@ class chall(Base.subsection):
 
 	def invoke( self, tex ):
 		res = super(chall,self).invoke( tex )
-		self.attributes['probnum'] = str(self.ownerDocument.context.counters['chapter'].value) + '.' + str(self.ownerDocument.context.counters['probnum'].value)
+		self.attributes['probnum'] =	str(self.ownerDocument.context.counters['chapter'].value) \
+									+	'.' \
+									+	str(self.ownerDocument.context.counters['probnum'].value)
 		return res
 
 	def digest(self, tokens):
@@ -722,37 +725,39 @@ class challhard(Base.subsection):
 
 	def invoke( self, tex ):
 		res = super(challhard,self).invoke( tex )
-		self.attributes['probnum'] = str(self.ownerDocument.context.counters['chapter'].value) + '.' + str(self.ownerDocument.context.counters['probnum'].value)
+		self.attributes['probnum'] =	str(self.ownerDocument.context.counters['chapter'].value) \
+									+	'.' \
+									+	str(self.ownerDocument.context.counters['probnum'].value)
 		return res
 
 	def digest(self, tokens):
 		super(challhard, self).digest( tokens )
 		removeCommasFromSectionWithHints( self )
 
-#for \nth, \nst, \nrd, etc..
+# for \nth, \nst, \nrd, etc..
 class nsuperscript(Base.Command):
 	args = 'text'
 
-	## #We need to store if we are inside math mode
-	## def invoke(self, tex):
-	## 	result = super(nsuperscript, self).invoke( tex )
-	## 	self.insideMathElement = self.ownerDocument.context.isMathMode
-	## 	return result
+	# We need to store if we are inside math mode
+	# def invoke(self, tex):
+	# 	result = super(nsuperscript, self).invoke( tex )
+	# 	self.insideMathElement = self.ownerDocument.context.isMathMode
+	# 	return result
 
-	## #We want to be treated as math for resource generation and rendering
-	## #so our source needs to make us look like a math element.  if we are
-	## #contained in a math element we get that for free.	If not we have to put
-	## #ourselves in math mode using $$
-	## @property
-	## def source(self):
-	## 	mySource = super(nsuperscript, self).source
+	# We want to be treated as math for resource generation and rendering
+	# so our source needs to make us look like a math element.  if we are
+	# contained in a math element we get that for free.	If not we have to put
+	# ourselves in math mode using $$
+	# @property
+	# def source(self):
+	#	mySource = super(nsuperscript, self).source
 
-	## 	if not self.insideMathElement:
-	## 		#If we wrap our self in math environment
-	## 		#we need to make sure we don't already contain math
-	## 		mySource = '$%s$' % mySource
+	# 	if not self.insideMathElement:
+	# 		# If we wrap our self in math environment
+	# 		# we need to make sure we don't already contain math
+	# 		mySource = '$%s$' % mySource
 
-	## 	return mySource
+	# 	return mySource
 
 class nst(nsuperscript):
 	pass
@@ -778,11 +783,13 @@ class leftpic(rightpic):
 class fig(Base.figure):
 	pass
 
-class negthinspaceshorthand(Base.Text.negthinspace):
+negthinspace = getattr(Base.Text, 'negthinspace')
+
+class negthinspaceshorthand(negthinspace):
 	macroName = '!'
 
+# Hints
 
-## Hints
 class hints(_Ignored):
 	pass
 
@@ -842,9 +849,9 @@ class hintitem(Crossref.ref):
 	args = 'label:idref'
 
 	def invoke( self, tex ):
-#		self.counter = 'hintnum'
-#		self.position = self.ownerDocument.context.counters[self.counter].value + 1
-		#ignore the list implementation
+		# self.counter = 'hintnum'
+		# self.position = self.ownerDocument.context.counters[self.counter].value + 1
+		# ignore the list implementation
 		return Base.Command.invoke(self,tex)
 
 	def digest(self, tokens):
@@ -876,7 +883,6 @@ class ntirequires(Base.Command):
 			parentNode = parentNode.parentNode
 		return result
 
-
 # AoPS Custom Math Operators
 
 class lcm(Command):
@@ -887,9 +893,9 @@ class lcm(Command):
 class davesuglyhack(Command):
 	args = ''
 
-###
-### Indexes in math equations turn out to mess up
-### mathjax rendering. Thus we remove them.
+# Indexes in math equations turn out to mess up
+# mathjax rendering. Thus we remove them.
+
 class index(Index.index):
 
 	def invoke(self, tex):
@@ -900,9 +906,7 @@ class index(Index.index):
 		return result
 
 def ProcessOptions( options, document ):
-
 	document.context.newcounter( 'exnumber' , resetby='section')
-
 	document.context.newcounter( 'partnum' )
 
 	# used in \begin{problem}.

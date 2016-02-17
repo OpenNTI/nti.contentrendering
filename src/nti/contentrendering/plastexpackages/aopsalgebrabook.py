@@ -11,7 +11,7 @@ logger = __import__('logging').getLogger(__name__)
 
 # Import all items from aopsbook.py.
 # This file is our central file for all AoPS specific macros.
-from .aopsbook import *
+from nti.contentrendering.plastexpackages.aopsbook import *
 
 import zope.deferredimport
 zope.deferredimport.initialize()

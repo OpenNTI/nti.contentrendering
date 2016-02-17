@@ -45,11 +45,11 @@ def _is_renderable(renderer, elements):
 	result = bool(renderer is not None and elements)
 	if result:
 		for element in elements:
-			result = hasattr(element, 'nodeType') and \
-					 hasattr(element, 'unicode')  and \
-					 hasattr(element, 'nodeName') and \
-					 hasattr(element, 'attributes') and \
-					 hasattr(element, 'filename')
+			result = 	hasattr(element, 'nodeType') \
+					and hasattr(element, 'unicode')  \
+					and hasattr(element, 'nodeName') \
+					and hasattr(element, 'filename') \
+					and hasattr(element, 'attributes')
 			if not result:
 				break
 	return result

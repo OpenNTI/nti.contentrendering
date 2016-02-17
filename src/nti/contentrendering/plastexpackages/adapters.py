@@ -25,6 +25,7 @@ from nti.externalization.interfaces import StandardExternalFields
 from nti.ntiids.ntiids import make_ntiid
 from nti.ntiids.ntiids import get_provider
 from nti.ntiids.ntiids import get_specific
+from nti.ntiids.ntiids import make_specific_safe
 
 HREF = StandardExternalFields.HREF
 ITEMS = StandardExternalFields.ITEMS
@@ -61,8 +62,10 @@ class _CourseLessonJSONTransformer(object):
 
 	def group_ntiid(self, idx):
 		prov = self._provider
-		spec = self._specific + (".%s" % idx)
-		result = make_ntiid(base=self.ntiid, provider=prov, specific=spec,
+		spec = make_specific_safe(self._specific + (".%s" % idx))
+		result = make_ntiid(base=self.ntiid, 
+							provider=prov,
+							specific=spec,
 							nttype=NTI_COURSE_OVERVIEW_GROUP)
 		return result
 
