@@ -350,6 +350,6 @@ name: ntiembedwidget
     <param name="splash" tal:attributes="value self/attributes/splash" tal:condition="self/attributes/splash"/>
     <param name="defer" tal:attributes="value self/attributes/defer" tal:condition="self/attributes/defer"/>
     <param name="uid" tal:attributes="value self/attributes/uid"/>
-    <param name="uidname" tal:attributes="value self/attributes/uidname" tal:condition="self/attributes/uidname"/>
+    <param name="uid-name" tal:attributes="value self/attributes/uid-name" tal:condition="self/attributes/uid-name"/>
 </object>
 

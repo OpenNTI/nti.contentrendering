@@ -1514,9 +1514,9 @@ class ntiembedwidget(Command, plastexids.NTIIDMixin):
 		else:
 			self.attributes['uid'] = u'widget' + hashlib.md5(self.attributes['url']+self.ntiid).hexdigest()
 
-		uidname = options.get('uidname')
+		uidname = options.get('uid-name') or options.get('uidname') #uidname for legacy
 		if uidname is not None:
-			self.attributes['uidname'] = uidname
+			self.attributes['uid-name'] = uidname
 
 		return res
 
