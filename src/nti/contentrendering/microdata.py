@@ -10,6 +10,7 @@ https://gist.github.com/577116
 
 .. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
@@ -37,7 +38,7 @@ class Microdata(object):
 		self.doc = doc
 		self.find_base()
 		self.cache = {}
-		
+
 		# data factory
 		self.url = urljoin
 		self.text = lambda t: t
@@ -54,39 +55,37 @@ class Microdata(object):
 		"""
 		iterate top-level items of elements
 		"""
-		
+
 		if (elem.get("itemscope") is not None and elem.get("itemprop") is None):
-			if not types or elem.get("itemtype") in types: 
+			if not types or elem.get("itemtype") in types:
 				yield elem
 
 		for child in elem.getchildren():
-			for _ in self.item_elems(child, types): 
-				yield _
-			
-		return
+			for ele in self.item_elems(child, types):
+				yield ele
 
 	def parse_item_elem(self, elem, item):
 		props = {}
-		
+		item[PROPERTIES_KEY] = props
+
 		refs = elem.get("itemref")
 		if refs is not None:
 			for ref in refs.split():
 				self.parse_item_ref(props, ref)
-				
+
 		for child in elem.getchildren():
 			self.parse_item_props(child, props, None)
-			
-		item[PROPERTIES_KEY] = props
+
 		attrs = elem.keys()
-		
-		if "itemid" in attrs: 
+
+		if "itemid" in attrs:
 			item["id"] = elem.get("itemid")
-		
-		if "itemtype" in attrs: 
+
+		if "itemtype" in attrs:
 			item["type"] = elem.get("itemtype")
-			
+
 		return item
-	
+
 	def parse_item_ref(self, props, ref):
 		if ref not in self.cache:
 			self.cache[ref] = {}
@@ -97,27 +96,23 @@ class Microdata(object):
 			if name not in props:
 				props[name] = []
 			props[name].extend(self.cache[ref][name])
-			
-		return
 
 	def parse_item_props(self, elem, props, ref):
-		if elem is None: 
+		if elem is None:
 			return
-		
+
 		propnames = elem.get("itemprop")
 		if propnames:
 			names = propnames.split()
 			value = self.parse_value(elem, ref, names)
 			for propname in names:
-				if propname not in props: 
+				if propname not in props:
 					props[propname] = []
 				props[propname].append(value)
 
 		for child in elem.getchildren():
 			self.parse_item_props(child, props, ref)
 
-		return
-	
 	def parse_value(self, elem, ref, names):
 		if elem.get("itemscope") is not None:
 			item = {}
@@ -126,7 +121,7 @@ class Microdata(object):
 
 		# from http://dev.w3.org/html5/md/#values
 		tag = elem.tag
-		if tag == "meta": 
+		if tag == "meta":
 			value = self.text(elem.get("content"))
 		elif tag in self.src_tags:
 			value = self.url(self.base, elem.get("src"))
@@ -136,14 +131,14 @@ class Microdata(object):
 			value = self.url(self.base, elem.get("data"))
 		elif tag == "time" and "datetime" in elem.keys():
 			value = self.datetime(elem.get("datetime"))
-		else: 
+		else:
 			value = self.text(self.to_text(elem))
-			
+
 		self.store_cache(ref, names, value)
 		return value
-	
-	src_tags = ["audio", "embed", "iframe", "img", "source", "video"]
+
 	href_tags = ["a", "area", "link"]
+	src_tags = ["audio", "embed", "iframe", "img", "source", "video"]
 
 	def store_cache(self, ref, names, value):
 		if ref and names:
@@ -159,25 +154,25 @@ class Microdata(object):
 			ret += self.to_text(child)
 			ret += child.tail or ""
 		return ret
-	
+
 	def elem_by_id(self, elem, a_id):
-		if elem.get("id") == a_id: 
+		if elem.get("id") == a_id:
 			return elem
 		for child in elem.getchildren():
 			ret = self.elem_by_id(child, a_id)
-			if ret is not None: 
+			if ret is not None:
 				return ret
 		return None
-	
+
 	def find_base(self):
-		if self.doc.tag != "html": 
+		if self.doc.tag != "html":
 			return
 
 		for head in self.doc.getchildren():
-			if head.tag != "head": 
+			if head.tag != "head":
 				continue
 			for base in head.getchildren():
-				if base.tag != "base": 
+				if base.tag != "base":
 					continue
 				uri = base.get("href")
 				if uri is not None:
@@ -187,7 +182,7 @@ class Microdata(object):
 def get_file_items(html_file, types=None, uri=""):
 	with open(html_file, "r") as f:
 		return items(f.read(), types, uri)
-	
+
 def main(args=None):
 	args = args or sys.argv[1:]
 	return get_file_items(args[0]) if args else None
