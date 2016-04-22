@@ -166,13 +166,13 @@ class _NTIMediaExtractor(object):
 		# add video objects to toc
 		overrides = defaultdict(set)
 		media_in_toc, _ = self._find_toc_media(topic_map)
-		for media_ntiid, container_ntiids in list(inverted.items()): # mutating
+		for media_ntiid, container_ntiids in tuple(inverted.items()): # mutating
 			toc_entries = media_in_toc.get(media_ntiid)
 			if toc_entries:
 				for toc_container_id in toc_entries:
 					overrides[media_ntiid].add(toc_container_id)
 			else:
-				for container_ntiid in list(container_ntiids): # mutating
+				for container_ntiid in tuple(container_ntiids): # mutating
 					if container_ntiid == doc_ntiid:
 						parent = dom.documentElement
 						# remove reference from the main container
