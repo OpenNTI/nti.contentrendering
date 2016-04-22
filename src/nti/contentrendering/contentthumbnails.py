@@ -17,10 +17,11 @@ import subprocess
 
 from zope import component
 
-from . import _programs
-from . import interfaces
-from . import ConcurrentExecutor
-from . import javascript_path, run_phantom_on_page
+from nti.contentrendering import _programs
+from nti.contentrendering import interfaces
+from nti.contentrendering import javascript_path
+from nti.contentrendering import ConcurrentExecutor
+from nti.contentrendering import run_phantom_on_page
 
 _rasterize_script = javascript_path('rasterize.js')
 thumbnailsLocationName = 'thumbnails'
@@ -44,8 +45,8 @@ def _create_thumbnail_of_html(page_location, page_ntiid, output_file_path,
 	# For BWC, the size is odd, at best:
 	# Generate a 180 x 251 image, at 25% scale
 	run_phantom_on_page(page_location, _rasterize_script,
-						 args=(output_file_path, str(width), str(height), str(zoom_factor)),
-						 expect_no_output=True)
+						args=(output_file_path, str(width), str(height), str(zoom_factor)),
+						expect_no_output=True)
 
 	return (page_ntiid, output_file_path)
 
@@ -116,7 +117,7 @@ def transform(book, context=None):
 		# and this function will fail
 
 		for ntiid, thumbnail_file in executor.map(_create_thumbnail_of_html,
-												   page_paths, page_ntiids, thumbnail_paths):
+												  page_paths, page_ntiids, thumbnail_paths):
 
 			eclipseTOC.getPageNodeWithNTIID(ntiid).attributes['thumbnail'] =  \
 								os.path.relpath(thumbnail_file, start=book.contentLocation)

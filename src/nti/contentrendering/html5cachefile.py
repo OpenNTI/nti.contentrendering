@@ -3,6 +3,7 @@
 """
 .. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
@@ -27,7 +28,7 @@ WGET_CMD = [ 'wget', '-q' ]
 def get_open_port():
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	try:
-		s.bind(("",0))
+		s.bind(("", 0))
 		s.listen(1)
 		return s.getsockname()[1]
 	finally:
@@ -46,15 +47,15 @@ def main(url_or_path, out_dir="/tmp/", manifest='cache-manifest', port=None):
 		else:
 			httpd = None
 			url = url_or_path
-			url = url[:-1] if url[-1] =='/' else url
+			url = url[:-1] if url[-1] == '/' else url
 
 		out_dir = _create_path(out_dir)
 
-		resources = _get_url_resources(url, out_dir, httpd==None)
+		resources = _get_url_resources(url, out_dir, httpd == None)
 		_process_toc_file(url, resources)
 
 		path = os.path.join(out_dir, manifest)
-		with open(path,"w") as target:
+		with open(path, "w") as target:
 			target.write("CACHE MANIFEST\n")
 			for value in sorted(resources.keys()):
 				target.write("%s\n" % value)
@@ -68,10 +69,10 @@ def _process_toc_file(url, resources, toc_file='eclipse-toc.xml'):
 	tmp = tempfile.mkdtemp()
 	try:
 		if _get_toc_file(url, tmp, toc_file):
-			e = pq(filename = os.path.join(tmp, toc_file))
-			e('toc').map(lambda i,e: _process_node(e, resources))
-			e('topic').map(lambda i,e: _process_node(e, resources))
-			e('page').map(lambda i,e: _process_node(e, resources))
+			e = pq(filename=os.path.join(tmp, toc_file))
+			e('toc').map(lambda i, e: _process_node(e, resources))
+			e('topic').map(lambda i, e: _process_node(e, resources))
+			e('page').map(lambda i, e: _process_node(e, resources))
 	finally:
 		shutil.rmtree(tmp, ignore_errors=True)
 
@@ -81,12 +82,12 @@ def _process_node(node, resources):
 	for i, name  in enumerate (['href', 'qualifier', 'icon', 'thumbnail']):
 		value = attributes.get(name, None)
 		if value:
-			if i<=1 and not value.endswith(".html"):
+			if i <= 1 and not value.endswith(".html"):
 				continue
 			elif value not in resources:
 				resources[value] = None
 
-def _launch_server(data_path, port = None):
+def _launch_server(data_path, port=None):
 
 	import SimpleHTTPServer
 	import SocketServer
@@ -122,7 +123,7 @@ def _get_url_resources(url, out_dir="/tmp", user_spider=False):
 
 	args = []
 	args.extend(WGET_CMD)
-	args.extend( ['-m', '-nH', '--no-parent', '-p'] )
+	args.extend(['-m', '-nH', '--no-parent', '-p'])
 	cut_dirs = _get_cut_dirs(url)
 	if cut_dirs > 0:
 		args.append('--cut-dirs=%s' % cut_dirs)
@@ -131,21 +132,21 @@ def _get_url_resources(url, out_dir="/tmp", user_spider=False):
 		args.append('--spider')
 	else:
 		tmp = tempfile.mkdtemp()
-		args.append( '-P' )
-		args.append( tmp )
+		args.append('-P')
+		args.append(tmp)
 
 	args.append(url)
 
 	def valid_resource(rsr):
 		rsr = rsr.rstrip() if rsr else None
-		rsr = rsr[:-1] if rsr[-1] =='/' else rsr
+		rsr = rsr[:-1] if rsr[-1] == '/' else rsr
 		if rsr and '?' not in rsr and rsr != url and not rsr.endswith("robots.txt"):
 			return rsr[len(url) + 1:] if rsr.startswith(url) else rsr
 		else:
 			return None
 
 	try:
-		source = subprocess.Popen(args, shell=False, stderr=subprocess.PIPE).communicate()[1] # stderr
+		source = subprocess.Popen(args, shell=False, stderr=subprocess.PIPE).communicate()[1]  # stderr
 		for line in source:
 			m = re.search('(^--.*--)  (http:\/\/.*[^\/]$)', line)
 			if m:
@@ -164,7 +165,7 @@ def _get_file(url, out_dir, target, force_html=False):
 	"""
 	args = []
 	args.extend(WGET_CMD)
-	args.extend( ['-N', '-nH', '-P', out_dir] )
+	args.extend(['-N', '-nH', '-P', out_dir])
 	if force_html:
 		args.extend(['-p', '--force-html'])
 
@@ -188,7 +189,7 @@ def _execute_cmd(args):
 	cmd = ' '.join(args)
 	retcode = subprocess.call(args, shell=False)
 	if retcode != 0:
-		raise Exception("Fail to execute '%s', return code %s" % (cmd, retcode) )
+		raise Exception("Fail to execute '%s', return code %s" % (cmd, retcode))
 	return True
 
 def _remove_file(target):
