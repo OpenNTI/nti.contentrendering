@@ -3,6 +3,7 @@
 """
 .. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
@@ -21,6 +22,7 @@ from zope import interface
 from zope.configuration import xmlconfig
 
 from nti.contentrendering import RenderedBook
+
 from nti.contentrendering.interfaces import JobComponents
 from nti.contentrendering.interfaces import IRenderedBookTransformer
 
@@ -29,12 +31,12 @@ interface.moduleProvides(IRenderedBookTransformer)
 class _JSONPWrapper(object):
 
 	def __init__(self, ntiid, filename, jsonpFunctionName):
+		self.data = {}
 		self.filename = filename
 		self.jsonpFunctionName = jsonpFunctionName
-		self.data = {}
 		self.data['ntiid'] = ntiid
-		self.data['Content-Type'] = mimetypes.guess_type(filename)[0]
 		self.data['version'] = '1'
+		self.data['Content-Type'] = mimetypes.guess_type(filename)[0]
 
 		# Read the ToC file and base64 encode
 		with io.open(filename, 'rb') as f:
@@ -58,10 +60,10 @@ def main():
 	xmlconfig.file('configure.zcml', package="nti.contentrendering")
 	zope_conf_name = os.path.join(contentLocation, '..', 'configure.zcml')
 	if os.path.exists(zope_conf_name):
-		xmlconfig.file(os.path.abspath(zope_conf_name), package="nti.contentrendering")
+		xmlconfig.file(os.path.abspath(zope_conf_name),
+					   package="nti.contentrendering")
 
 	context = JobComponents(os.path.split(os.path.abspath(contentLocation))[-1])
-
 	book = RenderedBook.RenderedBook(None, contentLocation)
 	transform(book, context=context)
 
@@ -79,8 +81,8 @@ def transform(book, context=None):
 	# Export the root icon as a JSONP file if it exists
 	if(book.toc.root_topic.has_icon()):
 		_JSONPWrapper(book.toc.root_topic.ntiid,
-				   os.path.join(book.contentLocation, book.toc.root_topic.get_icon()),
-				   'jsonpData').writeJSONPToFile()
+				   	  os.path.join(book.contentLocation, book.toc.root_topic.get_icon()),
+					  'jsonpData').writeJSONPToFile()
 	# Export the topic HTML files as JSONP files
 	_process_topic(book.toc.root_topic, book.contentLocation)
 
@@ -91,7 +93,8 @@ def _process_topic(topic, contentLocation):
 	This function will export a topic to JSONP format and then recursively process any child topics.
 	The function has no return value.
 	"""
-	_JSONPWrapper(topic.ntiid, os.path.join(contentLocation, topic.filename), 'jsonpContent').writeJSONPToFile()
+	_JSONPWrapper(topic.ntiid, os.path.join(contentLocation, topic.filename), 
+				  'jsonpContent').writeJSONPToFile()
 
 	# Process any child nodes
 	for child in topic.childTopics:

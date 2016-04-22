@@ -34,12 +34,15 @@ class IEclipseMiniDomTopic(interface.Interface):
 
 	childTopics = schema.Iterable(title="All the child topics of this topic.")
 
-	dom = interface.Attribute('The :class:`pyquery.pyquery.PyQuery` object representing the HTML contents. Will be None if not parsable')
+	dom = interface.Attribute('The :class:`pyquery.pyquery.PyQuery` object representing the HTML contents. '
+							  'Will be None if not parsable')
 
 	ntiid = schema.TextLine(title='The NTIID of this content')
 
 	def write_dom(force=False):
-		"Causes the in-memory `dom` to be written to disk at the file it was read from."
+		"""
+		Causes the in-memory `dom` to be written to disk at the file it was read from.
+		"""
 
 class IRenderedBook(interface.Interface):
 
@@ -49,7 +52,7 @@ class IRenderedBook(interface.Interface):
 		title=u"The location of the directory on disk containing the content")
 
 	toc = schema.Object(IEclipseMiniDomTOC,
-						 title="The shared in-memory TOC for this book.")
+						title="The shared in-memory TOC for this book.")
 
 	jobname = schema.TextLine(
 		title="The name of the rendering job that produced this book, or the empty string.",
@@ -154,9 +157,7 @@ class IStaticYouTubeEmbedVideoAdder(IStaticVideoAdder):
 	Uses static information to add embedded YouTube video references to the book content.
 	"""
 
-####
 # Embedded subcontainers
-####
 
 from zope.mimetype.interfaces import IContentTypeAware
 
