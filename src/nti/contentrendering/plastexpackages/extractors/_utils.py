@@ -20,3 +20,6 @@ def _render_children(renderer, nodes, strip=False):
         result = nodes.decode("utf-8") if isinstance(nodes, bytes) else nodes
     result = result.strip() if strip and result else result
     return result
+
+def _render_elemet(element, strip=False):
+    return _render_children(element.renderer, element, strip)

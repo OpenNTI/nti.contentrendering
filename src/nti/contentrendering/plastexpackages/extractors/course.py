@@ -18,14 +18,14 @@ import simplejson as json
 from zope import component
 from zope import interface
 
+from nti.contentrendering.interfaces import IRenderedBook
+from nti.contentrendering.interfaces import ICourseExtractor
+from nti.contentrendering.interfaces import IJSONTransformer
+
+from nti.contentrendering.plastexpackages.extractors._utils import _render_children
+
 from nti.externalization.externalization import to_external_object
 from nti.externalization.interfaces import INonExternalizableReplacement 
-
-from ...interfaces import IRenderedBook
-from ...interfaces import ICourseExtractor
-from ...interfaces import IJSONTransformer
-
-from ._utils import _render_children
 	
 @interface.implementer(ICourseExtractor)
 @component.adapter(IRenderedBook)
@@ -93,7 +93,8 @@ class _CourseExtractor(object):
 		toc_el = dom.createElement('unit')
 		toc_el.setAttribute('levelnum', '0')
 		toc_el.setAttribute('ntiid', doc_el.ntiid)
-		toc_el.setAttribute('label', unicode(doc_el.title))
+		toc_el.setAttribute('label', 
+							_render_children(doc_el.renderer, doc_el.title))
 		
 		lesson_refs = doc_el.getElementsByTagName('courselessonref')
 		course_node = doc_el

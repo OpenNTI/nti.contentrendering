@@ -123,7 +123,7 @@ class courseunitname(Command):
 	pass
 
 class courseunit(Environment, plastexids.NTIIDMixin):
-	args = '[ options:dict ] title:str'
+	args = '[ options:dict ] title'
 
 	blockType = True
 	forcePars = False
@@ -149,7 +149,6 @@ class courseunit(Environment, plastexids.NTIIDMixin):
 
 			options = self.attributes.get('options', {}) or {}
 			__traceback_info__ = options, self.attributes
-
 		return res
 
 from nti.externalization.datetime import datetime_from_string
