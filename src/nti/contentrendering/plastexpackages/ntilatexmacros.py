@@ -1516,8 +1516,7 @@ class ntiembedwidget(Command, plastexids.NTIIDMixin):
 
 		uidname = options.get('uid-name') or options.get('uidname') #uidname for legacy
 		if uidname is not None:
-			self.attributes['uid-name'] = uidname
-
+			self.attributes['uidname'] = self.attributes['uid-name'] = uidname
 		return res
 
 def ProcessOptions( options, document ):
