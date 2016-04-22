@@ -11,22 +11,22 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 
-from .interfaces import IRenderedBookTransformer
-interface.moduleProvides( IRenderedBookTransformer )
+from nti.contentrendering.interfaces import IRenderedBookTransformer
+interface.moduleProvides(IRenderedBookTransformer)
 
-def transform( book, save_toc=True ):
+def transform(book, save_toc=True):
 
-	def modify_hrefs_in_topic( topic ):
+	def modify_hrefs_in_topic(topic):
 		result = 0
 		hrefs = ()
 		dom = topic.dom
 		if dom:
 			hrefs = []
 			# The main body
-			hrefs.extend( dom("a[href]") )
+			hrefs.extend(dom("a[href]"))
 			# next/prev/up links in the header
-			for rel in ('next','up','prev'):
-				hrefs.extend( dom( 'link[href][rel="'+rel+'"]' ) )
+			for rel in ('next', 'up', 'prev'):
+				hrefs.extend(dom('link[href][rel="' + rel + '"]'))
 
 		for href in hrefs:
 			filename = href.attrib['href']
@@ -34,21 +34,21 @@ def transform( book, save_toc=True ):
 				# We're probably dealing with a javascript onclick handler here,
 				# ignore it
 				continue
-			if filename.startswith( '#' ):
+			if filename.startswith('#'):
 				# Yay, it's already an in-page relative link and we can
 				# ignore it. (See comments below)
 				continue
-			if filename.startswith( 'tag:nextthought' ):
+			if filename.startswith('tag:nextthought'):
 				# Yay, it's already a NTIID
-				# Note that we're not using the nti.dataserver.ntiids module to 
+				# Note that we're not using the nti.dataserver.ntiids module to
 				# validate this to avoid dependencies (which may not be important)
 				continue
-			if filename.startswith( 'http:' ) or filename.startswith( 'https:' ):
+			if filename.startswith('http:') or filename.startswith('https:'):
 				# An absolute link. Nothing to do for it either
 				continue
 
 			fragment = ''
-			filename_frag = filename.split( '#', 1 )
+			filename_frag = filename.split('#', 1)
 			if len(filename_frag) == 2:
 				filename, fragment = filename_frag
 				fragment = '#' + fragment
@@ -62,31 +62,31 @@ def transform( book, save_toc=True ):
 				else:
 					# Bare links to the current page occur as part of some referencing
 					# schemes. (E.g., "Problem number <Section>.<Counter>" generates
-					# two links, one for the current page, one for the counter.) The 
+					# two links, one for the current page, one for the counter.) The
 					# first link is useless and annoying if you click it, so make it do
 					# nothing (But this doesn't count as real work)
 					logger.debug("Stripping a bare link to the current page '%s' in %s",
-								 href.attrib['href'], topic )
+								 href.attrib['href'], topic)
 					href.attrib['href'] = '#'
 				continue
 
-			ntiid_topic = book.toc.root_topic.topic_with_filename( filename )
+			ntiid_topic = book.toc.root_topic.topic_with_filename(filename)
 			if ntiid_topic and ntiid_topic.ntiid:
 				# Fragments are not sent when the browser follows a URL, so
 				# the client will have to handle fragment behaviour
 				href.attrib['href'] = ntiid_topic.ntiid + fragment
 				result += 1
 			else:
-				logger.warn("Unable to resolve NTIID for href '%s' and file '%s' in %s", 
-							href.attrib['href'], filename, topic )
+				logger.warn("Unable to resolve NTIID for href '%s' and file '%s' in %s",
+							href.attrib['href'], filename, topic)
 
 		if result:
 			topic.write_dom()
 
 		# recurse
 		for t in topic.childTopics:
-			result += modify_hrefs_in_topic( t )
+			result += modify_hrefs_in_topic(t)
 		return result
 
-	result = modify_hrefs_in_topic( book.toc.root_topic )
+	result = modify_hrefs_in_topic(book.toc.root_topic)
 	return result
