@@ -17,14 +17,18 @@ import glob
 import zipfile
 import argparse
 
-from zope import interface
 from zope import component
-from zope.configuration import xmlconfig, config
+from zope import interface
+
+from zope.configuration import config
+from zope.configuration import xmlconfig
 
 import nti.contentrendering
 
 from nti.contentrendering.interfaces import IRenderedBookArchiver
-from nti.contentrendering.utils import NoConcurrentPhantomRenderedBook, EmptyMockDocument
+
+from nti.contentrendering.utils import EmptyMockDocument
+from nti.contentrendering.utils import NoConcurrentPhantomRenderedBook
 
 BLACK_LIST = (r'.*\.jsonp', r'indexdir', r'cache-manifest', r'archive\.zip',
 			  r'htaccess', r'assessment_index\.json', r'\.nti_acl', r'\.htaccess')
@@ -43,7 +47,7 @@ def _archive(source_path, out_dir=None, verbose=False):
 	source_path = source_path + '/' if not source_path.endswith('/') else source_path
 	if not os.path.exists(source_path) or not os.path.isdir(source_path):
 		raise Exception("Invalid source directory")
-	
+
 	added = set()
 	out_dir = out_dir or source_path
 	out_dir = os.path.expanduser(out_dir)
@@ -69,14 +73,14 @@ def _archive(source_path, out_dir=None, verbose=False):
 					arcname = dname + '/' + pathname[len(source_path):]
 					added.add(arcname)
 					if verbose:
-						print("Adding %s" % arcname)
-					zf.write(pathname, arcname=arcname, 
+						logger.info("Adding %s" % arcname)
+					zf.write(pathname, arcname=arcname,
 							 compress_type=zipfile.ZIP_DEFLATED)
-			
+
 		def _process(path):
 			_add_2_archive(os.path.join(path, "*"))
 			_add_2_archive(os.path.join(path, ".*"))
-	
+
 		_process(source_path)
 	finally:
 		zf.close()
@@ -93,7 +97,7 @@ def create_archive(book, out_dir=None, verbose=False, name=u''):
 		archiver = component.queryUtility(IRenderedBookArchiver)
 	result = archiver.archive(book, out_dir, verbose)
 	return result
-	
+
 def main():
 	context = config.ConfigurationMachine()
 	xmlconfig.registerCommonDirectives(context)
@@ -102,7 +106,7 @@ def main():
 	arg_parser = argparse.ArgumentParser(description="Archive book content")
 	arg_parser.add_argument('content_path', help="Book content path")
 	arg_parser.add_argument("-o", "--outdir", dest='out_dir', help="Output directory")
-	arg_parser.add_argument('-a', '--archiver', dest='archiver', 
+	arg_parser.add_argument('-a', '--archiver', dest='archiver',
 							help="The archiver name")
 	arg_parser.add_argument('-v', '--verbose', help="Verbose output",
 							action='store_true', dest='verbose')

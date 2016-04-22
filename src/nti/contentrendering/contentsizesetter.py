@@ -3,6 +3,7 @@
 """
 .. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
@@ -19,7 +20,7 @@ def transform(book, context=None):
 	"""
 
 	eclipseTOC = book.toc
-	_storeContentSizes( book.toc.root_topic )
+	_storeContentSizes(book.toc.root_topic)
 	eclipseTOC.save()
 
 def _storeContentSizes(topic):
@@ -31,10 +32,9 @@ def _storeContentSizes(topic):
 		# Some of these are expected because we don't
 		# get the page info for all the pages (like the index)
 		# for some reason
-		logger.warn( "Failed to get content size for %s", topic )
+		logger.warn("Failed to get content size for %s", topic)
 		return
 
-	topic.set_content_height( contentHeight )
-
-	for child in topic.childTopics:
-		_storeContentSizes( child )
+	topic.set_content_height(contentHeight)
+	for child in topic.childTopics or ():
+		_storeContentSizes(child)

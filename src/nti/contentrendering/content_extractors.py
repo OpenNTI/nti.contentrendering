@@ -15,11 +15,11 @@ import argparse
 
 from zope import component
 
-from .render_document import parse_tex
+from nti.contentrendering.interfaces import IRenderedBookExtractor
 
-from .interfaces import IRenderedBookExtractor
+from nti.contentrendering.render_document import parse_tex
 
-from .utils import NoConcurrentPhantomRenderedBook
+from nti.contentrendering.utils import NoConcurrentPhantomRenderedBook
 
 DEFAULT_LOG_FORMAT = '[%(asctime)-15s] [%(name)s] %(levelname)s: %(message)s'
 
@@ -42,7 +42,7 @@ def main():
 	contentpath = os.path.expanduser(args.contentpath) if args.contentpath else None
 	if not contentpath or not os.path.exists(contentpath) or os.path.isdir(contentpath):
 		raise IOError("Invalid content file")
-	
+
 	outpath = os.path.expanduser(args.outpath) if args.outpath else None
 	if outpath and not os.path.exists(outpath):
 		raise IOError("Invalid output directory")
@@ -53,16 +53,16 @@ def main():
 		logging.basicConfig(level=logging.DEBUG, format=DEFAULT_LOG_FORMAT)
 	else:
 		logging.basicConfig(level=logging.INFO, format=DEFAULT_LOG_FORMAT)
-	
+
 	current_path = os.getcwd()
 	try:
 		source_dir = os.path.dirname(os.path.abspath(contentpath))
 		os.chdir(source_dir)
-		
+
 		# do extraction
 		document, _, _, _ = parse_tex(contentpath, perform_transforms=True)
-		outdir = os.getcwd() # we have switch to the output directory
-		
+		outdir = os.getcwd()  # we have switch to the output directory
+
 		book = NoConcurrentPhantomRenderedBook(document, outdir)
 		transform(book, save_toc=save_toc, outpath=outpath)
 	finally:

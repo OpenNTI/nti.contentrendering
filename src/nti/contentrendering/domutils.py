@@ -11,7 +11,7 @@ logger = __import__('logging').getLogger(__name__)
 
 def findNodes(node, nodeName):
 	nodes = []
-	
+
 	if getattr(node, 'nodeName', '') == nodeName:
 		nodes.append(node)
 
@@ -25,11 +25,11 @@ def findNodes(node, nodeName):
 		for child in node.childNodes:
 			nodes.extend(findNodes(child, nodeName))
 
-	return list(set(nodes))
+	return tuple(set(nodes))
 
 def findNodesStartsWith(node, startsWith):
 	nodes = []
-	
+
 	if getattr(node, 'nodeName', '').startswith(startsWith):
 		nodes.append(node)
 
@@ -43,7 +43,7 @@ def findNodesStartsWith(node, startsWith):
 		for child in node.childNodes:
 			nodes.extend(findNodesStartsWith(child, startsWith))
 
-	return list(set(nodes))
+	return tuple(set(nodes))
 
 def get_or_create_node_in_document_beneath_with_name(parent, nodeName):
 	"""
@@ -59,7 +59,7 @@ def get_or_create_node_in_document_beneath_with_name(parent, nodeName):
 		node = parent.ownerDocument.createElement(nodeName)
 		parent.appendChild(node)
 	return node
-getOrCreateNodeInDocumentBeneathWithName=get_or_create_node_in_document_beneath_with_name
+getOrCreateNodeInDocumentBeneathWithName = get_or_create_node_in_document_beneath_with_name
 
 def node_has_attribute_with_value(node, attrname, attrval):
 	"""

@@ -14,10 +14,10 @@ import six
 import subprocess
 
 # BWC re-export
-from .phantom import _closing
-from .phantom import javascript_path
-from .phantom import run_phantom_on_page
-from .phantom import _PhantomProducedUnexpectedOutputError
+from nti.contentrendering.phantom import _closing
+from nti.contentrendering.phantom import javascript_path
+from nti.contentrendering.phantom import run_phantom_on_page
+from nti.contentrendering.phantom import _PhantomProducedUnexpectedOutputError
 
 # BWC re-export
 from nti.futures.futures import ConcurrentExecutor

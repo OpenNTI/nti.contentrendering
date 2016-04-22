@@ -18,18 +18,20 @@ import argparse
 from zope import component
 from zope import interface
 
-from zope.configuration import xmlconfig, config
+from zope.configuration import config
+from zope.configuration import xmlconfig
 
 from zope.container.contained import Contained
 
 from z3c.autoinclude.zcml import includePluginsDirective
+
+import nti.contentrendering
 
 from nti.contentindexing.interfaces import IBookIndexer
 from nti.contentindexing.interfaces import INTICardIndexer
 from nti.contentindexing.interfaces import IAudioTranscriptIndexer
 from nti.contentindexing.interfaces import IVideoTranscriptIndexer
 
-import nti.contentrendering
 from nti.contentrendering.interfaces import IRenderedBookIndexer
 
 from nti.contentrendering.utils import EmptyMockDocument
@@ -56,21 +58,25 @@ def transform(book, iface=IBookIndexer, name=''):
 
 @interface.implementer(IRenderedBookIndexer)
 class BookIndexer(object):
+
 	def transform(self, book, name=''):
 		transform(book, IBookIndexer, name=name)
 
 @interface.implementer(IRenderedBookIndexer)
 class NTICardIndexer(object):
+
 	def transform(self, book, name=''):
 		transform(book, INTICardIndexer, name=name)
 
 @interface.implementer(IRenderedBookIndexer)
 class AudioTrancriptIndexer(object):
+
 	def transform(self, book, name=''):
 		transform(book, IAudioTranscriptIndexer, name=name)
 
 @interface.implementer(IRenderedBookIndexer)
 class VideoTrancriptIndexer(object):
+
 	def transform(self, book, name=''):
 		transform(book, IVideoTranscriptIndexer, name=name)
 

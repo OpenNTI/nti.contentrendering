@@ -3,6 +3,7 @@
 """
 .. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
@@ -13,9 +14,11 @@ import os
 import argparse
 
 from zope import interface
+
 from zope.configuration import xmlconfig
 
 import nti.contentrendering
+
 from nti.contentrendering import interfaces
 
 interface.moduleProvides( interfaces.IRenderedBookTransformer )
@@ -25,7 +28,8 @@ DEFAULT_SHARING_GROUP_FILENAME = 'nti-default-root-sharing-group.txt'
 def _parse_args():
 	arg_parser = argparse.ArgumentParser( description="Content default sharing setter" )
 	arg_parser.add_argument( 'contentpath', help="Content book location" )
-	arg_parser.add_argument( "-g", "--groupname", dest='groupname', help="Name of the default sharing group", default=None)
+	arg_parser.add_argument( "-g", "--groupname", dest='groupname',
+							help="Name of the default sharing group", default=None)
 	return arg_parser.parse_args()
 
 def main():
@@ -52,7 +56,7 @@ def transform( book, save_toc=True, context=None, group_name=None ):
 	dom = book.toc.dom
 	toc = dom.getElementsByTagName("toc")
 
-	if toc and ( group_name or os.path.exists( os.path.join( book.contentLocation, '..', DEFAULT_SHARING_GROUP_FILENAME ) ) ):
+	if toc and (group_name or os.path.exists( os.path.join( book.contentLocation, '..', DEFAULT_SHARING_GROUP_FILENAME ) ) ):
 		modified = _handle_toc(toc[0], book, group_name=group_name)
 		if save_toc:
 			if modified:
@@ -60,7 +64,8 @@ def transform( book, save_toc=True, context=None, group_name=None ):
 			return modified
 		return modified
 
-	raise Exception( "Failed to add default sharing group to  %s. Either the RenderedBook is malformed or the default sharing group data file is missing." % (book) )
+	raise Exception("Failed to add default sharing group to  %s. Either the RenderedBook "
+					"is malformed or the default sharing group data file is missing." % (book) )
 
 def _handle_toc(toc, book, group_name=None):
 
