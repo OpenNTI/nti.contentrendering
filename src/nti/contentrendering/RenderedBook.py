@@ -10,7 +10,9 @@ __docformat__ = "restructuredtext en"
 import os
 import codecs
 import urllib
+
 import html5lib
+
 from xml.dom.minidom import parse
 
 from pyquery import PyQuery
@@ -47,7 +49,7 @@ class RenderedBook(object):
 	def __init__(self, document, location):
 		self.pages = OOBTree()
 		self.document = document
-		self.contentLocation = os.path.abspath( location )
+		self.contentLocation = os.path.abspath(location)
 		self.tocFile = os.path.join(self.contentLocation, self.TOC_FILE_NAME)
 
 		self._toc = None
@@ -55,23 +57,23 @@ class RenderedBook(object):
 
 		if logger.isEnabledFor(logging.DEBUG):
 			for pageid, page in self.pages.items():
-				logger.debug( '%s -> %s', pageid, page.ntiid )
-		logger.info( "Book at %s had %d pages", os.path.abspath(location), len(self.pages) )
+				logger.debug('%s -> %s', pageid, page.ntiid)
+		logger.info("Book at %s had %d pages", os.path.abspath(location), len(self.pages))
 
 	def _processPages(self):
-		javascript =  javascript_path( 'getPageInfo.js')
+		javascript = javascript_path('getPageInfo.js')
 		results = self.runPhantomOnPages(javascript)
 		pages = {p['ntiid']:p for p in results.values()}
 
 		def set_info(root):
 			if root.ntiid:
-				page_info = pages.get( root.ntiid )
+				page_info = pages.get(root.ntiid)
 				if page_info: root._pageInfo = page_info
 				self.pages[root.ntiid] = root
 
 			for child in root.childTopics:
-				set_info( child )
-		set_info( self.toc.root_topic )
+				set_info(child)
+		set_info(self.toc.root_topic)
 
 	@property
 	def jobname(self):
@@ -120,13 +122,13 @@ class RenderedBook(object):
 		results = {}
 
 		with ConcurrentExecutor() as executor:
-			for the_tuple in executor.map( self._get_phantom_function(),
-										   [os.path.join( self.contentLocation, node.getAttribute( b'href' ) )
-											for node in nodesForPages],
-										   [script] * len(nodesForPages),
-										   [args] * len(nodesForPages),
-										   [(node.getAttribute(b'ntiid'),node.getAttribute(b'href'),node.getAttribute(b'label'))
-											 for node in nodesForPages]):
+			for the_tuple in executor.map(self._get_phantom_function(),
+										  [os.path.join(self.contentLocation, node.getAttribute(b'href'))
+										   for node in nodesForPages],
+										  [script] * len(nodesForPages),
+										  [args] * len(nodesForPages),
+										  [(node.getAttribute(b'ntiid'), node.getAttribute(b'href'), node.getAttribute(b'label'))
+											for node in nodesForPages]):
 				key = the_tuple[0]
 				result = the_tuple[1]
 
@@ -142,9 +144,9 @@ class EclipseTOC(object):
 		self.dom = parse(self.filename)
 		# We may or may not have an href for the root toc yet.
 		# If not, assume it to be index.html
-		tocs = self.dom.getElementsByTagName( b"toc" )
-		if len(tocs) == 1 and not tocs[0].getAttribute( b"href" ):
-			tocs[0].setAttribute( b"href", "index.html" )
+		tocs = self.dom.getElementsByTagName(b"toc")
+		if len(tocs) == 1 and not tocs[0].getAttribute(b"href"):
+			tocs[0].setAttribute(b"href", "index.html")
 		self._toc = None
 
 	@property
@@ -154,7 +156,7 @@ class EclipseTOC(object):
 
 	@property
 	def contentLocation(self):
-		return os.path.split( self.filename )[0]
+		return os.path.split(self.filename)[0]
 
 	@property
 	def root_topic(self):
@@ -163,8 +165,8 @@ class EclipseTOC(object):
 		of the topic tree (index.html).
 		"""
 		if not self._toc:
-			self._toc = _EclipseTOCMiniDomTopic( self.dom.getElementsByTagName( b"toc" )[0],
-												 self.contentLocation )
+			self._toc = _EclipseTOCMiniDomTopic(self.dom.getElementsByTagName(b"toc")[0],
+												self.contentLocation)
 		return self._toc
 
 	# FIXME These names need adjustment. There are "page" XML nodes, but the method
@@ -172,7 +174,7 @@ class EclipseTOC(object):
 	# node
 
 	def getPageForDocumentNode(self, node):
-		#Walk up the node try untill we find something with an id that matches our label
+		# Walk up the node try untill we find something with an id that matches our label
 		if node is None:
 			return None
 
@@ -205,8 +207,8 @@ class EclipseTOC(object):
 			node = self.getRootTOCNode()
 
 		nodes = []
-		if (node.nodeName == 'topic' or node.nodeName == 'toc') and \
-			   getattr(node, 'hasAttribute', None) and node.hasAttribute(name):
+		if 		(node.nodeName == 'topic' or node.nodeName == 'toc') \
+			and	getattr(node, 'hasAttribute', None) and node.hasAttribute(name):
 			if value is None or node.getAttribute(name) == value:
 				nodes.append(node)
 
@@ -224,7 +226,7 @@ class EclipseTOC(object):
 				if (x.hasAttribute(b'ntiid') and '#' not in x.getAttribute(b'href'))]
 
 	def save(self):
-		minidom_writexml( self.dom, self.filename )
+		minidom_writexml(self.dom, self.filename)
 
 
 @interface.implementer(interfaces.IEclipseMiniDomTopic)
@@ -250,11 +252,11 @@ class _EclipseTOCMiniDomTopic(object):
 	_doc = None
 	_childTopics = None
 
-	def __init__( self, topic_dom_node,
+	def __init__(self, topic_dom_node,
 				  contentLocation,
 				  href=None,
 				  pageInfo=None,
-				  title=None ):
+				  title=None):
 		"""
 		:param string contentLocation: The full path to the directory root for the content.
 		:param string href: If given, the filename of the on-disk page for this
@@ -268,24 +270,22 @@ class _EclipseTOCMiniDomTopic(object):
 		self.contentLocation = contentLocation
 
 		# These four are identical for b/w/c
-		self.sourceFile = href or (self.get_topic_filename( )
-								   and os.path.join( contentLocation, self.get_topic_filename() ) )
+		self.sourceFile = href or (		self.get_topic_filename()
+								   and	os.path.join(contentLocation, self.get_topic_filename()))
 		self.location = self.sourceFile
 
 		self.href = href or os.path.split(self.sourceFile)[-1]
 		self.filename = self.href
 
-
 		self._pageInfo = pageInfo if pageInfo is not None else OOBTree()
 
 		self._title = title
-
 
 	# TODO: Clean up some of these names.
 
 	@property
 	def ntiid(self):
-		ntiid = self._pageInfo.get( 'ntiid' )
+		ntiid = self._pageInfo.get('ntiid')
 		if not ntiid and self.dom:
 			ntiid = self.read_ntiid()
 			self._pageInfo['ntiid'] = ntiid
@@ -308,7 +308,7 @@ class _EclipseTOCMiniDomTopic(object):
 	@property
 	def outgoing_links(self):
 		"A sequence of strings naming links from this page."
-		return self._pageInfo.get('OutgoingLinks',())
+		return self._pageInfo.get('OutgoingLinks', ())
 
 	@property
 	def scroll_height(self):
@@ -316,7 +316,7 @@ class _EclipseTOCMiniDomTopic(object):
 		:return: An integer giving the relative height of the content of this page.
 		:raises KeyError: If no size is known.
 		"""
-		return self.get_scroll_height( default=self )
+		return self.get_scroll_height(default=self)
 
 	@property
 	def scroll_width(self):
@@ -324,21 +324,21 @@ class _EclipseTOCMiniDomTopic(object):
 		:return: An integer giving the relative width of the content of this page.
 		:raises KeyError: If no size is known
 		"""
-		return self.get_scroll_width( default=self )
+		return self.get_scroll_width(default=self)
 
-	def get_scroll_height( self, default=-1 ):
+	def get_scroll_height(self, default=-1):
 		"""
 		:return: The scroll height if known, otherwise the `default` (-1)
 		"""
-		return self._get_int( 'scrollHeight', default=default )
+		return self._get_int('scrollHeight', default=default)
 
-	def get_scroll_width( self, default=-1 ):
+	def get_scroll_width(self, default=-1):
 		"""
 		:return: The scroll width if known, otherwise the `default` (-1)
 		"""
-		return self._get_int( 'scrollWidth', default=default )
+		return self._get_int('scrollWidth', default=default)
 
-	def _get_int( self, key, default=-1 ):
+	def _get_int(self, key, default=-1):
 		try:
 			return self._pageInfo[key]
 		except KeyError:
@@ -346,12 +346,12 @@ class _EclipseTOCMiniDomTopic(object):
 				raise
 			return default
 
-	def __repr__( self ):
+	def __repr__(self):
 		return b"%s('%s', %s, '%s', '%s')" % (self.__class__.__name__,
-											  str(self.location).encode( 'string_escape' ),
+											  str(self.location).encode('string_escape'),
 											  self._pageInfo,
-											  str(self.href).encode( 'string_escape' ),
-											  (self.label or '[MISSING]').encode('utf-8').encode( 'string_escape' ))
+											  str(self.href).encode('string_escape'),
+											  (self.label or '[MISSING]').encode('utf-8').encode('string_escape'))
 
 	@property
 	@deprecate("Prefer `childTopics`; this returns arbitrary Nodes")
@@ -362,7 +362,7 @@ class _EclipseTOCMiniDomTopic(object):
 		"""
 		childCount = 1
 		for x in self.topic.childNodes:
-			result = self.__class__( x, self.contentLocation )
+			result = self.__class__(x, self.contentLocation)
 			result.ordinal = childCount
 			childCount += 1
 			yield result
@@ -378,14 +378,16 @@ class _EclipseTOCMiniDomTopic(object):
 			self._childTopics = []
 			childCount = 1
 			for x in self.topic.childNodes:
-				# Exclude things with hrefs that look like fragments (but do include things that are missing hrefs altogether)
+				# Exclude things with hrefs that look like fragments (but do include things 
+				# that are missing hrefs altogether)
 				# both of these measures are for backwards compatibility
-				if x.nodeType == x.ELEMENT_NODE and x.localName == 'topic' \
-				  and (not x.attributes.has_key( b'href' ) or '#' not in x.attributes[b'href'].value):
-					result = self.__class__( x, self.contentLocation )
+				if		x.nodeType == x.ELEMENT_NODE and x.localName == 'topic' \
+				  and	(	not x.attributes.has_key(b'href')
+						 or '#' not in x.attributes[b'href'].value):
+					result = self.__class__(x, self.contentLocation)
 					result.ordinal = childCount
 					childCount += 1
-					self._childTopics.append( result )
+					self._childTopics.append(result)
 		return self._childTopics
 
 	@property
@@ -398,21 +400,22 @@ class _EclipseTOCMiniDomTopic(object):
 	def dom(self):
 		# TODO: Under some circumstances we should be discarding this dom for memory reasons
 		if not self._dom:
-			if not self.sourceFile or not os.path.exists( self.sourceFile ):
+			if not self.sourceFile or not os.path.exists(self.sourceFile):
 				# Careful with logging here: __repr__ calls this method!
-				logger.warn( "Unable to get dom for missing file %s in %s", self.sourceFile, self.__dict__ )
+				logger.warn("Unable to get dom for missing file %s in %s", 
+							self.sourceFile, self.__dict__)
 				return None
 			# By using the HTML5 parser, we can get more consistent results,
 			# regardless of how the templates were setup. And when we write, we'll
 			# be in a normalized form for all browsers. One immediate cost is that
 			# it's quite a bit slower to parse than pyquery's native methods
 			dom = None
-			p = html5lib.HTMLParser( tree=treebuilders.getTreeBuilder("lxml"), #PyQuery needs lxml doc
-									 namespaceHTMLElements=False )
+			p = html5lib.HTMLParser(tree=treebuilders.getTreeBuilder("lxml"),  # PyQuery needs lxml doc
+									namespaceHTMLElements=False)
 
 			with open(self.sourceFile) as f:
-				doc = p.parse( f, encoding='utf-8' )
-				dom = PyQuery( doc.getroot() )
+				doc = p.parse(f, encoding='utf-8')
+				dom = PyQuery(doc.getroot())
 
 			# try:
 			# we've seen this throw ValueError: I/O operation on closed file
@@ -433,9 +436,9 @@ class _EclipseTOCMiniDomTopic(object):
 
 		if self.save_dom or force:
 			# This matches nti_render. See rationale there.
-			with codecs.open( self.sourceFile, 'w',
-							  encoding='ascii',
-							  errors='xmlcharrefreplace') as f:
+			with codecs.open(self.sourceFile, 'w',
+							 encoding='ascii',
+							 errors='xmlcharrefreplace') as f:
 				# We parsed with html5lib, we need to write with html5lib
 				# If we don't, if we write with etree:
 				# ... etree.tostring( self._doc, method='html', encoding=unicode )
@@ -445,21 +448,21 @@ class _EclipseTOCMiniDomTopic(object):
 				# Write the original, whole doc, which will reflect the PyQuery modifications (not self._dom)
 				# This way we get the doctype
 				stream = walker(self._doc)
+
 				from nti.contentfragments.html import Serializer
 				s = Serializer()
-
 				for i in s.serialize(stream):
-					f.write( i )
+					f.write(i)
 
 				f.flush()
 
-	def set_ntiid( self ):
+	def set_ntiid(self):
 		"""
 		Set the NTIID for the specifed topic if one is not already present.
 		"""
-		if self.topic.attributes.get( b'ntiid' ): # 'in' doesn't work with this dict-like thing
+		if self.topic.attributes.get(b'ntiid'):  # 'in' doesn't work with this dict-like thing
 			# No need to read from the file if it was already present.
-			#logger.info( "Not setting ntiid because %s trumps %s", self.topic.attributes['ntiid'].value, self.read_ntiid() )
+			# logger.info( "Not setting ntiid because %s trumps %s", self.topic.attributes['ntiid'].value, self.read_ntiid() )
 			return False
 
 		ntiid = self.read_ntiid()
@@ -475,31 +478,30 @@ class _EclipseTOCMiniDomTopic(object):
 		Return the NTIID from the specified file
 		"""
 		try:
-			return self.dom(b"meta[name=NTIID]").attr( b"content" )
+			return self.dom(b"meta[name=NTIID]").attr(b"content")
 		except IOError:
-			logger.debug( "Unable to open file %s", self.sourceFile, exc_info=True )
+			logger.debug("Unable to open file %s", self.sourceFile, exc_info=True)
 			return None
 
-	def get_title( self ):
+	def get_title(self):
 		return self.dom(b"title").text()
 
-	def get_topic_filename( self ):
+	def get_topic_filename(self):
 		if self.topic.attributes and self.topic.attributes.get(b'href'):
 			return self.topic.attributes.get(b'href').value
 
-	def topic_with_filename( self, filename ):
+	def topic_with_filename(self, filename):
 		"""
 		:return: The topic having a matching filename, this object or beneath it, or None.
 		"""
-		if self.get_topic_filename( ) == filename:
+		if self.get_topic_filename() == filename:
 			return self
 		for kid in self.childTopics:
-			node = kid.topic_with_filename( filename )
+			node = kid.topic_with_filename(filename)
 			if node:
 				return node
 
-	def set_background_image( self, image_path ):
-
+	def set_background_image(self, image_path):
 		dom = self.dom
 		if dom is None:
 			return False
@@ -510,17 +512,17 @@ class _EclipseTOCMiniDomTopic(object):
 		self.modifiedDom = True
 		return self.modifiedDom
 
-	def get_background_image( self ):
+	def get_background_image(self):
 		dom = self.dom
 		if dom is None:
 			return None
 		return dom(b'body').attr(b'style')
 
-	def set_content_height( self, contentHeight ):
+	def set_content_height(self, contentHeight):
 		dom = self.dom
 		if dom is None:
 			return None
-		dom( b"meta[name=NTIRelativeScrollHeight]" ).attr[b'content'] = str(contentHeight)
+		dom(b"meta[name=NTIRelativeScrollHeight]").attr[b'content'] = str(contentHeight)
 		self.modifiedDom = True
 		self.write_dom()
 
@@ -530,43 +532,43 @@ class _EclipseTOCMiniDomTopic(object):
 		self.modifiedTopic = True
 		return True
 
-	def set_default_sharing_group( self, sharedWith ):
+	def set_default_sharing_group(self, sharedWith):
 		self.topic.attributes[b'sharedWith'] = sharedWith
 		self.modifiedTopic = True
 		return self.modifiedTopic
 
-	def get_default_sharing_group( self ):
+	def get_default_sharing_group(self):
 		if self.topic.attributes and self.topic.attributes.get(b'sharedWith'):
 			return self.topic.attributes.get(b'sharedWith').value
 		else: return None
 
-	def has_icon( self ):
+	def has_icon(self):
 		return (self.topic.attributes and self.topic.attributes.get(b'icon'))
 
-	def set_icon( self, icon ):
-		self.topic.attributes[b'icon'] = urllib.quote( icon )
+	def set_icon(self, icon):
+		self.topic.attributes[b'icon'] = urllib.quote(icon)
 		self.modifiedTopic = True
 		return self.modifiedTopic
 
-	def get_icon( self ):
+	def get_icon(self):
 		if self.has_icon():
 			return urllib.unquote(self.topic.attributes.get(b'icon').value)
 		else: return None
 
-	def has_background( self ):
+	def has_background(self):
 		return (self.topic.attributes and self.topic.attributes.get(b'background'))
 
-	def set_background( self, background ):
-		self.topic.attributes[b'background'] = urllib.quote( background )
+	def set_background(self, background):
+		self.topic.attributes[b'background'] = urllib.quote(background)
 		self.modifiedTopic = True
 		return self.modifiedTopic
 
-	def get_background( self ):
+	def get_background(self):
 		if self.has_icon():
 			return urllib.unquote(self.topic.attributes.get(b'background').value)
 		else: return None
 
-	def set_label( self, label ):
+	def set_label(self, label):
 		self.topic.attributes[b'label'] = label
 		self.modifiedTopic = True
 		return self.modifiedTopic
@@ -574,6 +576,6 @@ class _EclipseTOCMiniDomTopic(object):
 	def is_chapter(self):
 		attributes = self.topic.attributes
 		if attributes:
-			label = attributes.get(b'label',None)
+			label = attributes.get(b'label', None)
 			return (label and label.value != 'Index')
 		return False
