@@ -32,19 +32,23 @@
 			 factory='.traversing.PlastexTraverser' />
 
 	<utility component=".relatedlinksetter.TOCRelatedAdder"
+			 provides=".interfaces.IStaticRelatedItemsAdder"
 			 name="TOCRelatedAdder" />
 
 	<utility component=".relatedlinksetter.LinkRelatedAdder"
+			 provides=".interfaces.IStaticRelatedItemsAdder"
 			 name="LinkRelatedAdder"
 			 zcml:condition="not-have render:no-href-related-links"/>
 
 	<utility component=".relatedlinksetter.ExistingTOCRelatedAdder"
+			 provides=".interfaces.IStaticRelatedItemsAdder"
 			 name="ExistingTOCRelatedAdder" />
 
 	<utility component=".sectionvideoadder.YouTubeRelatedVideoAdder"
 			 name="YouTubeRelatedVideoAdder" />
 
-	<utility component=".archive" provides=".interfaces.IRenderedBookArchiver" />
+	<utility component=".archive" 
+			 provides=".interfaces.IRenderedBookArchiver" />
 
 	<utility component=".slidedeckextractor"
 			 provides=".interfaces.ISlideDeckExtractor"

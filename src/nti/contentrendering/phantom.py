@@ -18,28 +18,29 @@ import urllib
 import urlparse
 import subprocess
 import contextlib
+
 import anyjson as json
 
-def javascript_path( js_name ):
+def javascript_path(js_name):
 	"""
 	:return: A path to a javascript resource of this package, suitable for passing to phantomjs.
 	:raises Exception: If the resource does not exist
 	"""
 	js_name = 'js/' + js_name
-	if not resource_exists( __name__, js_name ):
-		raise Exception( "Resource %s not found" % js_name )
-	return resource_filename( __name__, js_name )
+	if not resource_exists(__name__, js_name):
+		raise Exception("Resource %s not found" % js_name)
+	return resource_filename(__name__, js_name)
 
 if not os.getenv('DATASERVER_DIR_IS_BUILDOUT'):
-	## Buildout puts it first on the path
+	# Buildout puts it first on the path
 	import warnings
 	try:
-		warnings.warn( "Using whatever phantomjs is on the PATH; supported version 1.9.7; version found at %s is %s"
-					   %(subprocess.check_output(['which', 'phantomjs']).strip(), 
-						 subprocess.check_output( ['phantomjs', '-v'] ).strip() ),
+		warnings.warn("Using whatever phantomjs is on the PATH; supported version 1.9.7; version found at %s is %s"
+					   % (subprocess.check_output(['which', 'phantomjs']).strip(),
+						  subprocess.check_output(['phantomjs', '-v']).strip()),
 					   UserWarning, stacklevel=1)
 	except subprocess.CalledProcessError:
-		warnings.warn( "Phantomjs not found on the PATH" )
+		warnings.warn("Phantomjs not found on the PATH")
 
 class _PhantomProducedUnexpectedOutputError(subprocess.CalledProcessError):
 
@@ -48,13 +49,13 @@ class _PhantomProducedUnexpectedOutputError(subprocess.CalledProcessError):
 
 class _closing(contextlib.closing):
 	"A None-safe closing contextmanager"
-	def __exit__( self, *exc_info ):
+	def __exit__(self, *exc_info):
 		if self.thing is not None:
 			self.thing.close()
 
 _none_key = object()
-def run_phantom_on_page( htmlFile, scriptName, args=(), key=_none_key, 
-						 expect_no_output=False, expect_non_json_output=False ):
+def run_phantom_on_page(htmlFile, scriptName, args=(), key=_none_key,
+						expect_no_output=False, expect_non_json_output=False):
 	"""
 	Execute a phantom JS script against an HTML file; returns the result of that script
 	as either a JSON object or a byte string (if ``expect_non_json_output`` is set to True).
@@ -77,31 +78,31 @@ def run_phantom_on_page( htmlFile, scriptName, args=(), key=_none_key,
 	:raises TypeError: If JSON decoding fails.
 	"""
 	# As of phantomjs 1.4, the html argument must be a URL
-	if urlparse.urlparse( htmlFile ).scheme not in ('file', 'http', 'https'):
+	if urlparse.urlparse(htmlFile).scheme not in ('file', 'http', 'https'):
 		# assume they gave a path. The explicit use of schemes is to
 		# help with windows, where a path like "c:\foo\bar" gets a scheme of 'c'
-		htmlFile = urllib.basejoin( 'file://',
-									urllib.pathname2url( os.path.abspath( htmlFile ) ) )
+		htmlFile = urllib.basejoin('file://',
+									urllib.pathname2url(os.path.abspath(htmlFile)))
 
 	# TODO: Rewrite the scripts to use the built-in webserver and communicate
-	# over a socket as opposed to stdout/stderr? As of 1.6, I think this is the recommended approach
+	# over a socket as opposed to stdout/stderr? As of 1.6, I think this is the 
+	# recommended approach
 
 	process = ['phantomjs', scriptName, htmlFile]
-	process.extend( args )
+	process.extend(args)
 	__traceback_info__ = process
-	logger.debug( "Executing %s", process )
+	logger.debug("Executing %s", process)
 
-	# On OS X, phantomjs produces some output to stderr that's annoying and usually useless,
-	# if truly run headless, about CoreGraphics stuff. Since we often expect output on stdout,
-	# we cannot simply direct it there.
+	# On OS X, phantomjs produces some output to stderr that's annoying and usually
+	# useless, if truly run headless, about CoreGraphics stuff. Since we often expect 
+	# output on stdout, we cannot simply direct it there.
 	stderr = None
-	if sys.platform == 'darwin' and not os.getenv( 'NTI_KEEP_PHANTOMJS_STDERR' ):
-		stderr = open( '/dev/null', 'wb' )
+	if sys.platform == 'darwin' and not os.getenv('NTI_KEEP_PHANTOMJS_STDERR'):
+		stderr = open('/dev/null', 'wb')
 
 	with _closing(stderr):
-		jsonStr = subprocess.check_output( process, stderr=stderr ).strip()
+		jsonStr = subprocess.check_output(process, stderr=stderr).strip()
 		__traceback_info__ += (jsonStr,)
-
 
 	if expect_no_output:
 		if jsonStr:
@@ -113,17 +114,17 @@ def run_phantom_on_page( htmlFile, scriptName, args=(), key=_none_key,
 		result = jsonStr
 	else:
 		if not jsonStr:
-			raise ValueError( "Expected JSON output, but no stdout generated." )
+			raise ValueError("Expected JSON output, but no stdout generated.")
 
 		try:
 			result = json.loads(jsonStr)
 		except ValueError:
-			logger.debug( "Got unparseable output. Trying again", exc_info=True )
+			logger.debug("Got unparseable output. Trying again", exc_info=True)
 			# We got output. Perhaps there was plugin junk above? Try
 			# again with just the last line.
 			# This often happens if the console log methods are used; unfortunately,
 			# phantom seems to have no way to direct those to stderr
-			result = json.loads( jsonStr.splitlines()[-1] )
+			result = json.loads(jsonStr.splitlines()[-1])
 
 	if key is _none_key:
 		return result

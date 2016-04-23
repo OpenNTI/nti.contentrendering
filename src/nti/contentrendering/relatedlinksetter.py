@@ -16,19 +16,20 @@ import sys
 import itertools
 import collections
 
-from zope import interface
 from zope import component
+from zope import interface
 
-from .interfaces import IStaticRelatedItemsAdder
+from nti.contentrendering.domutils import node_has_attribute_with_value
+from nti.contentrendering.domutils import get_or_create_node_in_document_beneath_with_name
 
-from .RenderedBook import RenderedBook, EclipseTOC
+from nti.contentrendering.interfaces import IStaticRelatedItemsAdder
 
-from .domutils import node_has_attribute_with_value
-from .domutils import get_or_create_node_in_document_beneath_with_name
+from nti.contentrendering.RenderedBook import EclipseTOC
+from nti.contentrendering.RenderedBook import RenderedBook
 
 def main(args):
-	""" 
- 	Main program routine 
+	"""
+ 	Main program routine
  	"""
 
 	if not len(args) > 0:
@@ -49,8 +50,8 @@ def performTransforms(book, save_toc=True, context=None):
 
 	utils = list(component.getUtilitiesFor(IStaticRelatedItemsAdder, context=context))
 	for name, util in utils:
-		logger.info( "Running transform %s (%s)", name, util )
-		util.transform( book )
+		logger.info("Running transform %s (%s)", name, util)
+		util.transform(book)
 
 	if save_toc:
 		book.toc.save()
@@ -63,12 +64,12 @@ def _is_relation_of_type_and_qual(page1, ntiid, tpe, qualifier):
 
 def _nodes_contain_relation_of_type_qual(alreadyrelatednodes, ntiid, tpe, qualifier):
 	for node in alreadyrelatednodes:
-		if _is_relation_of_type_and_qual( node, ntiid, tpe, qualifier ):
+		if _is_relation_of_type_and_qual(node, ntiid, tpe, qualifier):
 			return True
 	return False
 
 def _node_of_id_type_qual(document, ntiid, tpe, qualifier="", nodename='page'):
-	pageNode = document.createElement( nodename )
+	pageNode = document.createElement(nodename)
 	pageNode.setAttribute('ntiid', ntiid)
 	pageNode.setAttribute('type', tpe)
 	pageNode.setAttribute('qualifier', qualifier)
@@ -77,61 +78,61 @@ def _node_of_id_type_qual(document, ntiid, tpe, qualifier="", nodename='page'):
 class AbstractRelatedAdder(object):
 
 	@classmethod
-	def transform(cls,book):
+	def transform(cls, book):
 		cls(book)()
 
-	def __init__( self, book ):
+	def __init__(self, book):
 		self.book = book
 
 	def __call__(self):
 		pass
 
-	def _pageid_is_related_to_pageids(self, relatesTo, relatedTo, tpe, 
+	def _pageid_is_related_to_pageids(self, relatesTo, relatedTo, tpe,
 									  qualifier="", node_type='page'):
 		"""
 		Mark the TOC node for `relatesTo` as being related to each id in `relatedTo`.
 		:return: A list of nodes added as new relations.
 		"""
 		relatesToNode = self.book.toc.getPageNodeWithNTIID(relatesTo)
-		return self._pagenode_is_related_to_pageids( relatesToNode, relatedTo, 
-													tpe, qualifier, node_type )
+		return self._pagenode_is_related_to_pageids(relatesToNode, relatedTo,
+													tpe, qualifier, node_type)
 
-	def _pagenode_is_related_to_pageids( self, relatesToNode, relatedToIds, tpe,
-										 qualifier="", node_type='page' ):
+	def _pagenode_is_related_to_pageids(self, relatesToNode, relatedToIds, tpe,
+										qualifier="", node_type='page'):
 		"""
 		:return: A list of nodes added as new relations.
 		"""
 		relatedPages = get_or_create_node_in_document_beneath_with_name(relatesToNode,
 																		'Related')
 
-		if 	not isinstance(relatedToIds, collections.Iterable) or \
-			isinstance(relatedToIds, six.string_types):
+		if 		not isinstance(relatedToIds, collections.Iterable) \
+			or 	isinstance(relatedToIds, six.string_types):
 			relatedToIds = [relatedToIds]
 
 		alreadyrelatednodes = list(relatedPages.childNodes)
 
 		result = []
 		for idToAdd in relatedToIds:
-			if not _nodes_contain_relation_of_type_qual( alreadyrelatednodes,
-														 idToAdd, tpe, qualifier ):
-				new_node =  _node_of_id_type_qual(self.book.toc.dom, idToAdd, tpe,
-												  qualifier, node_type )
-				result.append( new_node )
-				relatedPages.appendChild( new_node )
+			if not _nodes_contain_relation_of_type_qual(alreadyrelatednodes,
+														idToAdd, tpe, qualifier):
+				new_node = _node_of_id_type_qual(self.book.toc.dom, idToAdd, tpe,
+												 qualifier, node_type)
+				result.append(new_node)
+				relatedPages.appendChild(new_node)
 		return result
 
+@interface.implementer(IStaticRelatedItemsAdder)
 class TOCRelatedAdder(AbstractRelatedAdder):
 	"""
 	Adds relationships based on finding things that contain the same index terms.
 	"""
-	interface.classProvides(IStaticRelatedItemsAdder)
 
-	def __call__( self ):
+	def __call__(self):
 		book = self.book
 		relatedTuples = []
 		theIndexs = book.document.getElementsByTagName('printindex')
 
-		#some books (mathcounts) dont have an index.
+		# some books (mathcounts) dont have an index.
 		if len(theIndexs) < 1:
 			return
 
@@ -147,8 +148,8 @@ class TOCRelatedAdder(AbstractRelatedAdder):
 
 		for key, relationships in relatedTuples:
 			for relatesTo, relatedTo in relationships:
-				self._pageid_is_related_to_pageids( relatesTo, relatedTo, 
-													'index', qualifier=key )
+				self._pageid_is_related_to_pageids(relatesTo, relatedTo,
+												   'index', qualifier=key)
 
 	def _recursive_related_pages_for_index_entry(self, entry):
 		"""
@@ -157,12 +158,12 @@ class TOCRelatedAdder(AbstractRelatedAdder):
 
 		eclipseTOC = self.book.toc
 		etoc_func = eclipseTOC.getPageForDocumentNode
-		
+
 		def _error(node):
 			page = etoc_func(node)
-			attrs = getattr(page, 'attributes',None)
-			raise ValueError("No NTIID for entry %s doc node %s page %s attrs %s" % 
-							 (entry, node, page, attrs) )
+			attrs = getattr(page, 'attributes', None)
+			raise ValueError("No NTIID for entry %s doc node %s page %s attrs %s" %
+							 (entry, node, page, attrs))
 
 		pages = [self.book.pages[(etoc_func(page).getAttribute('ntiid') or _error(page))]
 				 for page in entry.pages if etoc_func(page) is not None]
@@ -175,53 +176,53 @@ class TOCRelatedAdder(AbstractRelatedAdder):
 
 		return (entry.key.textContent, related)
 
+@interface.implementer(IStaticRelatedItemsAdder)
 class ExistingTOCRelatedAdder(AbstractRelatedAdder):
 	"""
 	Copies all related nodes from an existing TOC file.
 	"""
-	interface.classProvides(IStaticRelatedItemsAdder)
 
 	def __call__(self):
 
-		existing_toc_file = os.path.join(self.book.contentLocation, '..', 
-										 'related-items.xml' )
-		if not os.path.exists( existing_toc_file ):
+		existing_toc_file = os.path.join(self.book.contentLocation, '..',
+										 'related-items.xml')
+		if not os.path.exists(existing_toc_file):
 			logger.info("No existing related items at %s", existing_toc_file)
 			return
 
 		logger.info("Merging existing related items at %s", existing_toc_file)
-		existing_toc = EclipseTOC( existing_toc_file )
+		existing_toc = EclipseTOC(existing_toc_file)
 		for _, page in self.book.pages.items():
 			ntiid = page.ntiid
 			try:
-				topic = existing_toc.getPageNodeWithNTIID( ntiid )
+				topic = existing_toc.getPageNodeWithNTIID(ntiid)
 			except IndexError:
 				continue
 			else:
 				for c in topic.childNodes:
 					if c.nodeType != c.ELEMENT_NODE or c.localName != "Related":
 						continue
-					content_topic = self.book.toc.getPageNodeWithNTIID( ntiid )
+					content_topic = self.book.toc.getPageNodeWithNTIID(ntiid)
 					related_container = \
-						get_or_create_node_in_document_beneath_with_name(content_topic, 
+						get_or_create_node_in_document_beneath_with_name(content_topic,
 																		 'Related')
 					for related in c.childNodes:
 						if related.nodeType == related.ELEMENT_NODE:
-							related_container.appendChild( related )
+							related_container.appendChild(related)
 
 filere = re.compile('(?P<file>.*?\.html).*')
 
+@interface.implementer(IStaticRelatedItemsAdder)
 class LinkRelatedAdder(AbstractRelatedAdder):
 	"""
 	Adds relationships based on links found between pages (specified in the source text).
 	"""
-	interface.classProvides(IStaticRelatedItemsAdder)
 
-	def __call__( self ):
+	def __call__(self):
 		for _, page in self.book.pages.items():
-			self._add_outgoing_links_from_page( page )
+			self._add_outgoing_links_from_page(page)
 
-	def _add_outgoing_links_from_page( self, page ):
+	def _add_outgoing_links_from_page(self, page):
 
 		def file_part_of_link(link):
 			# TODO: Shouldn't this just be path traversal?
@@ -242,10 +243,11 @@ class LinkRelatedAdder(AbstractRelatedAdder):
 
 			if fileName and link:
 				tocNodes = self.book.toc.getPageNodeWithAttribute('href', fileName)
-				if not tocNodes: 
+				if not tocNodes:
 					continue
 				tocNode = tocNodes[0]
-				self._pageid_is_related_to_pageids( page.ntiid, 
-													tocNode.getAttribute('ntiid'),
-													'link',
-													 qualifier=link )
+				self._pageid_is_related_to_pageids(
+										page.ntiid,
+										tocNode.getAttribute('ntiid'),
+										'link',
+										qualifier=link)

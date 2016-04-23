@@ -34,13 +34,15 @@ from nti.contentrendering import contentsizesetter
 from nti.contentrendering import relatedlinksetter
 from nti.contentrendering import sectionvideoadder
 
-from nti.contentrendering.render_document import parse_tex
-from nti.contentrendering.render_document import resource_filename
-
 from nti.contentrendering.interfaces import IRenderedBookIndexer
 from nti.contentrendering.interfaces import IRenderedBookTransformer
 
 from nti.contentrendering.RenderedBook import RenderedBook
+
+
+from nti.contentrendering.render_document import parse_tex
+from nti.contentrendering.render_document import resource_filename
+
 from nti.contentrendering.resources.ResourceDB import ResourceDB
 from nti.contentrendering.resources.ResourceRenderer import createResourceRenderer
 from nti.contentrendering.resources.resourcetypeoverrides import ResourceTypeOverrides
