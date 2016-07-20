@@ -7,17 +7,20 @@
 from __future__ import print_function, unicode_literals, absolute_import
 __docformat__ = "restructuredtext en"
 
+import logging
+logger = logging.getLogger(__name__)
+
 import os
 import codecs
 import urllib
 
-import html5lib
-
 from xml.dom.minidom import parse
 
-from pyquery import PyQuery
+from html5lib import HTMLParser
+from html5lib import treewalkers
+from html5lib import treebuilders 
 
-from html5lib import treewalkers, treebuilders
+from pyquery import PyQuery
 
 from zope import interface
 
@@ -33,9 +36,6 @@ from nti.contentrendering import ConcurrentExecutor
 from nti.contentrendering import run_phantom_on_page
 
 _runPhantomOnPage = run_phantom_on_page
-
-import logging
-logger = logging.getLogger(__name__)
 
 @interface.implementer(interfaces.IRenderedBook)
 class RenderedBook(object):
@@ -410,11 +410,11 @@ class _EclipseTOCMiniDomTopic(object):
 			# be in a normalized form for all browsers. One immediate cost is that
 			# it's quite a bit slower to parse than pyquery's native methods
 			dom = None
-			p = html5lib.HTMLParser(tree=treebuilders.getTreeBuilder("lxml"),  # PyQuery needs lxml doc
-									namespaceHTMLElements=False)
+			p = HTMLParser(tree=treebuilders.getTreeBuilder("lxml"),  # PyQuery needs lxml doc
+						   namespaceHTMLElements=False)
 
 			with open(self.sourceFile) as f:
-				doc = p.parse(f, encoding='utf-8')
+				doc = p.parse(f, override_encoding='utf-8')
 				dom = PyQuery(doc.getroot())
 
 			# try:
