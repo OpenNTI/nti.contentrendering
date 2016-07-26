@@ -96,7 +96,8 @@ setup(
 		'nti.ntiids',
 		'nti.plasTeX',
 		'nti.schema',
-		'nti.wref'
+		'nti.wref',
+		'nti.zodb'
 	],
 	extras_require={
 		'test': TESTS_REQUIRE,
