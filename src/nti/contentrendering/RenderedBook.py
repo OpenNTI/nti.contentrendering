@@ -449,7 +449,10 @@ class _EclipseTOCMiniDomTopic(object):
 				# This way we get the doctype
 				stream = walker(self._doc)
 
-				from nti.contentfragments.html import Serializer
+				try:
+					from nti.contentfragments.html import Serializer
+				except ImportError:
+					from nti.contentfragments.html import _Serializer as Serializer
 				s = Serializer()
 				for i in s.serialize(stream):
 					f.write(i)
