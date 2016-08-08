@@ -147,7 +147,7 @@ class _CourseExtractor(object):
 		if len(overview_nodes) > 0:
 			ntiid = re.sub('[:,\.,/,\*,\?,\<,\>,\|]', '_', lesson_node.ntiid.replace('\\', '_'))
 			outfile = '%s.json' % ntiid
-
+			__traceback_info__ = outfile,
 			trx = IJSONTransformer(lesson_node, None)
 			if trx is not None:
 				overview = trx.transform()
