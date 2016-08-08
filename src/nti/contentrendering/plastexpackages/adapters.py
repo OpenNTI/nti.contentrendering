@@ -136,32 +136,36 @@ class _DiscussionRefJSONTransformer(object):
 		return output
 
 @interface.implementer(IJSONTransformer)
-class _NTIAudioRefJSONTransformer(object):
+class _NTIMediaRefJSONTransformer(object):
 
 	def __init__(self, element):
 		self.el = element
 
-	def transform(self):
+	def do_transform(self):
 		output = {}
 		output['label'] = _render_children(self.el.media.renderer, self.el.media.title)
 		output[MIMETYPE] = self.el.media.mimeType
 		output[NTIID] = self.el.media.ntiid
 		output['visibility'] = self.el.visibility
 		return output
+	
+	def transform(self):
+		try:
+			return self.do_transform()
+		except Exception:
+			logger.info("MediaRef %s, %s", self.el.__dict__, self.el.media.__dict__)
+			raise
 
 @interface.implementer(IJSONTransformer)
-class _NTIVideoRefJSONTransformer(object):
+class _NTIAudioRefJSONTransformer(_NTIMediaRefJSONTransformer):
+	pass
 
-	def __init__(self, element):
-		self.el = element
+@interface.implementer(IJSONTransformer)
+class _NTIVideoRefJSONTransformer(_NTIMediaRefJSONTransformer):
 
-	def transform(self):
-		output = {}
-		output['label'] = _render_children(self.el.media.renderer, self.el.media.title)
-		output[MIMETYPE] = self.el.media.mimeType
-		output[NTIID] = self.el.media.ntiid
+	def do_transform(self):
+		output = super(_NTIVideoRefJSONTransformer, self).do_transform()
 		output['poster'] = self.el.media.poster
-		output['visibility'] = self.el.visibility
 		return output
 
 @interface.implementer(IJSONTransformer)
