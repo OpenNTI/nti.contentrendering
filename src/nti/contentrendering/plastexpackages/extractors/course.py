@@ -104,7 +104,8 @@ class _CourseExtractor(object):
 		for lesson_ref in lesson_refs:
 			lesson_ref_dates = lesson_ref.date
 			lesson = lesson_ref.idref['label']
-			logger.info("Processing lesson %s", lesson)
+			if lesson is None:
+				logger.error("Invalid lesson ref %s", lesson_ref.__dict__)
 			element = self._process_lesson(dom, outpath, course_node, 
 										   lesson, lesson_ref_dates, level=1)
 			toc_el.appendChild(element)
