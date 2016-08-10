@@ -131,6 +131,7 @@ class _CourseExtractor(object):
 		if date_strings:
 			toc_el.setAttribute('date', ','.join(date_strings))
 			
+		__traceback_info__ = lesson_node.__dict__,
 		toc_el.setAttribute('topic-ntiid', lesson_node.ntiid)
 		toc_el.setAttribute('levelnum', str(level))
 		toc_el.setAttribute('isOutlineStubOnly',
