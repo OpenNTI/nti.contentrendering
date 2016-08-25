@@ -159,9 +159,13 @@ class IStaticYouTubeEmbedVideoAdder(IStaticVideoAdder):
 
 # Embedded subcontainers
 
-from zope.mimetype.interfaces import IContentTypeAware
+try:
+	from plasTeX.interfaces import IEmbeddedContainer as _IEmbeddedContainerBase
+except:
+	# Old plasTeX version
+	from zope.mimetype.interfaces import IContentTypeAware as _IEmbeddedContainerBase
 
-class IEmbeddedContainer(IContentTypeAware):
+class IEmbeddedContainer(_IEmbeddedContainerBase):
 	"""
 	Intended to be implemented (or adapted from) nodes in the plasTeX
 	DOM tree, this object represents a portion of content, embedded
@@ -172,6 +176,8 @@ class IEmbeddedContainer(IContentTypeAware):
 
 	We inherit a ``mimeType`` attribute from our parent interface; this
 	should be the ``mimeType`` of the container being pointed to.
+
+	We add a stricter definition of the ntiid attribute.
 	"""
 
 	ntiid = schema.TextLine(title="The NTIID of the embedded container itself.")
@@ -179,7 +185,7 @@ class IEmbeddedContainer(IContentTypeAware):
 # Extractors
 
 class IRenderedBookExtractor(IRenderedBookTransformer):
-	
+
 	def transform(book, savetoc=True, outpath=None):
 		pass
 
@@ -187,7 +193,7 @@ class INTIMediaExtractor(IRenderedBookExtractor):
 	"""
 	marker interface for NTI media elements
 	"""
-	
+
 class INTIVideoExtractor(INTIMediaExtractor):
 	"""
 	Looks through the rendered book and extracts NTIVideos.
@@ -222,7 +228,7 @@ class ITimelineExtractor(IRenderedBookExtractor):
 	"""
 	Looks through the rendered book and extracts timelime information.
 	"""
-	
+
 class IJSONTransformer(interface.Interface):
 	"""
 	Given a :class:`plasTeX.Node`, create a JSON serializable dictionary.
@@ -250,7 +256,7 @@ class JobComponents(registry.Components):
 		if not self.__bases__:
 			self.__bases__ = (getGlobalSiteManager(),)
 
-	# TODO: Could probably do some meta programming and avoid duplicating the 
+	# TODO: Could probably do some meta programming and avoid duplicating the
 	# similar patterns
 	def queryUtility(self, provided, name='', default=None):
 		result = default
