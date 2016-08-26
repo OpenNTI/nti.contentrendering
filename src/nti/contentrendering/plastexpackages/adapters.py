@@ -16,8 +16,6 @@ from zope import interface
 
 from plasTeX.Renderers import render_children
 
-from nti.common.property import Lazy
-
 from nti.contentrendering.interfaces import IJSONTransformer
 
 from nti.externalization.interfaces import StandardExternalFields
@@ -26,6 +24,8 @@ from nti.ntiids.ntiids import make_ntiid
 from nti.ntiids.ntiids import get_provider
 from nti.ntiids.ntiids import get_specific
 from nti.ntiids.ntiids import make_specific_safe
+
+from nti.property.property import Lazy
 
 HREF = StandardExternalFields.HREF
 ITEMS = StandardExternalFields.ITEMS

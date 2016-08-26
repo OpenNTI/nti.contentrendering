@@ -95,6 +95,7 @@ setup(
 		'nti.mimetype',
 		'nti.ntiids',
 		'nti.plasTeX',
+		'nti.property',
 		'nti.schema',
 		'nti.wref',
 		'nti.zodb'
