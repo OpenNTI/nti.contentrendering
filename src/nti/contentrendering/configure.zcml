@@ -8,14 +8,14 @@
 	<include package="zope.security" file="meta.zcml" />
 	<include package="zope.component" />
 	<include package="zope.security" />
-	
+
 	<!-- For rendering -->
-	<include package="zope.traversing" /> 
+	<include package="plasTeX" />
 	<include package="z3c.autoinclude" file="meta.zcml" />
 
 	<!-- Content fragments and conversion, mime types -->
 	<include package="nti.contentfragments" />
-	
+
 	<!--
 	Loading it (non-dev mode) slows script startup way down.
 	We should really break this dependency.
@@ -47,7 +47,7 @@
 	<utility component=".sectionvideoadder.YouTubeRelatedVideoAdder"
 			 name="YouTubeRelatedVideoAdder" />
 
-	<utility component=".archive" 
+	<utility component=".archive"
 			 provides=".interfaces.IRenderedBookArchiver" />
 
 	<utility component=".slidedeckextractor"
@@ -65,7 +65,7 @@
 	<utility factory=".content_indexer.AudioTrancriptIndexer"
 			 provides=".interfaces.IRenderedBookIndexer"
 			 name="audio" />
-			 
+
 	<utility factory=".content_indexer.VideoTrancriptIndexer"
 			 provides=".interfaces.IRenderedBookIndexer"
 			 name="video" />
