@@ -39,7 +39,6 @@ from nti.contentrendering.interfaces import IRenderedBookTransformer
 
 from nti.contentrendering.RenderedBook import RenderedBook
 
-
 from nti.contentrendering.render_document import parse_tex
 from nti.contentrendering.render_document import resource_filename
 
@@ -70,7 +69,6 @@ def _catching(f):
 
 def _set_argparser():
 	arg_parser = argparse.ArgumentParser(description="Render NextThought content.")
-
 	arg_parser.add_argument('contentpath',
 							help="Path to top level content file.")
 	arg_parser.add_argument('-c', '--config',
