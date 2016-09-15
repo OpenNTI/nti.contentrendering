@@ -327,7 +327,7 @@ class courseoverviewgroup(Environment):
 		Sets the background color of the overview title bar.
 		This should be specified in hex.
 		"""
-		args = 'color:string'
+		args = 'color:str'
 
 		def digest(self, tokens):
 			super(courseoverviewgroup.titlebackgroundcolor, self).digest(tokens)
