@@ -1,0 +1,6 @@
+name: figure figure*
+<div class="figure" tal:condition="python: not 'h' in self.options['loc']" tal:attributes="id self/title/id | self/title" tal:content="self">
+</div>
+<div class="figure" style="float: left; margin-right:10px;" tal:condition="python: 'h' in self.options['loc']" tal:attributes="id self/title/id | self/title" tal:content="self">
+</div>
+
