@@ -298,15 +298,3 @@ class JobComponents(registry.Components):
 															interface,
 															name=name,
 															default=default)
-
-# Indexing
-
-class IRenderedBookIndexer(IRenderedBookTransformer):
-
-	def transform(book, name):
-		"""
-		Perform the book index operation.
-
-		:param book: The :class:`IRenderedBook`.
-		:param name: indexer name
-		"""

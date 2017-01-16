@@ -199,9 +199,8 @@ def postRender(document,
     # Ideally order shouldn't matter, and if it does it should be
     # handled by a specialized dispatching utility.
     for name, extractor in sorted(component.getUtilitiesFor(IRenderedBookTransformer)):
-        if not IRenderedBookIndexer.providedBy(extractor):
-            logger.info("Extracting %s/%s", name, extractor)
-            extractor.transform(book)
+        logger.info("Extracting %s/%s", name, extractor)
+        extractor.transform(book)
 
     logger.info("Creating JSONP content")
     jsonpbuilder.transform(book)
