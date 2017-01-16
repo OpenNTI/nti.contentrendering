@@ -142,8 +142,7 @@ def postRender(document,
 			   contentLocation='.',
 			   jobname='prealgebra',
 			   context=None,
-			   dochecking=True,
-			   doindexing=True):
+			   dochecking=True):
 	# FIXME: This was not particularly well thought out. We're using components,
 	# but named utilities, not generalized adapters or subscribers.
 	# That makes this not as extensible as it should be.
@@ -203,20 +202,6 @@ def postRender(document,
 		if not IRenderedBookIndexer.providedBy(extractor):
 			logger.info("Extracting %s/%s", name, extractor)
 			extractor.transform(book)
-
-	if doindexing and  not os.path.exists(os.path.join(contentPath, 'indexdir')):
-		# We'd like to be able to run this with pypy (it's /much/ faster)
-		# but some of the Zope libs we import during contentsearch (notably Persistent)
-		# are not quite compatible. A previous version of this code made the correct
-		# changes PYTHONPATH changes for this to work (before contentsearch grew
-		# those deps); now it just generates exceptions, so we don't try right now
-		start_t = time.time()
-		logger.info("Indexing content in-process.")
-		for name, extractor in component.getUtilitiesFor(IRenderedBookIndexer):
-			logger.info("Indexing %s content", name)
-			extractor.transform(book, jobname)
-		elapsed = time.time() - start_t
-		logger.info("Content indexing took %s(s)", elapsed)
 
 	logger.info("Creating JSONP content")
 	jsonpbuilder.transform(book)
