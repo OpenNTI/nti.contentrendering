@@ -34,7 +34,6 @@ from nti.contentrendering import contentsizesetter
 from nti.contentrendering import relatedlinksetter
 from nti.contentrendering import sectionvideoadder
 
-from nti.contentrendering.interfaces import IRenderedBookIndexer
 from nti.contentrendering.interfaces import IRenderedBookTransformer
 
 from nti.contentrendering.RenderedBook import RenderedBook
