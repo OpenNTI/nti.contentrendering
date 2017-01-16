@@ -310,16 +310,3 @@ class IRenderedBookIndexer(IRenderedBookTransformer):
 		:param book: The :class:`IRenderedBook`.
 		:param name: indexer name
 		"""
-
-import zope.deferredimport
-zope.deferredimport.initialize()
-zope.deferredimport.deprecatedFrom(
-	"Moved to nti.contentindexing.interfaces",
-	"nti.contentindexing.interfaces",
-	"IContentIndexer",
-	"IBookIndexer",
-	"INTICardIndexer",
-	"IMediaTranscriptIndexer",
-	"IAudioTranscriptIndexer",
-	"IVideoTranscriptIndexer"
-)
