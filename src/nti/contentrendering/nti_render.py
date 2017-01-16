@@ -78,10 +78,6 @@ def _set_argparser():
 							 action='store_true',
 							 default=False,
 							 help="Perform content checks.")
-	arg_parser.add_argument('--noindexing',
-							 action='store_true',
-							 default=False,
-							 help="Index content files.")
 	arg_parser.add_argument('-o', '--outputformat',
 							 default='xhtml',
 							 help="Output format for rendered files. Default is xhtml")
@@ -103,7 +99,6 @@ def main():
 	sourceFile = args.contentpath
 	_configure_logging(args.loglevel)
 	dochecking = not args.nochecking
-	doindexing = not args.noindexing
 	outFormat = args.outputformat
 
 	logger.info("Start rendering for %s", sourceFile)
@@ -122,8 +117,7 @@ def main():
 		postRender(document,
 				   jobname=jobname,
 				   context=components,
-				   dochecking=dochecking,
-				   doindexing=doindexing)
+				   dochecking=dochecking)
 	elif outFormat == 'xml':
 		logger.info("To Xml.")
 		toXml(document, jobname)
