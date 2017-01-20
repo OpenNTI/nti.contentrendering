@@ -86,7 +86,6 @@ setup(
         'zope.traversing',
         'nti.common',
         'nti.contentfragments',
-        'nti.contentindexing',
         'nti.contentprocessing',
         'nti.contenttypes.presentation',
         'nti.externalization',
