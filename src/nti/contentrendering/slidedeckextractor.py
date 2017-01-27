@@ -113,19 +113,20 @@ def save_index_file(outpath, data, dom_ntiid):
 			containers[topic_ntiid].append(ntiid)
 
 	slide_content_index = {'Items': items, 'Containers':containers}
-	filename = 'slidedeck_index.json'
-	with open(os.path.join(outpath, filename), "wb") as fp:
-		simplejson.dump(slide_content_index, fp, indent=4)
-
-	# Write the JSONP version
-	with open(os.path.join(outpath, filename + 'p'), "wb") as fp:
-		fp.write('jsonpReceiveContent(')
-		simplejson.dump({'ntiid': dom_ntiid,
-					     'Content-Type': 'application/json',
-					     'Content-Encoding': 'json',
-					     'content': slide_content_index,
-					     'version': '1'}, fp, indent=4)
-		fp.write(');')
+	if items: # check there is something to write
+		filename = 'slidedeck_index.json'
+		with open(os.path.join(outpath, filename), "wb") as fp:
+			simplejson.dump(slide_content_index, fp, indent=4)
+	
+		# Write the JSONP version
+		with open(os.path.join(outpath, filename + 'p'), "wb") as fp:
+			fp.write('jsonpReceiveContent(')
+			simplejson.dump({'ntiid': dom_ntiid,
+						     'Content-Type': 'application/json',
+						     'Content-Encoding': 'json',
+						     'content': slide_content_index,
+						     'version': '1'}, fp, indent=4)
+			fp.write(');')
 	
 _EMPTY_TEXT = u' '*4
 def transform(book, savetoc=True, outpath=None):
