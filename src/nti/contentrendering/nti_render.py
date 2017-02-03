@@ -94,59 +94,6 @@ def set_argparser():
 _set_argparser = set_argparser
 
 
-def render(sourceFile, out_format='xhtml', nochecking=False):
-    logger.info("Start rendering for %s", sourceFile)
-    start_t = time.time()
-    dochecking = not nochecking
-    document, components, jobname, _ = parse_tex(sourceFile,
-                                                 outFormat=out_format)
-
-    db = None
-    if out_format in ('images', 'xhtml', 'text'):
-        logger.info("Generating images")
-        db = generate_images(document)
-
-    if out_format == 'xhtml':
-        logger.info("Begin render")
-        render_document(document,
-                        document.config['general']['renderer'],
-                        db)
-        logger.info("Begin post render")
-        post_render(document,
-                    jobname=jobname,
-                    context=components,
-                    dochecking=dochecking)
-    elif out_format == 'xml':
-        logger.info("To Xml.")
-        to_xml(document, jobname)
-
-    elif out_format == 'text':
-        logger.info("Begin render")
-        render_document(document,
-                        document.config['general']['renderer'],
-                        db)
-
-    logger.info("Write metadata.")
-    write_dc_metadata(document, jobname)
-
-    elapsed = time.time() - start_t
-    logger.info("Rendering took %s(s)", elapsed)
-    return document
-
-
-@catching
-def main():
-    """
-    Main program routine
-    """
-    argv = sys.argv[1:]
-    arg_parser = set_argparser()
-    args = arg_parser.parse_args(args=argv)
-
-    configure_logging(args.loglevel)
-    render(args.contentpath, args.outputformat, args.nochecking)
-
-
 def post_render(document,
                 contentLocation='.',
                 jobname='prealgebra',
@@ -221,7 +168,6 @@ postRender = post_render
 
 
 def render_document(document, rname, db):
-    # Apply renderer
     renderer = createResourceRenderer(rname, db, unmix=False)
     renderer.render(document)
     return renderer
@@ -283,3 +229,56 @@ def generate_images(document):
     db.generateResourceSets()
     return db
 generateImages = generate_images
+
+
+def render(sourceFile, out_format='xhtml', nochecking=False):
+    logger.info("Start rendering for %s", sourceFile)
+    start_t = time.time()
+    dochecking = not nochecking
+    document, components, jobname, _ = parse_tex(sourceFile,
+                                                 outFormat=out_format)
+
+    db = None
+    if out_format in ('images', 'xhtml', 'text'):
+        logger.info("Generating images")
+        db = generate_images(document)
+
+    if out_format == 'xhtml':
+        logger.info("Begin render")
+        render_document(document,
+                        document.config['general']['renderer'],
+                        db)
+        logger.info("Begin post render")
+        post_render(document,
+                    jobname=jobname,
+                    context=components,
+                    dochecking=dochecking)
+    elif out_format == 'xml':
+        logger.info("To Xml.")
+        to_xml(document, jobname)
+
+    elif out_format == 'text':
+        logger.info("Begin render")
+        render_document(document,
+                        document.config['general']['renderer'],
+                        db)
+
+    logger.info("Write metadata.")
+    write_dc_metadata(document, jobname)
+
+    elapsed = time.time() - start_t
+    logger.info("Rendering took %s(s)", elapsed)
+    return document
+
+
+@catching
+def main():
+    """
+    Main program routine
+    """
+    argv = sys.argv[1:]
+    arg_parser = set_argparser()
+    args = arg_parser.parse_args(args=argv)
+
+    configure_logging(args.loglevel)
+    render(args.contentpath, args.outputformat, args.nochecking)
