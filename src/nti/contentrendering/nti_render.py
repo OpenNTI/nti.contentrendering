@@ -48,14 +48,15 @@ from nti.contentrendering.resources.resourcetypeoverrides import ResourceTypeOve
 DEFAULT_LOG_FORMAT = '[%(asctime)-15s] [%(name)s] %(levelname)s: %(message)s'
 
 
-def _configure_logging(level='INFO', fmt=DEFAULT_LOG_FORMAT):
+def configure_logging(level='INFO', fmt=DEFAULT_LOG_FORMAT):
     level = getattr(logging, level.upper(), None)
     level = logging.INFO if not isinstance(level, int) else level
     logging.basicConfig(level=level)
     logging.root.handlers[0].setFormatter(zope.exceptions.log.Formatter(fmt))
+_configure_logging = configure_logging
 
 
-def _catching(f):
+def catching(f):
     @functools.wraps(f)
     def y():
         try:
@@ -67,10 +68,12 @@ def _catching(f):
             logger.exception("Failed to run main")
             sys.exit(1)
     return y
+_catching = catching
 
 
-def _set_argparser():
-    arg_parser = argparse.ArgumentParser(description="Render NextThought content.")
+def set_argparser():
+    arg_parser = argparse.ArgumentParser(
+        description="Render NextThought content.")
     arg_parser.add_argument('contentpath',
                             help="Path to top level content file.")
     arg_parser.add_argument('-c', '--config',
@@ -88,60 +91,67 @@ def _set_argparser():
                             help="Set logging level to INFO, DEBUG, WARNING, ERROR or "
                             "CRITICAL. Default is INFO.")
     return arg_parser
+_set_argparser = set_argparser
 
 
-@_catching
-def main():
-    """
-    Main program routine
-    """
-    argv = sys.argv[1:]
-    arg_parser = _set_argparser()
-    args = arg_parser.parse_args(args=argv)
-
-    sourceFile = args.contentpath
-    _configure_logging(args.loglevel)
-    dochecking = not args.nochecking
-    outFormat = args.outputformat
-
+def render(sourceFile, out_format='xhtml', nochecking=False):
     logger.info("Start rendering for %s", sourceFile)
     start_t = time.time()
-    document, components, jobname, _ = parse_tex(
-        sourceFile, outFormat=outFormat)
+    dochecking = not nochecking
+    document, components, jobname, _ = parse_tex(sourceFile,
+                                                 outFormat=out_format)
 
     db = None
-    if outFormat in ('images', 'xhtml', 'text'):
+    if out_format in ('images', 'xhtml', 'text'):
         logger.info("Generating images")
-        db = generateImages(document)
+        db = generate_images(document)
 
-    if outFormat == 'xhtml':
+    if out_format == 'xhtml':
         logger.info("Begin render")
-        render(document, document.config['general']['renderer'], db)
+        render_document(document,
+                        document.config['general']['renderer'],
+                        db)
         logger.info("Begin post render")
-        postRender(document,
-                   jobname=jobname,
-                   context=components,
-                   dochecking=dochecking)
-    elif outFormat == 'xml':
+        post_render(document,
+                    jobname=jobname,
+                    context=components,
+                    dochecking=dochecking)
+    elif out_format == 'xml':
         logger.info("To Xml.")
-        toXml(document, jobname)
+        to_xml(document, jobname)
 
-    elif outFormat == 'text':
+    elif out_format == 'text':
         logger.info("Begin render")
-        render(document, document.config['general']['renderer'], db)
+        render_document(document,
+                        document.config['general']['renderer'],
+                        db)
 
     logger.info("Write metadata.")
     write_dc_metadata(document, jobname)
 
     elapsed = time.time() - start_t
     logger.info("Rendering took %s(s)", elapsed)
+    return document
 
 
-def postRender(document,
-               contentLocation='.',
-               jobname='prealgebra',
-               context=None,
-               dochecking=True):
+@catching
+def main():
+    """
+    Main program routine
+    """
+    argv = sys.argv[1:]
+    arg_parser = set_argparser()
+    args = arg_parser.parse_args(args=argv)
+
+    configure_logging(args.loglevel)
+    render(args.contentpath, args.outputformat, args.nochecking)
+
+
+def post_render(document,
+                contentLocation='.',
+                jobname='prealgebra',
+                context=None,
+                dochecking=True):
     # FIXME: This was not particularly well thought out. We're using components,
     # but named utilities, not generalized adapters or subscribers.
     # That makes this not as extensible as it should be.
@@ -197,7 +207,8 @@ def postRender(document,
     # utility. To register, use patterns like 001, 002, etc.
     # Ideally order shouldn't matter, and if it does it should be
     # handled by a specialized dispatching utility.
-    for name, extractor in sorted(component.getUtilitiesFor(IRenderedBookTransformer)):
+    transformers = component.getUtilitiesFor(IRenderedBookTransformer)
+    for name, extractor in sorted(transformers):
         logger.info("Extracting %s/%s", name, extractor)
         extractor.transform(book)
 
@@ -206,24 +217,27 @@ def postRender(document,
 
     logger.info("Creating an archive file")
     archive.create_archive(book, name=jobname)
+postRender = post_render
 
 
-def render(document, rname, db):
+def render_document(document, rname, db):
     # Apply renderer
     renderer = createResourceRenderer(rname, db, unmix=False)
     renderer.render(document)
     return renderer
 
 
-def toXml(document, jobname):
+def to_xml(document, jobname):
     outfile = '%s.xml' % jobname
     with open(outfile, 'w') as f:
         f.write(document.toXML().encode('utf-8'))
+toXml = to_xml
 
 
 def write_dc_metadata(document, jobname):
     """
-    Write an XML file containing the DublinCore metadata we can extract for this document.
+    Write an XML file containing the DublinCore metadata we can
+    extract for this document.
     """
     mapping = {}
     metadata = document.userdata
@@ -238,7 +252,8 @@ def write_dc_metadata(document, jobname):
         # DC Title is an array, latex title is scalar
         # Sometimes title may be a string or it may be a TeXElement, depending
         # on what packages have dorked things up
-        mapping['Title'] = (getattr(metadata['title'], 'textContent',
+        mapping['Title'] = (getattr(metadata['title'],
+                                    'textContent',
                                     metadata['title']),)
 
     # The 'date' command in latex is free form, which is not
@@ -255,7 +270,7 @@ def write_dc_metadata(document, jobname):
         f.write(xml_string.encode('utf-8'))
 
 
-def generateImages(document):
+def generate_images(document):
     # Generates required images ###
     # Replace this with configuration/use of ZCA?
     OVERRIDE_INDEX_NAME = getattr(ResourceTypeOverrides, 'OVERRIDE_INDEX_NAME')
@@ -267,3 +282,4 @@ def generateImages(document):
     db = ResourceDB(document, overridesLocation=overrides)
     db.generateResourceSets()
     return db
+generateImages = generate_images
