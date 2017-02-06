@@ -231,11 +231,12 @@ def generate_images(document):
 generateImages = generate_images
 
 
-def render(sourceFile, out_format='xhtml', nochecking=False):
+def render(sourceFile, provider='AOPS', out_format='xhtml', nochecking=False):
     logger.info("Start rendering for %s", sourceFile)
     start_t = time.time()
     dochecking = not nochecking
     document, components, jobname, _ = parse_tex(sourceFile,
+                                                 provider=provider,
                                                  outFormat=out_format)
 
     db = None
@@ -281,4 +282,6 @@ def main():
     args = arg_parser.parse_args(args=argv)
 
     configure_logging(args.loglevel)
-    render(args.contentpath, args.outputformat, args.nochecking)
+    render(args.contentpath, 
+           out_format=args.outputformat, 
+           nochecking=args.nochecking)

@@ -105,7 +105,8 @@ def parse_tex(sourceFile,
 			  outdir=None,
               perform_transforms=True,
               set_chameleon_cache=True,
-              xml_conf_context=None):
+              xml_conf_context=None,
+              provider='AOPS'):
 
     source_dir, packages_path, xml_conf_context = \
             prepare_xml_context(sourceFile,
@@ -145,7 +146,7 @@ def parse_tex(sourceFile,
     document.config.add_section('NTI')
     document.config.set('NTI',
                         'provider',
-                        escape_provider(os.environ.get('NTI_PROVIDER', 'AOPS')))
+                        escape_provider(os.environ.get('NTI_PROVIDER', provider)))
 
     document.config.set('NTI', 'extra-scripts', '')
     document.config.set('NTI', 'extra-styles', '')
