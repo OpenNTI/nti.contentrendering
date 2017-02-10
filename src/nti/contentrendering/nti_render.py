@@ -34,6 +34,7 @@ from nti.contentrendering import contentsizesetter
 from nti.contentrendering import relatedlinksetter
 from nti.contentrendering import sectionvideoadder
 
+from nti.contentrendering.interfaces import JobComponents
 from nti.contentrendering.interfaces import IRenderedBookTransformer
 
 from nti.contentrendering.RenderedBook import RenderedBook
@@ -44,6 +45,8 @@ from nti.contentrendering.render_document import resource_filename
 from nti.contentrendering.resources.ResourceDB import ResourceDB
 from nti.contentrendering.resources.ResourceRenderer import createResourceRenderer
 from nti.contentrendering.resources.resourcetypeoverrides import ResourceTypeOverrides
+
+from nti.contentrendering.transforms import performTransforms
 
 DEFAULT_LOG_FORMAT = '[%(asctime)-15s] [%(name)s] %(levelname)s: %(message)s'
 
@@ -231,13 +234,12 @@ def generate_images(document):
 generateImages = generate_images
 
 
-def render(sourceFile, provider='AOPS', out_format='xhtml', nochecking=False):
-    logger.info("Start rendering for %s", sourceFile)
-    start_t = time.time()
-    dochecking = not nochecking
-    document, components, jobname, _ = parse_tex(sourceFile,
-                                                 provider=provider,
-                                                 outFormat=out_format)
+def process_document(document, jobname, components=None,
+                     out_format='xhtml', dochecking=True):
+    if components is None:
+        logger.info("Perform prerender transforms.")
+        components = JobComponents(jobname)
+        performTransforms(document, context=components)
 
     db = None
     if out_format in ('images', 'xhtml', 'text'):
@@ -266,6 +268,18 @@ def render(sourceFile, provider='AOPS', out_format='xhtml', nochecking=False):
 
     logger.info("Write metadata.")
     write_dc_metadata(document, jobname)
+    return document
+
+
+def render(sourceFile, provider='AOPS', out_format='xhtml', nochecking=False):
+    logger.info("Start rendering for %s", sourceFile)
+    start_t = time.time()
+    dochecking = not nochecking
+    document, components, jobname, _ = parse_tex(sourceFile,
+                                                 provider=provider,
+                                                 outFormat=out_format)
+
+    process_document(document, jobname, components, out_format, dochecking)
 
     elapsed = time.time() - start_t
     logger.info("Rendering took %s(s)", elapsed)
@@ -282,6 +296,6 @@ def main():
     args = arg_parser.parse_args(args=argv)
 
     configure_logging(args.loglevel)
-    render(args.contentpath, 
-           out_format=args.outputformat, 
+    render(args.contentpath,
+           out_format=args.outputformat,
            nochecking=args.nochecking)
