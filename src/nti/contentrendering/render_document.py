@@ -54,6 +54,20 @@ class PluginPoint(Contained):
 PP_CONTENT_RENDERING = PluginPoint('nti.contentrendering')
 
 
+def prepare_rendering_context(context=None):
+    context = xmlconfig.file('configure.zcml',
+                             package=nti.contentrendering,
+                             context=context)
+
+    # Include zope.browserpage.meta.zcml for tales:expressiontype
+    # before including the products
+    xmlconfig.include(context, file="meta.zcml", package=zope.browserpage)
+
+    # include plugins
+    includePluginsDirective(context, PP_CONTENT_RENDERING)
+    return context
+
+
 def prepare_xml_context(source_file, context=None):
     source_file = os.path.abspath(os.path.expanduser(source_file))
     source_dir = os.path.dirname(source_file)
@@ -87,43 +101,12 @@ def prepare_xml_context(source_file, context=None):
                                      package=nti.contentrendering,
                                      context=context)
 
-    context = xmlconfig.file('configure.zcml',
-                             package=nti.contentrendering,
-                             context=context)
-
-    # Include zope.browserpage.meta.zcml for tales:expressiontype
-    # before including the products
-    xmlconfig.include(context, file="meta.zcml", package=zope.browserpage)
-
-    # include plugins
-    includePluginsDirective(context, PP_CONTENT_RENDERING)
+    context = prepare_rendering_context(context)
     return source_dir, packages_path, context
 
 
-def parse_tex(sourceFile, 
-			  outFormat='xhtml', 
-			  outdir=None,
-              perform_transforms=True,
-              set_chameleon_cache=True,
-              xml_conf_context=None,
-              provider='AOPS'):
-
-    source_dir, packages_path, xml_conf_context = \
-            prepare_xml_context(sourceFile,
-                                xml_conf_context)
-
-    # Create document instance that output will be put into
-    document = TeXDocument()
-
-    # setup id generation
-    patch_all()
-
-    # Certain things like to assume that the root document is called index.html. Make it so.
-    # This is actually plasTeX.Base.LaTeX.Document.document, but games are played
-    # with imports. damn it.
-    # .html added automatically
-    Base.document.filenameoverride = property(lambda s: 'index')
-
+def prepare_document_settings(document, outFormat='xhtml',
+                              perform_transforms=True, provider='AOPS'):
     # setup default config options we want
     document.config['files']['split-level'] = 1
     document.config['document']['sec-num-depth'] = 10
@@ -157,28 +140,7 @@ def parse_tex(sourceFile,
     # automatically for it?)
     document.config.set('NTI', 'strict-ntiids', False)
 
-    conf_name = os.path.join(source_dir, "nti_render_conf.ini")
-    document.config.read((conf_name,))
-
-    # Configure components and utilities
-    zope_conf_name = os.path.join(source_dir, 'configure.zcml')
-    if os.path.exists(zope_conf_name):
-        xml_conf_context = xmlconfig.file(os.path.abspath(zope_conf_name),
-                                          package=nti.contentrendering,
-                                          context=xml_conf_context)
-
-    # Instantiate the TeX processor
-    tex = TeX(document, file=sourceFile)
-
-    # Populate variables for use later
-    jobname = document.userdata['jobname'] = tex.jobname
-
-    # Create a component lookup ("site manager") that will
-    # look for components named for the job implicitly
-    # TODO: Consider installing hooks and using 'with site()' for this?
-    components = JobComponents(jobname)
-
-    cwd = document.userdata['working-dir'] = os.getcwd()
+    document.userdata['working-dir'] = os.getcwd()
 
     now = datetime.datetime.utcnow()
     document.userdata['generated_time'] = isodate.datetime_isoformat(now)
@@ -202,6 +164,57 @@ def parse_tex(sourceFile,
     # might need/want to make it per-page/per-feature (e.g., if a unit doesn't use
     # new quiz functionality, it may be compatible with older viewers)
     document.userdata['renderVersion'] = 2
+    return document
+
+
+def parse_tex(sourceFile,
+              outFormat='xhtml',
+              outdir=None,
+              perform_transforms=True,
+              set_chameleon_cache=True,
+              xml_conf_context=None,
+              provider='AOPS'):
+
+    source_dir, packages_path, xml_conf_context = \
+        prepare_xml_context(sourceFile,
+                            xml_conf_context)
+
+    # Create document instance that output will be put into
+    document = TeXDocument()
+
+    # setup id generation
+    patch_all()
+
+    # Certain things like to assume that the root document is called index.html. Make it so.
+    # This is actually plasTeX.Base.LaTeX.Document.document, but games are played
+    # with imports. damn it.
+    # .html added automatically
+    Base.document.filenameoverride = property(lambda s: 'index')
+
+    prepare_document_settings(document, outFormat, provider)
+
+    conf_name = os.path.join(source_dir, "nti_render_conf.ini")
+    document.config.read((conf_name,))
+
+    # Configure components and utilities
+    zope_conf_name = os.path.join(source_dir, 'configure.zcml')
+    if os.path.exists(zope_conf_name):
+        xml_conf_context = xmlconfig.file(os.path.abspath(zope_conf_name),
+                                          package=nti.contentrendering,
+                                          context=xml_conf_context)
+
+    # Instantiate the TeX processor
+    tex = TeX(document, file=sourceFile)
+
+    # Populate variables for use later
+    jobname = document.userdata['jobname'] = tex.jobname
+
+    # Create a component lookup ("site manager") that will
+    # look for components named for the job implicitly
+    # TODO: Consider installing hooks and using 'with site()' for this?
+    components = JobComponents(jobname)
+
+    cwd = document.userdata['working-dir']
 
     # Load aux files for cross-document references
     pauxname = '%s.paux' % jobname
@@ -215,9 +228,9 @@ def parse_tex(sourceFile,
 
     # Set up TEXINPUTS to include the current directory for the renderer,
     # plus our packages directory
-    texinputs = (os.getcwd(), 
+    texinputs = (os.getcwd(),
                  source_dir,
-                 packages_path, 
+                 packages_path,
                  os.environ.get('TEXINPUTS', ''))
     os.environ['TEXINPUTS'] = os.path.pathsep.join(texinputs)
 
