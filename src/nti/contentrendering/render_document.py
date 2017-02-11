@@ -191,7 +191,7 @@ def parse_tex(sourceFile,
     # .html added automatically
     Base.document.filenameoverride = property(lambda s: 'index')
 
-    prepare_document_settings(document, outFormat, provider)
+    prepare_document_settings(document, outFormat, provider=provider)
 
     conf_name = os.path.join(source_dir, "nti_render_conf.ini")
     document.config.read((conf_name,))
