@@ -18,9 +18,9 @@ import unittest
 
 import os.path
 
-from nti.contentrendering.tests import simpleLatexDocumentText
-from . import ContentrenderingLayerTest
 from nti.contentrendering.tests import RenderContext
+from nti.contentrendering.tests import simpleLatexDocumentText
+from nti.contentrendering.tests import ContentrenderingLayerTest
 
 from nti.contentrendering import nti_render
 from nti.contentrendering import transforms
@@ -84,7 +84,8 @@ class TestNTIRender(ContentrenderingLayerTest):
 			except ConverterUnusableError as e:
 				raise unittest.SkipTest(e)
 
-			nti_render.render(ctx.dom, 'XHTML', rdb)
+			jobname = ctx.dom.userdata['jobname']
+			nti_render.process_document(ctx.dom, jobname, out_format='xhtml')
 			fname = os.path.join(ctx.docdir, 'tag_nextthought_com_2011-10_testing-HTML-temp_0.html')
 			with open(fname, 'r') as f:
 				contents = f.read()

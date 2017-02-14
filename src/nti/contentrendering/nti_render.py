@@ -235,14 +235,14 @@ generateImages = generate_images
 
 
 def process_document(document, jobname, components=None,
-                     out_format='xhtml', dochecking=True):
+                     out_format='xhtml', dochecking=True, db=None):
     if components is None:
         logger.info("Perform prerender transforms.")
         components = JobComponents(jobname)
         performTransforms(document, context=components)
 
-    db = None
-    if out_format in ('images', 'xhtml', 'text'):
+    if      db is None \
+        and out_format in ('images', 'xhtml', 'text'):
         logger.info("Generating images")
         db = generate_images(document)
 
