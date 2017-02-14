@@ -68,17 +68,15 @@ def prepare_rendering_context(context=None):
     return context
 
 
-def prepare_xml_context(source_file, context=None):
-    source_file = os.path.abspath(os.path.expanduser(source_file))
-    source_dir = os.path.dirname(source_file)
-
+def load_packages(source_dir=None, context=None):
     # Set up imports for style files. The preferred, if verbose, way is to
     # use a fully qualified Python name. But for legacy and convenience
     # reasons, we support non-qualified imports (if the module does)
     # by adding that directory directly to the path
     packages_path = os.path.join(os.path.dirname(__file__),
                                  str('plastexpackages'))
-    sys.path.append(packages_path)
+    if packages_path not in sys.path:
+        sys.path.append(packages_path)
 
     # Also allow the source directory to cntain a 'plastexpackages'
     # directory. If it exists, it should be a directory containing
@@ -87,21 +85,30 @@ def prepare_xml_context(source_file, context=None):
     # note that in the module case, they won't be able to import each other.
     # Also note that the content-local `configure.zcml` file can (SHOULD) be used
     # to register IPythonPackage adapters/utilities
-    local_packages_path = os.path.join(source_dir,
-                                       str('plastexpackages'))
-    sys.path.append(local_packages_path)
+    if source_dir is not None:
+        local_packages_path = os.path.join(source_dir,
+                                           str('plastexpackages'))
+        if local_packages_path not in sys.path:
+            sys.path.append(local_packages_path)
 
-    zope_pre_conf_name = os.path.join(source_dir, str('pre_configure.zcml'))
-    if os.path.exists(zope_pre_conf_name):
-        if context is None:
-            context = xmlconfig.file(os.path.abspath(zope_pre_conf_name),
-                                     package=nti.contentrendering)
-        else:
-            context = xmlconfig.file(os.path.abspath(zope_pre_conf_name),
-                                     package=nti.contentrendering,
-                                     context=context)
+        zope_pre_conf_name = os.path.join(source_dir, str('pre_configure.zcml'))
+        if os.path.exists(zope_pre_conf_name):
+            if context is None:
+                context = xmlconfig.file(os.path.abspath(zope_pre_conf_name),
+                                         package=nti.contentrendering)
+            else:
+                context = xmlconfig.file(os.path.abspath(zope_pre_conf_name),
+                                         package=nti.contentrendering,
+                                         context=context)
 
     context = prepare_rendering_context(context)
+    return context, packages_path
+
+
+def prepare_xml_context(source_file, context=None):
+    source_file = os.path.abspath(os.path.expanduser(source_file))
+    source_dir = os.path.dirname(source_file)
+    context, packages_path = load_packages(source_dir, context)
     return source_dir, packages_path, context
 
 
@@ -167,6 +174,38 @@ def prepare_document_settings(document, outFormat='xhtml',
     return document
 
 
+def setup_environ(document, jobname, packages_path, source_dir=None):
+    cwd = document.userdata['working-dir']
+    # Load aux files for cross-document references
+    pauxname = '%s.paux' % jobname
+    for dirname in [cwd] + document.config['general']['paux-dirs']:
+        for fname in glob.glob(os.path.join(dirname, '*.paux')):
+            if os.path.basename(fname) == pauxname:
+                continue
+            document.context.restore(
+                fname,
+                document.config['general']['renderer'])
+
+    # Set up TEXINPUTS to include the current directory for the renderer,
+    # plus our packages directory
+    if source_dir is not None:
+        texinputs = (os.getcwd(),
+                     source_dir,
+                     packages_path,
+                     os.environ.get('TEXINPUTS', ''))
+        os.environ['TEXINPUTS'] = os.path.pathsep.join(texinputs)
+
+    # Likewise for the renderers, with the addition of the legacy 'zpts' directory.
+    # Parts of the code (notably tex2html._find_theme_mathjaxconfig) depend on
+    # the local Template being first. Note that earlier values will take precedence
+    # over later values.
+    xhtmltemplates = (os.path.join(os.getcwd(), 'Templates'),
+                      packages_path,
+                      resource_filename(__name__, 'zpts'),
+                      os.environ.get('XHTMLTEMPLATES', ''))
+    os.environ['XHTMLTEMPLATES'] = os.path.pathsep.join(xhtmltemplates)
+
+
 def parse_tex(sourceFile,
               outFormat='xhtml',
               outdir=None,
@@ -187,9 +226,8 @@ def parse_tex(sourceFile,
 
     # Certain things like to assume that the root document is called index.html. Make it so.
     # This is actually plasTeX.Base.LaTeX.Document.document, but games are played
-    # with imports. damn it.
-    # .html added automatically
-    Base.document.filenameoverride = property(lambda s: 'index')
+    # with imports. damn it (html suffix added automatically).
+    Base.document.filenameoverride = property(lambda unused: 'index')
 
     prepare_document_settings(document, outFormat, provider=provider)
 
@@ -214,35 +252,7 @@ def parse_tex(sourceFile,
     # TODO: Consider installing hooks and using 'with site()' for this?
     components = JobComponents(jobname)
 
-    cwd = document.userdata['working-dir']
-
-    # Load aux files for cross-document references
-    pauxname = '%s.paux' % jobname
-    for dirname in [cwd] + document.config['general']['paux-dirs']:
-        for fname in glob.glob(os.path.join(dirname, '*.paux')):
-            if os.path.basename(fname) == pauxname:
-                continue
-            document.context.restore(
-                fname,
-                document.config['general']['renderer'])
-
-    # Set up TEXINPUTS to include the current directory for the renderer,
-    # plus our packages directory
-    texinputs = (os.getcwd(),
-                 source_dir,
-                 packages_path,
-                 os.environ.get('TEXINPUTS', ''))
-    os.environ['TEXINPUTS'] = os.path.pathsep.join(texinputs)
-
-    # Likewise for the renderers, with the addition of the legacy 'zpts' directory.
-    # Parts of the code (notably tex2html._find_theme_mathjaxconfig) depend on
-    # the local Template being first. Note that earlier values will take precedence
-    # over later values.
-    xhtmltemplates = (os.path.join(os.getcwd(), 'Templates'),
-                      packages_path,
-                      resource_filename(__name__, 'zpts'),
-                      os.environ.get('XHTMLTEMPLATES', ''))
-    os.environ['XHTMLTEMPLATES'] = os.path.pathsep.join(xhtmltemplates)
+    setup_environ(document, jobname, packages_path, source_dir)
 
     if set_chameleon_cache:
         setupChameleonCache(config=True)

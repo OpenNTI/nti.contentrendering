@@ -18,7 +18,7 @@ from xml.dom.minidom import parse
 
 from html5lib import HTMLParser
 from html5lib import treewalkers
-from html5lib import treebuilders 
+from html5lib import treebuilders
 
 from pyquery import PyQuery
 
@@ -120,7 +120,6 @@ class RenderedBook(object):
 		# is it large to serialize, it is potentially
 		# risky: arbitrary, non-pickalable objects could get attached there
 		results = {}
-
 		with ConcurrentExecutor() as executor:
 			for the_tuple in executor.map(self._get_phantom_function(),
 										  [os.path.join(self.contentLocation, node.getAttribute(b'href'))
@@ -378,7 +377,7 @@ class _EclipseTOCMiniDomTopic(object):
 			self._childTopics = []
 			childCount = 1
 			for x in self.topic.childNodes:
-				# Exclude things with hrefs that look like fragments (but do include things 
+				# Exclude things with hrefs that look like fragments (but do include things
 				# that are missing hrefs altogether)
 				# both of these measures are for backwards compatibility
 				if		x.nodeType == x.ELEMENT_NODE and x.localName == 'topic' \
@@ -402,7 +401,7 @@ class _EclipseTOCMiniDomTopic(object):
 		if not self._dom:
 			if not self.sourceFile or not os.path.exists(self.sourceFile):
 				# Careful with logging here: __repr__ calls this method!
-				logger.warn("Unable to get dom for missing file %s in %s", 
+				logger.warn("Unable to get dom for missing file %s in %s",
 							self.sourceFile, self.__dict__)
 				return None
 			# By using the HTML5 parser, we can get more consistent results,

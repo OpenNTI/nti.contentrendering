@@ -30,11 +30,11 @@ from nti.contentrendering.contentchecks.courseinfo.tests import CourseinfoLayerT
 class TestCourseInfo(CourseinfoLayerTest):
 
 	def test_instructor_object(self):
-		
+
 		io = model.Instructor(defaultphoto = "images/Morvant.png", username = "morv1533",
 							  name = "Mark Morvant, PhD", userid="112451533",
 							  title = "Professor, Department of Chemistry")
-		
+
 		assert_that (io, verifiably_provides(interfaces.IInstructor))
 		assert_does_not_pickle(io)
 
@@ -56,7 +56,7 @@ class TestCourseInfo(CourseinfoLayerTest):
 		assert_that(new_io, has_property('title', is_('Professor, Department of Chemistry')))
 
 	def test_prerequisite_object(self):
-		io = model.Prerequisite(id = "CHEM 3000-001", 
+		io = model.Prerequisite(id = "CHEM 3000-001",
 								title="Senior standing or instructor permission")
 
 		# Check all interfaces provided by the object
@@ -96,10 +96,10 @@ class TestCourseInfo(CourseinfoLayerTest):
 		assert_that(new_io, has_property('url', is_('http://ozone.ou.edu/')))
 
 	def test_credit_object(self):
-		enrollment_o = model.Enrollment(label = "Enroll with Ozone", 
+		enrollment_o = model.Enrollment(label = "Enroll with Ozone",
 										url = "http://ozone.ou.edu/")
 		io = model.Credit(hours = 1, enrollment = enrollment_o)
-		
+
 		# Check all interfaces provided by the object
 		assert_that (io, verifiably_provides(interfaces.ICredit))
 		assert_does_not_pickle(io)
@@ -118,27 +118,27 @@ class TestCourseInfo(CourseinfoLayerTest):
 
 
 	def test_course_info_object (self):
-		prerequisite_o = model.Prerequisite(id = "CHEM 3000-001", 
+		prerequisite_o = model.Prerequisite(id = "CHEM 3000-001",
 											title="Senior standing or instructor permission")
-		
-		enrollment_o = model.Enrollment(label = "Enroll with Ozone", 
+
+		enrollment_o = model.Enrollment(label = "Enroll with Ozone",
 										url = "http://ozone.ou.edu/")
-		
-		credit_o = model.Credit(hours = 1, enrollment = enrollment_o)
-		
+
+		credit_o = model.Credit(hours = 0, enrollment = enrollment_o)
+
 		instructor1 = model.Instructor(defaultphoto = "images/Morvant.png",
 									   username = "morv1533", name = "Mark Morvant, PhD",
 									   title = "Professor, Department of Chemistry")
-		
+
 		instructor2 = model.Instructor(defaultphoto = "images/Sims.png",
 									   username = "sims2543", name = "Paul Sims, PhD",
 									   title = "Associate Professor, Department of Chemistry")
 
 		io = model.CourseInfo(
 				ntiid = "tag:nextthought.com,2011-10:OU-HTML-CHEM4970_Chemistry_of_Beer.course_info",
-				id = "CHEM 4970-001", 
+				id = "CHEM 4970-001",
 				school = "Department of Chemistry and Biochemistry at the University of Oklahoma",
-				is_non_public = False, term = "Fall 2014", 
+				is_non_public = False, term = "Fall 2014",
 				startDate = "2014-01-13T06:00:00+00:00",
 				duration = "16 Weeks",
 				isPreview = True, instructors = [instructor1, instructor2],

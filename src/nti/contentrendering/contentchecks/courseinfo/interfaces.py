@@ -30,7 +30,7 @@ class ISchedule(interface.Interface):
 	days = UniqueIterable(value_type=Choice(vocabulary=DAYS_VOCABULARY, title=u'day'),
 						  required=False)
 	times = ListOrTuple(value_type=TextLine(title=u"time-slot"), required=False)
-		
+
 class IInstructor(interface.Interface):
 	defaultphoto = TextLine(title=u'course instructor default photo', required=False)
 	username = TextLine(title=u'course instructor username', required=False)
@@ -41,7 +41,7 @@ class IInstructor(interface.Interface):
 class IPrerequisite(interface.Interface):
 	id = TextLine(title=u'prerequisite id', required=False)
 	id.setTaggedValue('__external_accept_id__', True)
-	
+
 	title = TextLine(title=u"prerequisite title", required=False)
 
 class IEnrollment(interface.Interface):
@@ -54,7 +54,7 @@ class ICredit(interface.Interface):
 
 class ICourseInfo (interface.Interface):
 	ntiid = ValidNTIID(title=u'NTIID', required=True)
-	
+
 	id = TextLine(title= 'course id', required=False)
 	id.setTaggedValue('__external_accept_id__', True)
 
@@ -65,19 +65,19 @@ class ICourseInfo (interface.Interface):
 	duration = Duration(title=u'course duration', required=False)
 	schedule = Object(ISchedule, title=u"course schedule", required=False)
 	isPreview = Bool (title=u'course preview', required=False)
-	
-	instructors = ListOrTuple(value_type=Object(IInstructor), 
-							  title=u'list of course instructors', 
+
+	instructors = ListOrTuple(value_type=Object(IInstructor),
+							  title=u'list of course instructors',
 							  required=True)
-	
-	prerequisites =  ListOrTuple(value_type=Object(IPrerequisite), 
-								 title=u'course credits', 
+
+	prerequisites =  ListOrTuple(value_type=Object(IPrerequisite),
+								 title=u'course credits',
 								 required=False)
-	
-	credit  = ListOrTuple(value_type=Object(ICredit), 
+
+	credit  = ListOrTuple(value_type=Object(ICredit),
 						  title=u'course credits',
 						  required=False)
-	
+
 	video = TextLine(title=u'course videp', required=False)
 	title = TextLine(title=u'course title', required=False)
 	description = TextLine(title=u'course description', required=False)

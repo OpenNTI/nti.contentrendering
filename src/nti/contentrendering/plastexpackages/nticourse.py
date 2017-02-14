@@ -40,7 +40,7 @@ class course(Environment, plastexids.NTIIDMixin):
 	counter = 'course'
 	blockType = True
 	forcePars = False
-	
+
 	_ntiid_suffix = 'course.'
 	_ntiid_type = 'NTICourse'
 	_ntiid_title_attr_name = 'ref'
@@ -134,7 +134,7 @@ class courseunit(Environment, plastexids.NTIIDMixin):
 	_ntiid_title_attr_name = 'ref'
 	_ntiid_allow_missing_title = False
 	_ntiid_cache_map_name = '_courseunit_ntiid_map'
-	
+
 	def invoke(self, tex):
 		res = super(courseunit, self).invoke(tex)
 		if self.macroMode == self.MODE_BEGIN:
