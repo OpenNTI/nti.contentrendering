@@ -74,6 +74,7 @@ setup(
         'PyPDF2',
         'pyquery',
         'pytz',
+        'ordered-set',
         'requests',
         'repoze.lru',
         'simplejson',
