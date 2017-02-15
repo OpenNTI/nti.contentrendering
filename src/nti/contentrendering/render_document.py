@@ -160,14 +160,10 @@ def prepare_document_settings(document, outFormat='xhtml',
 
     # This variable contains either a time.tzname tuple or a pytz timezone
     # name
-    document.userdata['document_timezone_name'] = \
-        document.config['NTI']['timezone-name']
-
-    document.userdata['extra_styles'] = \
-        document.config['NTI']['extra-styles'].split()
-
-    document.userdata['extra_scripts'] = \
-        document.config['NTI']['extra-scripts'].split()
+    NTI_CFG = document.config['NTI']
+    document.userdata['extra_styles'] = NTI_CFG['extra-styles'].split()
+    document.userdata['extra_scripts'] = NTI_CFG['extra-scripts'].split()
+    document.userdata['document_timezone_name'] = NTI_CFG['timezone-name']
 
     document.userdata['transform_process'] = perform_transforms
 
@@ -182,6 +178,7 @@ def prepare_document_settings(document, outFormat='xhtml',
 
 def setup_environ(document, jobname, packages_path, source_dir=None):
     cwd = document.userdata['working-dir']
+
     # Load aux files for cross-document references
     pauxname = '%s.paux' % jobname
     for dirname in [cwd] + document.config['general']['paux-dirs']:
@@ -221,8 +218,8 @@ def parse_tex(sourceFile,
               provider='AOPS'):
 
     source_dir, packages_path, xml_conf_context = \
-        prepare_xml_context(sourceFile,
-                            xml_conf_context)
+            prepare_xml_context(sourceFile,
+                                xml_conf_context)
 
     # Create document instance that output will be put into
     document = TeXDocument()
