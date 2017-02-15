@@ -33,13 +33,15 @@ from zope.location.interfaces import IContained
 
 from z3c.autoinclude.zcml import includePluginsDirective
 
-from nti.common import setupChameleonCache
-
 import nti.contentrendering
 
-from nti.contentrendering.plastexids import patch_all
 from nti.contentrendering.interfaces import JobComponents
+
+from nti.contentrendering.plastexids import patch_all
+
 from nti.contentrendering.transforms import performTransforms
+
+from nti.contentrendering.utils.chameleon import setupChameleonCache
 
 from nti.ntiids.ntiids import escape_provider
 

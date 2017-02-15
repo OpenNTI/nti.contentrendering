@@ -4,12 +4,15 @@ Content rendering utils module
 
 .. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
 from nti.contentrendering.RenderedBook import RenderedBook
+
+from nti.contentrendering.utils.chameleon import setupChameleonCache
 
 class EmptyMockDocument(object):
 
@@ -22,13 +25,16 @@ class EmptyMockDocument(object):
     def getElementsByTagName(self, name):
         return ()
 
+
 def _phantom_function(htmlFile, scriptName, args, key):
     return (key, {'ntiid': key[0]})
+
 
 class NoPhantomRenderedBook(RenderedBook):
 
     def _get_phantom_function(self):
         return _phantom_function
+
 
 class NoConcurrentPhantomRenderedBook(RenderedBook):
 
