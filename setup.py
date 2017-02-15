@@ -56,7 +56,6 @@ setup(
         'html5lib',
         'isodate',
         'lxml',
-        'nti.common',
         'nti.contentfragments',
         'nti.contentprocessing',
         'nti.contenttypes.presentation',

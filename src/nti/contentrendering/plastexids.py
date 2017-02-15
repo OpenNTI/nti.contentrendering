@@ -17,14 +17,25 @@ logger = __import__('logging').getLogger(__name__)
 import hashlib
 import functools
 
+import zope.deprecation
 from zope.deprecation import deprecate
 
 from plasTeX.ConfigManager import NoOptionError
 from plasTeX.ConfigManager import NoSectionError
 
-from nti.common.deprecated import hiding_warnings
-
 from nti.ntiids import ntiids
+
+class hiding_warnings(object):
+	"""
+	A context manager that executes its body in a context
+	where deprecation warnings are not shown.
+	"""
+	def __enter__(self):
+		zope.deprecation.__show__.off()
+
+	def __exit__(self, *args):
+		zope.deprecation.__show__.on()
+
 
 def _make_ntiid(document, local, local_prefix='', nttype='HTML'):
 	local = unicode(local)
@@ -258,13 +269,16 @@ def _par_id_get(self):
 	setattr(self, "@hasgenid", True)
 	return _id
 
+
+macro_id_fset = getattr(plasTeX.Macro.id, 'fset')
+
 class StableIDMixin(object):
 	"""
 	Attempts to generate more stable IDs for elements. Can be used when elements
 	have source text or may have a label child.
 	"""
 	# TODO: Different counters for this than _par_used_ids?
-	id = property(_catching(_par_id_get, 'id'), plasTeX.Macro.id.fset)
+	id = property(_catching(_par_id_get, 'id'), macro_id_fset)
 
 def _embedded_node_cross_ref_url(self):
 	# For things that are embedded within a document,
@@ -297,6 +311,9 @@ def patch_all():
 	and sections to generate more appropriate filenames.
 	"""
 
+	from nti.contentrendering.plastexpackages.graphicx import includegraphics
+	includegraphics_id_fset = getattr(includegraphics.id, 'fset')
+	
 	plasTeX.Base.par.id = property(_catching(_par_id_get, 'id'),
 									plasTeX_Base.par.id.fset)
 
@@ -307,9 +324,8 @@ def patch_all():
 										plasTeX_Base.footnote.id.fset)
 
 	# TODO: Different counters for this than _par_used_ids?
-	from nti.contentrendering.plastexpackages.graphicx import includegraphics
 	includegraphics.id = property(_catching(_par_id_get, 'id'),
-								  includegraphics.id.fset)
+								  includegraphics_id_fset)
 
 	SectionUtils.ntiid = property(_catching(_section_ntiid))
 	SectionUtils.filenameoverride = property(_catching(_section_ntiid_filename),
