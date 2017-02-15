@@ -75,7 +75,7 @@ def prepare_rendering_context(context=None):
     return context
 
 
-def load_packages(source_dir=None, context=None):
+def load_packages(source_dir=None, context=None, load_configs=True):
     # Set up imports for style files. The preferred, if verbose, way is to
     # use a fully qualified Python name. But for legacy and convenience
     # reasons, we support non-qualified imports (if the module does)
@@ -108,8 +108,8 @@ def load_packages(source_dir=None, context=None):
                 context = xmlconfig.file(os.path.abspath(zope_pre_conf_name),
                                          package=nti.contentrendering,
                                          context=context)
-
-    context = prepare_rendering_context(context)
+    if load_configs:
+        context = prepare_rendering_context(context)
     return context, packages_path
 
 
