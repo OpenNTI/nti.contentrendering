@@ -25,9 +25,11 @@ from plasTeX.TeX import TeX
 
 import zope.browserpage
 
+from zope import interface
+
 from zope.configuration import xmlconfig
 
-from zope.container.contained import Contained
+from zope.location.interfaces import IContained
 
 from z3c.autoinclude.zcml import includePluginsDirective
 
@@ -46,7 +48,10 @@ resource_filename = __import__('pkg_resources').resource_filename
 out_format_to_render_name = {'xhtml': 'XHTML', 'text': 'Text'}
 
 
-class PluginPoint(Contained):
+@interface.implementer(IContained)
+class PluginPoint(object):
+
+    __parent__ = None
 
     def __init__(self, name):
         self.__name__ = name
@@ -91,7 +96,8 @@ def load_packages(source_dir=None, context=None):
         if local_packages_path not in sys.path:
             sys.path.append(local_packages_path)
 
-        zope_pre_conf_name = os.path.join(source_dir, str('pre_configure.zcml'))
+        zope_pre_conf_name = os.path.join(source_dir,
+                                          str('pre_configure.zcml'))
         if os.path.exists(zope_pre_conf_name):
             if context is None:
                 context = xmlconfig.file(os.path.abspath(zope_pre_conf_name),
