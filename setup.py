@@ -68,7 +68,6 @@ setup(
         'nti.property',
         'nti.schema',
         'nti.wref',
-        'nti.zodb',
         'Paste',
         'PasteDeploy',
         'plone.namedfile',
