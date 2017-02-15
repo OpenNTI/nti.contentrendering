@@ -367,5 +367,6 @@ name: ntiembedwidget
     <param name="defer" tal:attributes="value self/attributes/defer" tal:condition="self/attributes/defer"/>
     <param name="uid" tal:attributes="value self/attributes/uid"/>
     <param name="uid-name" tal:attributes="value self/attributes/uid-name" tal:condition="self/attributes/uid-name"/>
+    <param name="no-sandboxing" tal:attributes="value self/attributes/no-sandboxing" tal:condition="self/attributes/no-sandboxing"/>
 </object>
 

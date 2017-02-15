@@ -1508,6 +1508,10 @@ class ntiembedwidget(Command, plastexids.NTIIDMixin):
 		if height is not None:
 			self.attributes['height'] = height
 
+		no_sandboxing = options.get('no-sandboxing')
+		if no_sandboxing is not None:
+			self.attributes['no-sandboxing'] = self.attributes['no-sandboxing'] = no_sandboxing
+
 		uid = options.get('uid')
 		if uid is not None:
 			self.attributes['uid'] = uid
