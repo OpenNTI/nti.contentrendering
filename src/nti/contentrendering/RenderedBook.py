@@ -33,7 +33,7 @@ from nti.contentrendering import javascript_path
 from nti.contentrendering import ConcurrentExecutor
 from nti.contentrendering import run_phantom_on_page
 
-from nti.contentrendering.minidom import minidom_writexml
+from nti.contentrendering._minidom import minidom_writexml
 
 _runPhantomOnPage = run_phantom_on_page
 
