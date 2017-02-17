@@ -274,7 +274,8 @@ class _EclipseTOCMiniDomTopic(object):
 								   and	os.path.join(contentLocation, self.get_topic_filename()))
 		self.location = self.sourceFile
 		if not self.sourceFile:
-			raise ValueError("Rendered book location was not set? Topic filename missing?")
+			raise ValueError("Topic locaton was not set. "
+							"Topic filename missing or not rendered")
 
 		self.href = href or os.path.split(self.sourceFile)[-1]
 		self.filename = self.href
