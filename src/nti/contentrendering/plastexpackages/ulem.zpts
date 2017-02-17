@@ -6,3 +6,5 @@ name: uline uuline uwave dashuline dotuline
 name: sout xout
 <span class="lineout" tal:content="self"></span>
 
+name: bolditalic
+<b class="bfseries"><em tal:content="self"></em></b> 

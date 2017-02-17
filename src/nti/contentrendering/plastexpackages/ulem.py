@@ -11,23 +11,34 @@ logger = __import__('logging').getLogger(__name__)
 
 from plasTeX.Base import TextCommand
 
+
 class uline(TextCommand):
-	pass
+    pass
+
 
 class uuline(TextCommand):
-	pass
+    pass
+
 
 class uwave(TextCommand):
-	pass
+    pass
+
 
 class sout(TextCommand):
-	pass
+    pass
+
 
 class xout(TextCommand):
-	pass
+    pass
+
 
 class dashuline(TextCommand):
-	pass
+    pass
+
 
 class dotuline(TextCommand):
-	pass
+    pass
+
+
+class bolditalic(TextCommand):
+    pass
