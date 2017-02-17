@@ -42,3 +42,15 @@ class dotuline(TextCommand):
 
 class bolditalic(TextCommand):
     pass
+
+
+class boldunderlined(TextCommand):
+    pass
+
+
+class italicunderlined(TextCommand):
+    pass
+
+
+class bolditalicunderlined(TextCommand):
+    pass
