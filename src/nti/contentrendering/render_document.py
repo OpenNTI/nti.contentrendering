@@ -121,7 +121,9 @@ def prepare_xml_context(source_file, context=None):
 
 
 def prepare_document_settings(document, outFormat='xhtml',
-                              perform_transforms=True, provider='AOPS'):
+                              perform_transforms=True,
+                              provider='AOPS',
+                              working_dir=None):
     # setup default config options we want
     document.config['files']['split-level'] = 1
     document.config['document']['sec-num-depth'] = 10
@@ -155,7 +157,7 @@ def prepare_document_settings(document, outFormat='xhtml',
     # automatically for it?)
     document.config.set('NTI', 'strict-ntiids', False)
 
-    document.userdata['working-dir'] = os.getcwd()
+    document.userdata['working-dir'] = working_dir or os.getcwd()
 
     now = datetime.datetime.utcnow()
     document.userdata['generated_time'] = isodate.datetime_isoformat(now)
