@@ -187,7 +187,6 @@ class EclipseTOC(object):
 		if len(matchedNodes) > 0:
 			return matchedNodes[0]
 
-
 		return self.getPageForDocumentNode(node.parentNode)
 
 	def getPageNodeWithNTIID(self, ntiid, node=None):
@@ -220,7 +219,9 @@ class EclipseTOC(object):
 		return self.dom.getElementsByTagName(b'toc')[0]
 
 	def getPageNodes(self):
-		":return: Nodes for all top-level HTML pages. Nodes for interior sections are not returned."
+		"""
+		:return: Nodes for all top-level HTML pages. Nodes for interior sections are not returned.
+		"""
 		return [x for x in self.getPageNodeWithAttribute(b'href')
 				if (x.hasAttribute(b'ntiid') and '#' not in x.getAttribute(b'href'))]
 
@@ -252,10 +253,10 @@ class _EclipseTOCMiniDomTopic(object):
 	_childTopics = None
 
 	def __init__(self, topic_dom_node,
-				  contentLocation,
-				  href=None,
-				  pageInfo=None,
-				  title=None):
+				 contentLocation,
+				 href=None,
+				 pageInfo=None,
+				 title=None):
 		"""
 		:param string contentLocation: The full path to the directory root for the content.
 		:param string href: If given, the filename of the on-disk page for this
@@ -272,12 +273,13 @@ class _EclipseTOCMiniDomTopic(object):
 		self.sourceFile = href or (		self.get_topic_filename()
 								   and	os.path.join(contentLocation, self.get_topic_filename()))
 		self.location = self.sourceFile
+		if not self.sourceFile:
+			raise ValueError("Rendered book location was not set? Topic filename missing?")
 
 		self.href = href or os.path.split(self.sourceFile)[-1]
 		self.filename = self.href
 
 		self._pageInfo = pageInfo if pageInfo is not None else OOBTree()
-
 		self._title = title
 
 	# TODO: Clean up some of these names.
@@ -306,7 +308,9 @@ class _EclipseTOCMiniDomTopic(object):
 
 	@property
 	def outgoing_links(self):
-		"A sequence of strings naming links from this page."
+		"""
+		A sequence of strings naming links from this page.
+		"""
 		return self._pageInfo.get('OutgoingLinks', ())
 
 	@property
