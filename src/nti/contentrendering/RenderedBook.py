@@ -67,8 +67,10 @@ class RenderedBook(object):
 
 		def set_info(root):
 			if root.ntiid:
+				__traceback_info__ = root.ntiid
 				page_info = pages.get(root.ntiid)
-				if page_info: root._pageInfo = page_info
+				if page_info: 
+					root._pageInfo = page_info
 				self.pages[root.ntiid] = root
 
 			for child in root.childTopics:
@@ -275,7 +277,7 @@ class _EclipseTOCMiniDomTopic(object):
 		self.location = self.sourceFile
 		if not self.sourceFile:
 			raise ValueError("Topic locaton was not set. "
-							"Topic filename missing or not rendered")
+							 "Topic filename missing or not rendered")
 
 		self.href = href or os.path.split(self.sourceFile)[-1]
 		self.filename = self.href
@@ -395,10 +397,12 @@ class _EclipseTOCMiniDomTopic(object):
 		return self._childTopics
 
 	@property
-	def nodeType(self): return self.topic.nodeType
+	def nodeType(self): 
+		return self.topic.nodeType
 
 	@property
-	def localName(self): return self.topic.localName
+	def localName(self): 
+		return self.topic.localName
 
 	@property
 	def dom(self):
@@ -487,7 +491,8 @@ class _EclipseTOCMiniDomTopic(object):
 		try:
 			return self.dom(b"meta[name=NTIID]").attr(b"content")
 		except IOError:
-			logger.debug("Unable to open file %s", self.sourceFile, exc_info=True)
+			logger.debug("Unable to open file %s", 
+						 self.sourceFile, exc_info=True)
 			return None
 
 	def get_title(self):
