@@ -10,11 +10,11 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 # BWC
-from .course import _CourseExtractor
+from nti.contentrendering.plastexpackages.extractors.course import _CourseExtractor
 
-from .media import _NTIAudioExtractor
-from .media import _NTIVideoExtractor
+from nti.contentrendering.plastexpackages.extractors.media import _NTIAudioExtractor
+from nti.contentrendering.plastexpackages.extractors.media import _NTIVideoExtractor
 
-from .discussion import _DiscussionExtractor
+from nti.contentrendering.plastexpackages.extractors.discussion import _DiscussionExtractor
 
-from .related_work import _RelatedWorkExtractor
+from nti.contentrendering.plastexpackages.extractors.related_work import _RelatedWorkExtractor
