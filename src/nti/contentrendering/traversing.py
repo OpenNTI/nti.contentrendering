@@ -28,7 +28,10 @@ class PlastexTraverser(adapters.DefaultTraversable):
 	def traverse(self, name, furtherPath):
 		try:
 			return super(PlastexTraverser, self).traverse(name, furtherPath)
-		except (LocationError,IndexError):
+		except (LocationError,IndexError) as e:
+			# XXX: This can mask issues.
+			logger.warn('Traversal error while rendering (%s) (%s)',
+						name, e)
 			# IndexError can be raised because the plasTeX objects attempt
 			# to use strings as child numbers
 			return None
