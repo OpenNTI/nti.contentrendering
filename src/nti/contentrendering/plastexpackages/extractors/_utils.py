@@ -13,7 +13,7 @@ import six
 
 from plasTeX.Renderers import render_children
 
-from nti.base._compat import unicode_
+from nti.contentprocessing._compat import unicode_
 
 
 def _render_children(renderer, nodes, strip=False):
