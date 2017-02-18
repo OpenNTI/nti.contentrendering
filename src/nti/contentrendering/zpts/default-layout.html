@@ -4,9 +4,9 @@
 <!--! A namespace confuses some clients -->
 <html tal:define="links self/links" lang="en">
 	<head>
-		<meta http-equiv="last-modified" tal:condition="python: self.ownerDocument.userdata.has_key('generated_time')" tal:attributes="content python: self.ownerDocument.userdata['generated_time']"></meta>
-		<meta name="NTIRelativeScrollHeight" content="-1" ></meta>
-		<meta name="NTIID" tal:attributes="content self/ntiid" ></meta>
+		<meta http-equiv="last-modified" tal:condition="python: self.ownerDocument.userdata.has_key('generated_time')" tal:attributes="content python: self.ownerDocument.userdata['generated_time']"/>
+		<meta name="NTIRelativeScrollHeight" content="-1" />
+		<meta name="NTIID" tal:attributes="content self/ntiid" />
 		<meta name="generator" content="NextThought" />
 		<meta http-equiv="content-type" tal:attributes="content string:text/html;; charset=${config/files/output-encoding}" />
 		<title tal:content="self/title/textContent | self/title | nothing">Morbi metus pede, imperdiet vitae</title>

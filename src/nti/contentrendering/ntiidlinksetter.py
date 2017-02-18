@@ -15,7 +15,6 @@ from nti.contentrendering.interfaces import IRenderedBookTransformer
 interface.moduleProvides(IRenderedBookTransformer)
 
 def transform(book, save_toc=True):
-
 	def modify_hrefs_in_topic(topic):
 		result = 0
 		hrefs = ()

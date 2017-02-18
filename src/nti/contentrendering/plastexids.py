@@ -313,7 +313,7 @@ def patch_all():
 
 	from nti.contentrendering.plastexpackages.graphicx import includegraphics
 	includegraphics_id_fset = getattr(includegraphics.id, 'fset')
-	
+
 	plasTeX.Base.par.id = property(_catching(_par_id_get, 'id'),
 									plasTeX_Base.par.id.fset)
 
