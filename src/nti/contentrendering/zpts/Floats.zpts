@@ -1,6 +1,6 @@
 name: figure figure*
-<div class="figure" tal:condition="python: not (self.attributes and self.attributes.get('options') and self.attributes.get('options').get('loc')) or (not 'h' in self.attributes['options']['loc'])" tal:attributes="id self/title/id | self/title" tal:content="self">
+<div class="figure" tal:condition="python: not ((self.attributes and self.attributes.get('loc')) and ('h' in self.attributes['loc']))" tal:attributes="id self/title/id | self/title" tal:content="self">
 </div>
-<div class="figure" style="float: left; margin-right:10px;" tal:condition="python: self.attributes and self.attributes.get('options') and self.attributes.get('options').get('loc') and 'h' in self.attributes['options']['loc']" tal:attributes="id self/title/id | self/title" tal:content="self">
+<div class="figure" style="float: left; margin-right:10px;" tal:condition="python: (self.attributes and self.attributes.get('loc')) and ('h' in self.attributes['loc'])" tal:attributes="id self/title/id | self/title" tal:content="self">
 </div>
 
