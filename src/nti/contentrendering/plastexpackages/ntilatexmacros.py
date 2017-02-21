@@ -827,7 +827,7 @@ def _incoming_sources_as_plain_text(texts):
 	return cfg_interfaces.IPlainTextContentFragment( latex_string )
 
 @interface.implementer(crd_interfaces.IEmbeddedContainer)
-class nticard(LocalContentMixin,Base.Float,plastexids.NTIIDMixin):
+class nticard(LocalContentMixin, Base.Float, plastexids.NTIIDMixin):
 	"""
 	Implementation of the Card environment. There should be an ``includegraphics`` specifying
 	a thumbnail as a child of this node (unless ``auto`` is used). The text contents of this node will form
@@ -847,6 +847,7 @@ class nticard(LocalContentMixin,Base.Float,plastexids.NTIIDMixin):
 		you to skip specifying an image and description.
 	"""
 	args = 'href:str:source <options:dict>'
+
 	# Note the options dict is in <>, and uses the default comma separator, which means
 	# values cannot have commas (that's why href, which may be an NTIID is its own argument).
 	# See also ntiassessment.naqsolution.
@@ -859,19 +860,21 @@ class nticard(LocalContentMixin,Base.Float,plastexids.NTIIDMixin):
 	# id property, which in turn is used as part of the NTIID (when no NTIID is set explicitly)
 	counter = 'nticard'
 	blockType = True
-	_ntiid_cache_map_name = '_nticard_ntiid_map'
-	_ntiid_allow_missing_title = False
+	
+	_ntiid_type = 'NTICard'
 	_ntiid_suffix = 'nticard.'
 	_ntiid_title_attr_name = 'ref' # Use our counter to generate IDs if no ID is given
-	_ntiid_type = 'NTICard'
+	_ntiid_allow_missing_title = False
+	_ntiid_cache_map_name = '_nticard_ntiid_map'
 
 	#: From IEmbeddedContainer
 	mimeType = "application/vnd.nextthought.nticard"
 
-	creator = None
 	href = None
-	type = 'summary'
 	image = None
+	creator = None
+	type = 'summary'
+
 	#: Derived from the href property. If the href itself specifies
 	#: a complete NTIID, then it will have that value. Otherwise,
 	#: one will be computed from the href; if the href is a absolute
@@ -885,114 +888,138 @@ class nticard(LocalContentMixin,Base.Float,plastexids.NTIIDMixin):
 		return _create_thumbnail_of_pdf( pdf_path, page=page, height=height, width=width )
 
 	def _auto_populate(self):
-		metadata = get_metadata_from_content_location( self._href_override or self.href )
-		if IContentMetadata.providedBy(metadata):
-			self.title = metadata.title or self.title
-			self.description = metadata.description or self.description
-			self.href = metadata.contentLocation or self.href
-			self.creator = metadata.creator or self.creator
+		real_href = self._href_override or self.href
+		metadata = get_metadata_from_content_location(real_href)
+		if not IContentMetadata.providedBy(metadata):
+			return
+		self.title = metadata.title or self.title
+		self.creator = metadata.creator or self.creator
+		self.href = metadata.contentLocation or self.href
+		self.description = metadata.description or self.description
 
-			# Just enough to go with our template
-			class Image(object):
-				def __init__( self, image ):
-					self.image = image
-			class Dimen(object):
-				def __init__(self,px):
-					self.px = px
+		# Just enough to go with our template
+		class Image(object):
+			def __init__( self, image ):
+				self.image = image
 
-			if metadata.contentMimeType == 'application/pdf':
-				# Generate and use the real thing
-				thumb_file = self._pdf_to_thumbnail( metadata.sourcePath )
-				include = includegraphics()
-				include.attributes['file'] = thumb_file
-				include.argSource = r'[width=93pt,height=120pt]{%s}' % thumb_file
-				include.style['width'] = "93px"
-				include.style['height'] = "120px"
-				self.appendChild( include )
-			elif metadata.images and (metadata.images[0].width and metadata.images[0].height):
-				# Yay, got the real size already
-				self.image = Image( metadata.images[0] )
-			elif metadata.images:
-				# Download and save the image?
-				# Right now we are downloading it for size purposes (which may not be
-				# needed) but we could choose to cache it locally
-				import requests
-				from plone.namedfile import NamedImage
-				import urlparse
-				val = metadata.images[0].url
-				response = requests.get( val )
-				filename = urlparse.urlparse( val ).path.split('/')[-1]
-				named_image = NamedImage( data=response.content, filename=filename )
-				width, height = named_image.getImageSize()
+		class Dimen(object):
+			def __init__(self,px):
+				self.px = px
 
-				self.image = Image(named_image)
-				self.image.image.url = val
-				self.image.image.height = Dimen(height)
-				self.image.image.width = Dimen(width)
+		if metadata.contentMimeType == 'application/pdf':
+			# Generate and use the real thing
+			thumb_file = self._pdf_to_thumbnail( metadata.sourcePath )
+			include = includegraphics()
+			include.style['width'] = "93px"
+			include.style['height'] = "120px"
+			include.attributes['file'] = thumb_file
+			include.argSource = r'[width=93pt,height=120pt]{%s}' % thumb_file
+			self.appendChild( include )
+		elif 	metadata.images \
+			and (metadata.images[0].width and metadata.images[0].height):
+			# Yay, got the real size already
+			self.image = Image(metadata.images[0])
+		elif metadata.images:
+			# Download and save the image?
+			# Right now we are downloading it for size purposes (which may not be
+			# needed) but we could choose to cache it locally
+			import urlparse
+			import requests
+			from plone.namedfile import NamedImage
+			
+			# Get filename and url
+			val = metadata.images[0].url
+			response = requests.get( val )
+			filename = urlparse.urlparse( val ).path.split('/')[-1]
+			
+			# get file info
+			named_image = NamedImage(data=response.content, 
+									 filename=filename )
+			width, height = named_image.getImageSize()
 
-	def invoke( self, tex ):
-		res = super(nticard,self).invoke( tex )
+			# save it
+			self.image = Image(named_image)
+			self.image.image.url = val
+			self.image.image.height = Dimen(height)
+			self.image.image.width = Dimen(width)
+
+	def proces_local_href(self, tex=None):
 		# Resolve local files to full paths with the same algorithm that
 		# includegraphics uses
-		if ('href' in self.attributes
+		if (	'href' in self.attributes
 			and '//' not in self.attributes['href'] # not a HTTP[S] url
 			and not self.attributes['href'].startswith('tag:') ): # not an NTIID
 			from nti.contentrendering.plastexpackages.graphics import _locate_image_file
 
-			the_file = _locate_image_file( self, tex, self.attributes['href'],
-										   includegraphics.packageName,
-										   [], # No extensions to search: must be complete filename or path
-										   query_extensions=False)
+			the_file = _locate_image_file(
+							self, tex, 
+							self.attributes['href'],
+							includegraphics.packageName,
+							[], # No extensions to search: must be complete filename or path
+							query_extensions=False)
 			if the_file:
 				self._href_override = the_file
+				return True
+		return False
+
+	def invoke( self, tex ):
+		res = super(nticard,self).invoke( tex )
+		self.proces_local_href(tex)
 		return res
 
+	def process_digest(self):
+		options = self.attributes.get( 'options', {} ) or {}
+		__traceback_info__ = options, self.attributes
+
+		if 'href' not in self.attributes or not self.attributes['href']:
+			raise ValueError( "Must provide href argument" )
+		self.href = self.attributes['href']
+
+		if 'auto' in options and options['auto'].lower() == 'true':
+			self._auto_populate()
+
+		if not getattr(self, 'title', ''):
+			raise ValueError("Must specify a title using \\caption")
+
+		self.attributes['nti-requirements'] = u''
+		requirements = options.get('nti-requirements', u'').split()
+		for requirement in requirements:
+			if requirement == u'flash':
+				requirement = u'mime-type:application/x-shockwave-flash'
+			value = self.attributes['nti-requirements']
+			self.attributes['nti-requirements'] = ' '.join([value, requirement])
+
+		self.attributes['nti-requirements'] = self.attributes['nti-requirements'].strip()
+		if self.attributes['nti-requirements'] == u'':
+			self.attributes['nti-requirements'] = None
+
+		if 'creator' in options:
+			self.creator = options['creator']
+
+		images = self.getElementsByTagName('includegraphics')
+		if images:
+			# Must leave the image in the dom so it can be found by the resourceDB
+			# images[0].parentNode.removeChild( images[0] )
+			self.image = images[0]
+
+		from nti.ntiids.ntiids import is_valid_ntiid_string
+
+		if is_valid_ntiid_string( self.href ):
+			self.target_ntiid = self.href
+		else:
+			from hashlib import md5
+			from nti.ntiids.ntiids import TYPE_UUID
+			from nti.ntiids.ntiids import make_ntiid 
+			# TODO: Hmm, what to use as the provider? 
+			# Look for a hostname in the URL?
+			self.target_ntiid = make_ntiid(provider='NTI',
+										   nttype=TYPE_UUID,
+										   specific=md5(self.href).hexdigest() )
+
 	def digest(self, tokens):
-		res = super(nticard,self).digest(tokens)
+		res = super(nticard, self).digest(tokens)
 		if self.macroMode == self.MODE_BEGIN:
-			options = self.attributes.get( 'options', {} ) or {}
-			__traceback_info__ = options, self.attributes
-			if 'href' not in self.attributes or not self.attributes['href']:
-				raise ValueError( "Must provide href argument" )
-			self.href = self.attributes['href']
-
-			if 'auto' in options and options['auto'].lower() == 'true':
-				self._auto_populate()
-
-			if not getattr(self, 'title', ''):
-				raise ValueError("Must specify a title using \\caption")
-
-			self.attributes['nti-requirements'] = u''
-			requirements = options.get('nti-requirements', u'').split()
-			for requirement in requirements:
-				if requirement == u'flash':
-					requirement = u'mime-type:application/x-shockwave-flash'
-				self.attributes['nti-requirements'] = ' '.join([self.attributes['nti-requirements'], requirement])
-			self.attributes['nti-requirements'] = self.attributes['nti-requirements'].strip()
-			if self.attributes['nti-requirements'] == u'':
-				self.attributes['nti-requirements'] = None
-
-			if 'creator' in options:
-				self.creator = options['creator']
-
-			images = self.getElementsByTagName( 'includegraphics' )
-			if images:
-				# Must leave the image in the dom so it can be found by the resourceDB
-				#images[0].parentNode.removeChild( images[0] )
-				self.image = images[0]
-
-			from nti.ntiids.ntiids import is_valid_ntiid_string
-
-			if is_valid_ntiid_string( self.href ):
-				self.target_ntiid = self.href
-			else:
-				from nti.ntiids.ntiids import make_ntiid, TYPE_UUID
-				from hashlib import md5
-				# TODO: Hmm, what to use as the provider? Look for a hostname in the
-				# URL?
-				self.target_ntiid = make_ntiid( provider='NTI',
-												nttype=TYPE_UUID,
-												specific=md5(self.href).hexdigest() )
+			self.process_digest()
 		return res
 
 	@readproperty
@@ -1000,10 +1027,9 @@ class nticard(LocalContentMixin,Base.Float,plastexids.NTIIDMixin):
 		texts = []
 		for child in self.allChildNodes:
 			# Try to extract the text children, ignoring the caption and label, etc
-			if 	child.nodeType == self.TEXT_NODE and \
-				(child.parentNode == self or child.parentNode.nodeName == 'par'):
+			if 		child.nodeType == self.TEXT_NODE \
+			 	and (child.parentNode == self or child.parentNode.nodeName == 'par'):
 				texts.append( unicode( child ) )
-
 		return _incoming_sources_as_plain_text( texts )
 
 ###############################################################################
