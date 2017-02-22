@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
 
-$Id$
-"""
 from __future__ import print_function, unicode_literals, absolute_import
+__docformat__ = "restructuredtext en"
 
-#disable: accessing protected members, too many methods
-#pylint: disable=W0212,R0904
-
+# disable: accessing protected members, too many methods
+# pylint: disable=W0212,R0904
 
 import unittest
 
@@ -19,8 +16,15 @@ from hamcrest import has_entry
 from hamcrest import has_property
 from hamcrest import contains_string
 
-from nti.contentrendering.tests import buildDomFromString, simpleLatexDocumentText
-from nti.contentrendering.plastexids import _section_ntiid_filename, _section_ntiid, patch_all
+from nti.contentrendering.tests import setChameleonCache
+from nti.contentrendering.tests import restoreChameleonCache
+
+from nti.contentrendering.tests import buildDomFromString
+from nti.contentrendering.tests import simpleLatexDocumentText
+
+from nti.contentrendering.plastexids import patch_all
+from nti.contentrendering.plastexids import _section_ntiid
+from nti.contentrendering.plastexids import _section_ntiid_filename
 
 from plasTeX.Context import Context
 
@@ -28,11 +32,16 @@ class IdPatchedLayer(object):
 
 	@classmethod
 	def setUp(cls):
+		setChameleonCache(cls)
 		patch_all() # sadly, this is not reversible
 
 	@classmethod
 	def tearDown(cls):
 		pass
+
+	@classmethod
+	def testTearDown(cls):
+		restoreChameleonCache(cls)
 
 	setUpTest = tearDownTest = tearDown
 
@@ -93,8 +102,8 @@ class TestPlastexIds(unittest.TestCase):
 		assert_that(context.labels, has_entry( 'A', has_property('ntiid', chapter1_ntiid) ))
 		assert_that(context.labels, has_entry( 'B', has_property('ntiid', chapter2_ntiid) ))
 
-from . import ContentrenderingLayerTest
-from . import RenderContext
+from nti.contentrendering.tests import ContentrenderingLayerTest
+from nti.contentrendering.tests import RenderContext
 import os
 import io
 

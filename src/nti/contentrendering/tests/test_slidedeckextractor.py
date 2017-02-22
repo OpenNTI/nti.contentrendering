@@ -13,10 +13,10 @@ import tempfile
 
 from zope import component
 
-from .. import interfaces
-from .. import slidedeckextractor
+from nti.contentrendering import interfaces
+from nti.contentrendering import slidedeckextractor
 
-from . import ContentrenderingLayerTest
+from nti.contentrendering.tests import ContentrenderingLayerTest
 from nti.testing.matchers import verifiably_provides
 
 

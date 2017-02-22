@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
 
-
-$Id$
-"""
-
-from __future__ import print_function, unicode_literals, absolute_import
+from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
-logger = __import__('logging').getLogger(__name__)
+# disable: accessing protected members, too many methods
+# pylint: disable=W0212,R0904
 
 import io
 import os
@@ -35,6 +31,16 @@ import zope.testing.cleanup
 from nti.testing.layers import ZopeComponentLayer
 from nti.testing.layers import ConfiguringLayerMixin
 
+def setChameleonCache(cls):
+	cls.old_cache_dir = os.getenv('CHAMELEON_CACHE')
+	cls.new_cache_dir = tempfile.mkdtemp(prefix="cham_")
+	os.environ['CHAMELEON_CACHE'] = cls.new_cache_dir
+
+
+def restoreChameleonCache(cls):
+	shutil.rmtree(cls.new_cache_dir, True)
+	os.environ['CHAMELEON_CACHE'] = cls.old_cache_dir
+
 
 class SharedConfiguringTestLayer(ZopeComponentLayer,
 								 ConfiguringLayerMixin):
@@ -45,6 +51,7 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def setUp(cls):
+		setChameleonCache(cls)
 		cls.setUpPackages()
 
 	@classmethod
@@ -58,7 +65,7 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def testTearDown(cls):
-		pass
+		restoreChameleonCache(cls)
 
 
 class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
@@ -70,6 +77,7 @@ class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def setUp(cls):
+		setChameleonCache(cls)
 		cls.setUpPackages()
 
 	@classmethod
@@ -83,7 +91,7 @@ class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def testTearDown(cls):
-		pass
+		restoreChameleonCache(cls)
 
 
 import unittest
@@ -119,12 +127,13 @@ def buildDomFromString(docString,
 		os.chdir( work_dir )
 	document.config.add_section( "NTI" )
 	document.config.set( "NTI", 'provider', 'testing' )
-	# TODO: Much, but not all of this, is directly copied from nti_render
+
+	# TODO: Much, but not all of this, is directly
+	# copied from nti_render
 	document.config.set( 'NTI', 'extra-scripts', '' )
 	document.config.set( 'NTI', 'extra-styles', '' )
 
-
-	#setup default config options we want
+	# setup default config options we want
 	document.config['files']['split-level'] = 1
 	document.config['document']['toc-depth'] = sys.maxint # Arbitrary number greater than the actual depth possible
 	document.config['document']['toc-non-files'] = True

@@ -19,12 +19,10 @@ from hamcrest import none
 
 from zope import component
 
-from .. import archive
-from .. import interfaces
+from nti.contentrendering import archive
+from nti.contentrendering import interfaces
 
-from . import ContentrenderingLayerTest
-
-
+from nti.contentrendering.tests import ContentrenderingLayerTest
 
 class TestArchive(ContentrenderingLayerTest):
 

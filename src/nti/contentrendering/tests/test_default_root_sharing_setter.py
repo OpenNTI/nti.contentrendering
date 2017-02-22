@@ -16,7 +16,7 @@ from hamcrest import is_
 from hamcrest import has_property
 from hamcrest import not_none
 
-from . import ContentrenderingLayerTest
+from nti.contentrendering.tests import ContentrenderingLayerTest
 from nti.contentrendering import default_root_sharing_setter
 from nti.testing.matchers import verifiably_provides
 from nti.contentrendering import interfaces

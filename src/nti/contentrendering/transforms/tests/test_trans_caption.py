@@ -1,14 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" """
-from __future__ import print_function, unicode_literals
+
+from __future__ import print_function, unicode_literals, absolute_import, division
+__docformat__ = "restructuredtext en"
+
+# disable: accessing protected members, too many methods
+# pylint: disable=W0212,R0904
+
 
 from hamcrest import assert_that
 from hamcrest import is_not
 from hamcrest import has_length
 from hamcrest import has_entry
-import unittest
 
+from nti.contentrendering.tests import ContentrenderingLayerTest
 
 from nti.contentrendering.tests import buildDomFromString as _buildDomFromString
 from nti.contentrendering.tests import simpleLatexDocumentText
@@ -20,7 +25,7 @@ def _simpleLatexDocument(maths):
 						  br'\usepackage{nti.contentrendering.plastexpackages.ntilatexmacros}'),
 					bodies=maths )
 
-class TestCaptionTransform(unittest.TestCase):
+class TestCaptionTransform(ContentrenderingLayerTest):
 
 	def test_captionTransform(self):
 		example = br"""

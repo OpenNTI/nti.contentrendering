@@ -1,10 +1,18 @@
-import unittest
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import print_function, unicode_literals, absolute_import
+__docformat__ = "restructuredtext en"
+
+# disable: accessing protected members, too many methods
+# pylint: disable=W0212,R0904
+
 import os
 from nti.contentrendering.RenderedBook import EclipseTOC
 
+from nti.contentrendering.tests import ContentrenderingLayerTest
 
-
-class TestEclipseTOC(unittest.TestCase):
+class TestEclipseTOC(ContentrenderingLayerTest):
 
 	def setUp(self):
 		self.eclipsetoc = EclipseTOC( os.path.join( os.path.dirname(__file__),  'eclipse-toc.xml') )
