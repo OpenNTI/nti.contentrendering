@@ -887,11 +887,11 @@ class nticard(LocalContentMixin, Base.Float, plastexids.NTIIDMixin):
 	def _pdf_to_thumbnail(self, pdf_path, page=1, height=792, width=612):
 		return _create_thumbnail_of_pdf( pdf_path, page=page, height=height, width=width )
 
-	def _auto_populate(self):
+	def auto_populate(self):
 		real_href = self._href_override or self.href
 		metadata = get_metadata_from_content_location(real_href)
 		if not IContentMetadata.providedBy(metadata):
-			return
+			return False
 		self.title = metadata.title or self.title
 		self.creator = metadata.creator or self.creator
 		self.href = metadata.contentLocation or self.href
@@ -942,7 +942,10 @@ class nticard(LocalContentMixin, Base.Float, plastexids.NTIIDMixin):
 			self.image.image.url = val
 			self.image.image.height = Dimen(height)
 			self.image.image.width = Dimen(width)
-
+	
+		return True
+	_auto_populate = auto_populate
+	
 	def proces_local_href(self, tex=None):
 		# Resolve local files to full paths with the same algorithm that
 		# includegraphics uses
@@ -976,7 +979,7 @@ class nticard(LocalContentMixin, Base.Float, plastexids.NTIIDMixin):
 		self.href = self.attributes['href']
 
 		if 'auto' in options and options['auto'].lower() == 'true':
-			self._auto_populate()
+			self.auto_populate()
 
 		if not getattr(self, 'title', ''):
 			raise ValueError("Must specify a title using \\caption")
