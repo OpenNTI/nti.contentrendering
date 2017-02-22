@@ -807,7 +807,7 @@ class ntipreviouspage(Base.Command):
 class nticardname(Base.Command):
 	pass
 
-def _incoming_sources_as_plain_text(texts):
+def incoming_sources_as_plain_text(texts):
 	"""
 	Given the source of text nodes in a sequence, convert
 	them to a single string that should be viewable as plain text.
@@ -825,6 +825,7 @@ def _incoming_sources_as_plain_text(texts):
 	# TODO: The latex-to-plain conversion is essentially a no-op.
 	# We can probably do better
 	return cfg_interfaces.IPlainTextContentFragment( latex_string )
+_incoming_sources_as_plain_text = incoming_sources_as_plain_text
 
 @interface.implementer(crd_interfaces.IEmbeddedContainer)
 class nticard(LocalContentMixin, Base.Float, plastexids.NTIIDMixin):
