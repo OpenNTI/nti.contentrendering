@@ -884,6 +884,8 @@ class nticard(LocalContentMixin, Base.Float, plastexids.NTIIDMixin):
 
 	_href_override = None
 
+	# invoke method
+
 	def _pdf_to_thumbnail(self, pdf_path, page=1, height=792, width=612):
 		return _create_thumbnail_of_pdf( pdf_path, page=page, height=height, width=width )
 
@@ -970,6 +972,23 @@ class nticard(LocalContentMixin, Base.Float, plastexids.NTIIDMixin):
 		self.proces_local_href(tex)
 		return res
 
+	# digest methods
+
+	def process_target_ntiid(self):
+		from nti.ntiids.ntiids import is_valid_ntiid_string
+
+		if is_valid_ntiid_string(self.href):
+			self.target_ntiid = self.href
+		else:
+			from hashlib import md5
+			from nti.ntiids.ntiids import TYPE_UUID
+			from nti.ntiids.ntiids import make_ntiid 
+			# TODO: Hmm, what to use as the provider? 
+			# Look for a hostname in the URL?
+			self.target_ntiid = make_ntiid(provider='NTI',
+										   nttype=TYPE_UUID,
+										   specific=md5(self.href).hexdigest() )
+
 	def process_digest(self):
 		options = self.attributes.get( 'options', {} ) or {}
 		__traceback_info__ = options, self.attributes
@@ -1005,19 +1024,7 @@ class nticard(LocalContentMixin, Base.Float, plastexids.NTIIDMixin):
 			# images[0].parentNode.removeChild( images[0] )
 			self.image = images[0]
 
-		from nti.ntiids.ntiids import is_valid_ntiid_string
-
-		if is_valid_ntiid_string( self.href ):
-			self.target_ntiid = self.href
-		else:
-			from hashlib import md5
-			from nti.ntiids.ntiids import TYPE_UUID
-			from nti.ntiids.ntiids import make_ntiid 
-			# TODO: Hmm, what to use as the provider? 
-			# Look for a hostname in the URL?
-			self.target_ntiid = make_ntiid(provider='NTI',
-										   nttype=TYPE_UUID,
-										   specific=md5(self.href).hexdigest() )
+		self.process_target_ntiid()
 
 	def digest(self, tokens):
 		res = super(nticard, self).digest(tokens)
