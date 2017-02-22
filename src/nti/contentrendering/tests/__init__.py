@@ -38,8 +38,7 @@ def setChameleonCache(cls):
 
 
 def restoreChameleonCache(cls):
-	shutil.rmtree(cls.new_cache_dir, True)
-	os.environ['CHAMELEON_CACHE'] = cls.old_cache_dir
+	pass
 
 
 class SharedConfiguringTestLayer(ZopeComponentLayer,
