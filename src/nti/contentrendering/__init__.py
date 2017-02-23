@@ -14,10 +14,12 @@ import six
 import subprocess
 
 # BWC re-export
+from nti.contentrendering.phantom import _PhantomProducedUnexpectedOutputError
+
+# BWC re-export
 from nti.contentrendering.phantom import _closing
 from nti.contentrendering.phantom import javascript_path
 from nti.contentrendering.phantom import run_phantom_on_page
-from nti.contentrendering.phantom import _PhantomProducedUnexpectedOutputError
 
 # BWC re-export
 from nti.futures.futures import ConcurrentExecutor
@@ -69,10 +71,13 @@ class _ExternalProgramSettings(object):
         self._verify_cache = {}
 
     gs = _programproperty('GHOSTSCRIPT', 'gs', '--help')
-    # Identify is provided by ImageMagick
+    
+    #: Identify is provided by ImageMagick
     identify = _programproperty('IDENTIFY', 'identify')
-    # convert is provided by ImageMagick
+    
+    #: convert is provided by ImageMagick
     convert = _programproperty('CONVERT', 'convert')
+
     pngcrush = _programproperty('PNGCRUSH', 'pngcrush')
     pdfcrop = _programproperty("PDFCROP", 'pdfcrop')
     pdf2svg = _programproperty("PDF2SVG", 'pdf2svg')
