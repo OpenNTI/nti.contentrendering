@@ -14,24 +14,26 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope.location.interfaces import LocationError
 
-from zope.traversing import adapters
+from zope.traversing.adapters import DefaultTraversable
 
-class PlastexTraverser(adapters.DefaultTraversable):
-	"""
-	Missing attributes simply return None. Many existing templates
-	rely on this (instead of specifying a default fallback) since
-	the plastex simpletal engine had this behaviour.
 
-	This MUST be registered as an adapter for the DOM objects
-	used in rendering.
-	"""
-	def traverse(self, name, furtherPath):
-		try:
-			return super(PlastexTraverser, self).traverse(name, furtherPath)
-		except (LocationError,IndexError) as e:
-			# XXX: This can mask issues.
-			logger.warn('Traversal error while rendering (%s) (%s)',
-						name, e)
-			# IndexError can be raised because the plasTeX objects attempt
-			# to use strings as child numbers
-			return None
+class PlastexTraverser(DefaultTraversable):
+    """
+    Missing attributes simply return None. Many existing templates
+    rely on this (instead of specifying a default fallback) since
+    the plastex simple-tal engine had this behaviour.
+
+    This MUST be registered as an adapter for the DOM objects
+    used in rendering.
+    """
+
+    def traverse(self, name, furtherPath):
+        try:
+            return super(PlastexTraverser, self).traverse(name, furtherPath)
+        except (LocationError, IndexError) as e:
+            # XXX: This can mask issues.
+            logger.warn('Traversal error while rendering (%s) (%s)',
+                        name, e)
+            # IndexError can be raised because the plasTeX objects attempt
+            # to use strings as child numbers
+            return None
