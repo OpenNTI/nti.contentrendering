@@ -13,39 +13,42 @@ from hamcrest import is_
 from hamcrest import has_length
 from hamcrest import assert_that
 
-# from nti.contentrendering.plastexpackages.graphicx import includegraphics
-from nti.contentrendering.plastexpackages.ntilatexmacros import ntisequenceitem, ntisequence
+from nti.contentrendering.plastexpackages.ntilatexmacros import ntisequence
+from nti.contentrendering.plastexpackages.ntilatexmacros import ntisequenceitem
 
 from nti.contentrendering.tests import simpleLatexDocumentText
 from nti.contentrendering.tests import buildDomFromString as _buildDomFromString
 
+
 def _simpleLatexDocument(maths):
-	return simpleLatexDocumentText(
-					preludes=(br'\usepackage{nti.contentrendering.plastexpackages.ntilatexmacros}',
-						 	  br'\usepackage{nti.contentrendering.plastexpackages.ntialibra}'),
-					bodies=maths)
+    return simpleLatexDocumentText(
+        preludes=(br'\usepackage{nti.contentrendering.plastexpackages.ntilatexmacros}',
+                  br'\usepackage{nti.contentrendering.plastexpackages.ntialibra}'),
+        bodies=maths)
+
 
 class TestNTIAlibra(unittest.TestCase):
 
-	def test_ntintisequence(self):
-		example = br"""
-			\begin{ntisequence}[creator=NTI]
-				\includegraphics[width=106px,height=60px]{test}
-				\begin{ntisequenceitem}
-					 foo
-				\end{ntisequenceitem}
-				\begin{ntisequenceitem}
-					\includegraphics[width=106px,height=60px]{test3}
-				\end{ntisequenceitem}
-			\end{ntisequence}
-		"""
-		dom = _buildDomFromString( _simpleLatexDocument( (example,) ) )
+    def test_ntintisequence(self):
+        example = br"""
+            \begin{ntisequence}[creator=NTI]
+                \includegraphics[width=106px,height=60px]{test}
+                \begin{ntisequenceitem}
+                     foo
+                \end{ntisequenceitem}
+                \begin{ntisequenceitem}
+                    \includegraphics[width=106px,height=60px]{test3}
+                \end{ntisequenceitem}
+            \end{ntisequence}
+        """
+        dom = _buildDomFromString(_simpleLatexDocument((example,)))
 
-		# Check that the DOM has the expected structure
-		assert_that(dom.getElementsByTagName('ntisequence'), has_length(1))
-		assert_that(dom.getElementsByTagName('ntisequence')[0], is_(ntisequence))
+        # Check that the DOM has the expected structure
+        assert_that(dom.getElementsByTagName('ntisequence'), has_length(1))
+        assert_that(dom.getElementsByTagName('ntisequence')[0],
+                    is_(ntisequence))
 
-		# Check that the ntisequence object has the expected children
-		elem = dom.getElementsByTagName('ntisequence')[0]
-		assert_that(elem.childNodes[2], is_(ntisequenceitem))
-		assert_that(elem.childNodes[4], is_(ntisequenceitem))
+        # Check that the ntisequence object has the expected children
+        elem = dom.getElementsByTagName('ntisequence')[0]
+        assert_that(elem.childNodes[2], is_(ntisequenceitem))
+        assert_that(elem.childNodes[4], is_(ntisequenceitem))

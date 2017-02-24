@@ -41,7 +41,7 @@ class TestNTILists(unittest.TestCase):
         # Check that the DOM has the expected structure
         assert_that(dom.getElementsByTagName('ntienumerate'), has_length(1))
         assert_that(dom.getElementsByTagName('ntienumerate')[0], 
-					is_(ntienumerate))
+                    is_(ntienumerate))
 
         # Check that the ntienumerate object has the expected children
         elem = dom.getElementsByTagName('ntienumerate')[0]
