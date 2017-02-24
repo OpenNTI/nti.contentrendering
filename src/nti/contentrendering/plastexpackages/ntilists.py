@@ -16,19 +16,19 @@ from plasTeX.Base.LaTeX.Lists import enumerate_
 
 
 class ntilist(List):
-    pass
+    macroName = 'ntilist'
 
 
 class ntiitemize(itemize):
-    pass
+    macroName = 'ntiitemize'
 
 
 class ntienumerate(enumerate_):
-    pass
+    macroName = 'ntienumerate'
 
 
 class ntitrivlist(trivlist):
-    pass
+    macroName = 'ntitrivlist'
 
 
 class ntinavlist(List):
