@@ -17,3 +17,8 @@ name: ntilist
 <td tal:content="item"></td>
 </tr>
 </table>
+
+name: ntinavlist
+<ul class="nav">
+<li tal:repeat="item self" tal:content="item"></li>
+</ul>

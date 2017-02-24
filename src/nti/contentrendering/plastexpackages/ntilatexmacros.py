@@ -106,8 +106,19 @@ class pageref(Crossref.pageref):
 
 		return None
 
-class ntinavlist(Base.List):
-	pass
+# lists
+
+from nti.contentrendering.plastexpackages.ntilists import ntilist
+from nti.contentrendering.plastexpackages.ntilists import ntiitemize
+from nti.contentrendering.plastexpackages.ntilists import ntinavlist
+from nti.contentrendering.plastexpackages.ntilists import ntitrivlist
+from nti.contentrendering.plastexpackages.ntilists import ntienumerate
+
+ntilist = ntilist
+ntiitemize = ntiitemize
+ntinavlist = ntinavlist
+ntitrivlist = ntitrivlist
+ntienumerate = ntienumerate
 
 ###############################################################################
 # The following block of commands concern general resource handling

@@ -29,3 +29,7 @@ class ntienumerate(enumerate_):
 
 class ntitrivlist(trivlist):
     pass
+
+
+class ntinavlist(List):
+    pass
