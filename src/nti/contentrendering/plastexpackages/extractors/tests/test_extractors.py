@@ -42,13 +42,13 @@ class TestCourseExtractor(unittest.TestCase):
 		name = 'sample_relatedwork.tex'
 		with open(os.path.join( os.path.dirname(__file__), name)) as fp:
 			works_string = fp.read()
-			
+
 		class Book(object):
 			toc = None
 			document = None
 			contentLocation = None
 		book = Book()
-		
+
 		with RenderContext(simpleLatexDocumentText(
 								preludes=("\\usepackage{nticourse}", "\\usepackage{ntilatexmacros}"),
 								bodies=(course_string, works_string)),

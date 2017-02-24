@@ -63,6 +63,7 @@ class RenderedBook(object):
 	def _processPages(self):
 		javascript = javascript_path('getPageInfo.js')
 		results = self.runPhantomOnPages(javascript)
+		__traceback_info__ = results
 		pages = {p['ntiid']:p for p in results.values()}
 
 		def set_info(root):
