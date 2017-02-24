@@ -1,0 +1,19 @@
+# -*- mode: html -*-
+
+name: ntiitemize
+<ul class="itemize" tal:attributes="id self/id">
+<li tal:repeat="item self" tal:content="item"></li>
+</ul>
+
+name: ntienumerate
+<ol class="enumerate" tal:attributes="id self/id">
+<li tal:repeat="item self" tal:content="item" tal:attributes="value item/position"></li>
+</ol>
+
+name: ntilist
+<table class="list" cellspacing="0" cellpadding="2" tal:attributes="id self/id">
+<tr tal:repeat="item self">
+<td tal:content="item/attributes/term | self/attributes/defaultlabel"></td>
+<td tal:content="item"></td>
+</tr>
+</table>
