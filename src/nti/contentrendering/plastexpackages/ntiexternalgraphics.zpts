@@ -1,6 +1,6 @@
 # -*- mode: html -*-
 
-name: ntiexternalgraphics
+name: ntiexternalgraphics externalgraphics
 <span
 	tal:condition="python: not (self.attributes and self.attributes.get('options') and self.attributes.get('options').get('float'))"
 	itemprop="nti-data-markupenabled">

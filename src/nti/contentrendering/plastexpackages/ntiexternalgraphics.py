@@ -54,3 +54,5 @@ class ntiexternalgraphics(Command):
         self.external = self.attributes['url']
         self.process_options()
         return res
+
+externalgraphics = ntiexternalgraphics
