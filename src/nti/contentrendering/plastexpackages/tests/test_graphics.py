@@ -15,15 +15,18 @@ import unittest
 from nti.contentrendering.tests import simpleLatexDocumentText
 from nti.contentrendering.tests import buildDomFromString as _buildDomFromString
 
+
 def _simpleLatexDocument(maths):
-	return simpleLatexDocumentText( preludes=(br'\usepackage{nti.contentrendering.plastexpackages.graphics}',),
-									bodies=maths)
+    return simpleLatexDocumentText(preludes=(br'\usepackage{nti.contentrendering.plastexpackages.graphics}',),
+                                   bodies=maths)
+
 
 class TestGraphics(unittest.TestCase):
 
-	def test_DeclareGraphicsRule(self):
-		example = br"""
-		\DeclareGraphicsRule{*}{mps}{*}{}
-		"""
-		dom = _buildDomFromString(_simpleLatexDocument((example,)))
-		assert_that(dom.getElementsByTagName('DeclareGraphicsRule'), has_length(1))
+    def test_DeclareGraphicsRule(self):
+        example = br"""
+        \DeclareGraphicsRule{*}{mps}{*}{}
+        """
+        dom = _buildDomFromString(_simpleLatexDocument((example,)))
+        assert_that(dom.getElementsByTagName('DeclareGraphicsRule'),
+                    has_length(1))

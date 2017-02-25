@@ -108,11 +108,11 @@ ntinavlist = ntinavlist
 ntitrivlist = ntitrivlist
 ntienumerate = ntienumerate
 
-# external figure
+# external graphics
 
-from nti.contentrendering.plastexpackages.ntiexternalfigure import ntiexternalfigure
+from nti.contentrendering.plastexpackages.ntiexternalgraphics import ntiexternalgraphics
 
-ntiexternalfigure = ntiexternalfigure
+ntiexternalgraphics = ntiexternalgraphics
 
 ###############################################################################
 # The following block of commands concern general resource handling
