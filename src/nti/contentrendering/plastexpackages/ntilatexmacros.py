@@ -34,15 +34,11 @@ from plasTeX.Packages.hyperref import href as base_href
 from plasTeX.Renderers import render_children
 
 from nti.contentfragments import interfaces as cfg_interfaces
-
-from nti.contentprocessing.interfaces import IContentMetadata
-from nti.contentprocessing.metadata_extractors import get_metadata_from_content_location
 		
 from nti.contentrendering import plastexids
 from nti.contentrendering import interfaces as crd_interfaces
 
-from nti.contentrendering.contentthumbnails import _create_thumbnail_of_pdf
-
+from nti.contentrendering.plastexpackages._util import _OneText
 from nti.contentrendering.plastexpackages._util import LocalContentMixin
 from nti.contentrendering.plastexpackages.graphicx import includegraphics
 
@@ -58,26 +54,18 @@ Base.figure.forcePars = False
 Base.minipage.blockType = True
 Base.centerline.blockType = True
 
-# BWC
+# util classes
+
+from nti.contentrendering.plastexpackages._util import Ignored
+_Ignored = Ignored
+
+# eurosym
+
 from nti.contentrendering.plastexpackages.eurosym import eur
 from nti.contentrendering.plastexpackages.eurosym import euro
 
 eur = eur
 euro = euro
-
-class _OneText(Base.Command):
-	
-	args = 'text:str'
-
-	def invoke( self, tex ):
-		return super(_OneText, self).invoke( tex )
-
-class _Ignored(Base.Command):
-
-	unicode = ''
-
-	def invoke( self, tex ):
-		return []
 
 # SAJ: Sectioning commands for custom rendering treatment
 class chaptertitlesuppressed( Base.chapter ):
@@ -821,244 +809,16 @@ class ntipreviouspage(Base.Command):
 	pass
 
 # Cards
-class nticardname(Base.Command):
-	pass
 
-def incoming_sources_as_plain_text(texts):
-	"""
-	Given the source of text nodes in a sequence, convert
-	them to a single string that should be viewable as plain text.
-	"""
-	# They come in from latex, so by definition they are latex content
-	# fragments. But they probably don't implement the interface.
-	# If we try to convert them, they will be assumed to be a
-	# plain text string and we will try to latex escape them, which would
-	# be wrong. So directly instantiate the prime class.
-	# NOTE: Actually, the callers of this are converting the children to
-	# unicode() in a rendering context, which actually should
-	# properly render them...to HTML. So really this is probably
-	# incoming HTML.
-	latex_string = cfg_interfaces.LatexContentFragment( ''.join( texts ).strip() )
-	# TODO: The latex-to-plain conversion is essentially a no-op.
-	# We can probably do better
-	return cfg_interfaces.IPlainTextContentFragment( latex_string )
+from nti.contentrendering.plastexpackages._util import incoming_sources_as_plain_text
+
+from nti.contentrendering.plastexpackages.nticard import nticard
+from nti.contentrendering.plastexpackages.nticard import nticardname
+
+nticard = nticard
+nticardname = nticardname
 _incoming_sources_as_plain_text = incoming_sources_as_plain_text
 
-@interface.implementer(crd_interfaces.IEmbeddedContainer)
-class nticard(LocalContentMixin, Base.Float, plastexids.NTIIDMixin):
-	"""
-	Implementation of the Card environment. There should be an ``includegraphics`` specifying
-	a thumbnail as a child of this node (unless ``auto`` is used). The text contents of this node will form
-	the card description.
-
-	.. note::
-		This environment is **NOT** intended for subclassing.
-
-	Possible options include:
-
-	creator
-		The creator of the content
-
-	auto
-		If present and "true", then we will attempt to spider the ``href``
-		to extract Twitter card or `Facebook OpenGraph <http://opengraphprotocol.org>`_ data from it; this allows
-		you to skip specifying an image and description.
-	"""
-	args = 'href:str:source <options:dict>'
-
-	# Note the options dict is in <>, and uses the default comma separator, which means
-	# values cannot have commas (that's why href, which may be an NTIID is its own argument).
-	# See also ntiassessment.naqsolution.
-
-	# A Float subclass to get \caption handling
-	class caption(Base.Floats.Caption):
-		counter = 'figure'
-
-	# Only classes with counters can be labeled, and \label sets the
-	# id property, which in turn is used as part of the NTIID (when no NTIID is set explicitly)
-	counter = 'nticard'
-	blockType = True
-	
-	_ntiid_type = 'NTICard'
-	_ntiid_suffix = 'nticard.'
-	_ntiid_title_attr_name = 'ref' # Use our counter to generate IDs if no ID is given
-	_ntiid_allow_missing_title = False
-	_ntiid_cache_map_name = '_nticard_ntiid_map'
-
-	#: From IEmbeddedContainer
-	mimeType = "application/vnd.nextthought.nticard"
-
-	href = None
-	image = None
-	creator = None
-	type = 'summary'
-
-	#: Derived from the href property. If the href itself specifies
-	#: a complete NTIID, then it will have that value. Otherwise,
-	#: one will be computed from the href; if the href is a absolute
-	#: URL, then the computed NTIID will be the same whereever the URL
-	#: is linked to, allowing this NTIID to be used as a ``containerId``
-	target_ntiid = None
-
-	_href_override = None
-
-	# invoke method
-
-	def _pdf_to_thumbnail(self, pdf_path, page=1, height=792, width=612):
-		return _create_thumbnail_of_pdf( pdf_path, page=page, height=height, width=width )
-
-	def auto_populate(self):
-		real_href = self._href_override or self.href
-		metadata = get_metadata_from_content_location(real_href)
-		if not IContentMetadata.providedBy(metadata):
-			return False
-		self.title = metadata.title or self.title
-		self.creator = metadata.creator or self.creator
-		self.href = metadata.contentLocation or self.href
-		self.description = metadata.description or self.description
-
-		# Just enough to go with our template
-		class Image(object):
-			def __init__( self, image ):
-				self.image = image
-
-		class Dimen(object):
-			def __init__(self,px):
-				self.px = px
-
-		if metadata.contentMimeType == 'application/pdf':
-			# Generate and use the real thing
-			thumb_file = self._pdf_to_thumbnail( metadata.sourcePath )
-			include = includegraphics()
-			include.style['width'] = "93px"
-			include.style['height'] = "120px"
-			include.attributes['file'] = thumb_file
-			include.argSource = r'[width=93pt,height=120pt]{%s}' % thumb_file
-			self.appendChild( include )
-		elif 	metadata.images \
-			and (metadata.images[0].width and metadata.images[0].height):
-			# Yay, got the real size already
-			self.image = Image(metadata.images[0])
-		elif metadata.images:
-			# Download and save the image?
-			# Right now we are downloading it for size purposes (which may not be
-			# needed) but we could choose to cache it locally
-			import urlparse
-			import requests
-			from plone.namedfile import NamedImage
-			
-			# Get filename and url
-			val = metadata.images[0].url
-			response = requests.get( val )
-			filename = urlparse.urlparse( val ).path.split('/')[-1]
-			
-			# get file info
-			named_image = NamedImage(data=response.content, 
-									 filename=filename )
-			width, height = named_image.getImageSize()
-
-			# save it
-			self.image = Image(named_image)
-			self.image.image.url = val
-			self.image.image.height = Dimen(height)
-			self.image.image.width = Dimen(width)
-	
-		return True
-	_auto_populate = auto_populate
-	
-	def proces_local_href(self, tex=None):
-		# Resolve local files to full paths with the same algorithm that
-		# includegraphics uses
-		if (	'href' in self.attributes
-			and '//' not in self.attributes['href'] # not a HTTP[S] url
-			and not self.attributes['href'].startswith('tag:') ): # not an NTIID
-			from nti.contentrendering.plastexpackages.graphics import _locate_image_file
-
-			the_file = _locate_image_file(
-							self, tex, 
-							self.attributes['href'],
-							includegraphics.packageName,
-							[], # No extensions to search: must be complete filename or path
-							query_extensions=False)
-			if the_file:
-				self._href_override = the_file
-				return True
-		return False
-
-	def invoke( self, tex ):
-		res = super(nticard,self).invoke( tex )
-		self.proces_local_href(tex)
-		return res
-
-	# digest methods
-
-	def process_target_ntiid(self):
-		from nti.ntiids.ntiids import is_valid_ntiid_string
-
-		if is_valid_ntiid_string(self.href):
-			self.target_ntiid = self.href
-		else:
-			from hashlib import md5
-			from nti.ntiids.ntiids import TYPE_UUID
-			from nti.ntiids.ntiids import make_ntiid 
-			# TODO: Hmm, what to use as the provider? 
-			# Look for a hostname in the URL?
-			self.target_ntiid = make_ntiid(provider='NTI',
-										   nttype=TYPE_UUID,
-										   specific=md5(self.href).hexdigest() )
-
-	def process_digest(self):
-		options = self.attributes.get( 'options', {} ) or {}
-		__traceback_info__ = options, self.attributes
-
-		if 'href' not in self.attributes or not self.attributes['href']:
-			raise ValueError( "Must provide href argument" )
-		self.href = self.attributes['href']
-
-		if 'auto' in options and options['auto'].lower() == 'true':
-			self.auto_populate()
-
-		if not getattr(self, 'title', ''):
-			raise ValueError("Must specify a title using \\caption")
-
-		self.attributes['nti-requirements'] = u''
-		requirements = options.get('nti-requirements', u'').split()
-		for requirement in requirements:
-			if requirement == u'flash':
-				requirement = u'mime-type:application/x-shockwave-flash'
-			value = self.attributes['nti-requirements']
-			self.attributes['nti-requirements'] = ' '.join([value, requirement])
-
-		self.attributes['nti-requirements'] = self.attributes['nti-requirements'].strip()
-		if self.attributes['nti-requirements'] == u'':
-			self.attributes['nti-requirements'] = None
-
-		if 'creator' in options:
-			self.creator = options['creator']
-
-		images = self.getElementsByTagName('includegraphics')
-		if images:
-			# Must leave the image in the dom so it can be found by the resourceDB
-			# images[0].parentNode.removeChild( images[0] )
-			self.image = images[0]
-
-		self.process_target_ntiid()
-
-	def digest(self, tokens):
-		res = super(nticard, self).digest(tokens)
-		if self.macroMode == self.MODE_BEGIN:
-			self.process_digest()
-		return res
-
-	@readproperty
-	def description(self):
-		texts = []
-		for child in self.allChildNodes:
-			# Try to extract the text children, ignoring the caption and label, etc
-			if 		child.nodeType == self.TEXT_NODE \
-			 	and (child.parentNode == self or child.parentNode.nodeName == 'par'):
-				texts.append( unicode( child ) )
-		return _incoming_sources_as_plain_text( texts )
 
 ###############################################################################
 # The following block of commands concern representing related readings
@@ -1577,19 +1337,20 @@ class ntiembedwidget(Command, plastexids.NTIIDMixin):
 			self.attributes['uidname'] = self.attributes['uid-name'] = uidname
 		return res
 
-def ProcessOptions( options, document ):
-	document.context.newcounter('ntiaudio')
-	document.context.newcounter('ntivideo')
-	document.context.newcounter('ntilocalvideo')
-	document.context.newcounter('ntivideoroll')
-	document.context.newcounter('ntiimagecollection')
+
+def ProcessOptions(options, document):
 	document.context.newcounter('nticard')
-	document.context.newcounter('relatedwork')
-	document.context.newcounter('relatedworkref', initial=-1)
-	document.context.newcounter('ntidiscussion')
 	document.context.newcounter('sidebar')
 	document.context.newcounter('fileview')
+	document.context.newcounter('ntiaudio')
+	document.context.newcounter('ntivideo')
 	document.context.newcounter('embedwidget')
+	document.context.newcounter('relatedwork')
+	document.context.newcounter('ntivideoroll')
+	document.context.newcounter('ntilocalvideo')
+	document.context.newcounter('ntidiscussion')
+	document.context.newcounter('ntiimagecollection')
+	document.context.newcounter('relatedworkref', initial=-1)
 
 from plasTeX.interfaces import IOptionAwarePythonPackage
 interface.moduleProvides(IOptionAwarePythonPackage)
