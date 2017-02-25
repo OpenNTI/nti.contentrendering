@@ -27,7 +27,7 @@ def check(book):
             errors = set(etree_tostring(e, method=text) for e in errors)
             logger.warn("Mathjax errors for page %s: %s",
                         page.filename,
-                          errors)
+                        errors)
         return all_errors
 
     def _check_merror(page):
@@ -38,7 +38,7 @@ def check(book):
         mtexts = page.dom("span[class=mtext]")
         errors = []
         for mtext in mtexts:
-            if         'style' in mtext.attrib \
+            if      'style' in mtext.attrib \
                 and 'color:' in mtext.attrib['style'] \
                 and 'red' in mtext.attrib['style']:
                 # This is a really tacky way of checking for 'color: red'
