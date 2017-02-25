@@ -120,6 +120,12 @@ ntinavlist = ntinavlist
 ntitrivlist = ntitrivlist
 ntienumerate = ntienumerate
 
+# external figure
+
+from nti.contentrendering.plastexpackages.ntiexternalfigure import ntiexternalfigure
+
+ntiexternalfigure = ntiexternalfigure
+
 ###############################################################################
 # The following block of commands concern general resource handling
 ###############################################################################
