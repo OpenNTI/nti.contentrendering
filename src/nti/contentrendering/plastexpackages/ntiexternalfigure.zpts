@@ -5,7 +5,7 @@ name: ntiexternalfigure
 	tal:condition="python: not self.resizeable and not (self.attributes and self.attributes.get('options') and self.attributes.get('options').get('float'))"
 	itemprop="nti-data-markupenabled">
 	<img tal:condition="not:self/style" crossorigin="anonymous"
-		 tal:attributes="src self/url; id self/id; alt self/attributes/alttext; style string:width:${self/width/px};; height:${self/height/px}; data-nti-image-size self/size; data-caption self/caption | nothing" />
+		 tal:attributes="src self/url; id self/id; alt self/attributes/alttext; style string:width:${self/width/px}; height:${self/height/px}; data-nti-image-size self/size; data-caption self/caption | nothing" />
 	<img tal:condition="self/style" crossorigin="anonymous"
 		 tal:attributes="src self/url; id self/id; alt self/attributes/alttext; style self/style/inline; data-nti-image-size self/size; data-caption self/caption | nothing" />
 </span>
@@ -13,7 +13,7 @@ name: ntiexternalfigure
 	tal:condition="python: not self.resizeable and (self.attributes and self.attributes.get('options') and self.attributes.get('options').get('float'))"
 	itemprop="nti-data-markupenabled" style="float: left; margin-right: 10px;">
 	<img tal:condition="not:self/style" crossorigin="anonymous"
-		 tal:attributes="src self/url; id self/id; alt self/attributes/alttext; style string:width:${self/width/px};; height:${self/height/px}; data-nti-image-size self/size; data-caption self/caption | nothing" />
+		 tal:attributes="src self/url; id self/id; alt self/attributes/alttext; style string:width:${self/width/px}; height:${self/height/px}; data-nti-image-size self/size; data-caption self/caption | nothing" />
 	<img tal:condition="self/style" crossorigin="anonymous"
 		 tal:attributes="src self/url; id self/id; alt self/attributes/alttext; style self/style/inline; data-nti-image-size self/size; data-caption self/caption | nothing" />
 </span>
@@ -21,7 +21,7 @@ name: ntiexternalfigure
 	tal:condition="python: self.resizeable and not (self.attributes and self.attributes.get('options') and self.attributes.get('options').get('float'))"
 	itemprop="nti-data-markupenabled nti-data-resizeable">
 	<img tal:condition="not:self/style" crossorigin="anonymous"
-		 tal:attributes="src self/url; id self/id; alt self/attributes/alttext; style string:width:${self/width/px};; height:${self/height/px}; data-nti-image-size self/size; data-caption self/caption | nothing" />
+		 tal:attributes="src self/url; id self/id; alt self/attributes/alttext; style string:width:${self/width/px}; height:${self/height/px}; data-nti-image-size self/size; data-caption self/caption | nothing" />
 	<img tal:condition="self/style" crossorigin="anonymous"
 		 tal:attributes="src self/url; id self/id; alt self/attributes/alttext; style self/style/inline; data-nti-image-size self/size; data-caption self/caption | nothing" />
 </span>
@@ -30,7 +30,7 @@ name: ntiexternalfigure
 	itemprop="nti-data-markupenabled nti-data-resizeable"
 	style="float: left; margin-right: 10px;">
 	<img tal:condition="not:self/style" crossorigin="anonymous"
-		 tal:attributes="src self/url; id self/id; alt self/attributes/alttext; style string:width:${self/width/px};; height:${self/height/px}; data-nti-image-size self/size; data-caption self/caption | nothing" />
+		 tal:attributes="src self/url; id self/id; alt self/attributes/alttext; style string:width:${self/width/px}; height:${self/height/px}; data-nti-image-size self/size; data-caption self/caption | nothing" />
 	<img tal:condition="self/style" crossorigin="anonymous"
 		 tal:attributes="src self/url; id self/id; alt self/attributes/alttext; style self/style/inline; data-nti-image-size self/size; data-caption self/caption | nothing" />
 </span>
