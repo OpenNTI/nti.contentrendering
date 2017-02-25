@@ -27,7 +27,7 @@ from nti.contentprocessing.interfaces import IContentMetadata
 
 from nti.contentprocessing.metadata_extractors import get_metadata_from_content_location
 
-from nti.contentrendering.contentthumbnails import _create_thumbnail_of_pdf
+from nti.contentrendering.contentthumbnails import create_thumbnail_of_pdf
 
 from nti.contentrendering.interfaces import IEmbeddedContainer
 
@@ -114,10 +114,10 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
     # invoke method
 
     def _pdf_to_thumbnail(self, pdf_path, page=1, height=792, width=612):
-        return _create_thumbnail_of_pdf(pdf_path,
-                                        page=page,
-                                        height=height,
-                                        width=width)
+        return create_thumbnail_of_pdf(pdf_path,
+                                       page=page,
+                                       height=height,
+                                       width=width)
 
     def auto_populate(self):
         real_href = self._href_override or self.href
@@ -151,7 +151,7 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
             include.argSource = r'[width=93pt,height=120pt]{%s}' % thumb_file
             self.appendChild(include)
         elif     metadata.images \
-                and (metadata.images[0].width and metadata.images[0].height):
+            and (metadata.images[0].width and metadata.images[0].height):
             # Yay, got the real size already
             self.image = Image(metadata.images[0])
         elif metadata.images:
