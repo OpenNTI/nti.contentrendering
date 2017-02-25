@@ -235,11 +235,9 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
             if requirement == u'flash':
                 requirement = u'mime-type:application/x-shockwave-flash'
             value = self.attributes['nti-requirements']
-            self.attributes[
-                'nti-requirements'] = ' '.join([value, requirement])
+            self.attributes['nti-requirements'] = ' '.join([value, requirement])
 
-        self.attributes[
-            'nti-requirements'] = self.attributes['nti-requirements'].strip()
+        self.attributes['nti-requirements'] = self.attributes['nti-requirements'].strip()
         if self.attributes['nti-requirements'] == u'':
             self.attributes['nti-requirements'] = None
 
