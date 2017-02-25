@@ -221,51 +221,10 @@ class ntiincludekalturavideo(Command):
 		self.height = u'390'
 		return res
 
-class ntimediaref(Base.Crossref.ref):
-	args = '[options:dict] label:idref'
+# media
 
-	def digest(self, tokens):
-		tok = super(ntimediaref, self).digest(tokens)
-
-		self._options = self.attributes.get('options', {}) or {}
-
-		self.to_render = False
-		if 'to_render' in self._options.keys():
-			if self._options['to_render'] in [ u'true', u'True' ]:
-				self.to_render = True
-
-		return tok
-
-	@readproperty
-	def media(self):
-		return self.idref['label']
-
-	@readproperty
-	def visibility(self):
-		visibility = self._options.get('visibility') or None
-		if visibility is None:
-			return self.media.visibility
-		return visibility
-
-class ntimedia(LocalContentMixin, Base.Float, plastexids.NTIIDMixin):
-	blockType = True
-	args = '[ options:dict ]'
-
-	_ntiid_title_attr_name = 'ref'
-	_ntiid_allow_missing_title = False
-
-	creator = None
-	num_sources = 0
-	title = 'No Title'
-	closed_caption = None
-
-	@readproperty
-	def description(self):
-		return None
-
-	@readproperty
-	def transcripts(self):
-		return None
+from nti.contentrendering.plastexpackages.ntimedia import ntimedia
+from nti.contentrendering.plastexpackages.ntimedia import ntimediaref
 
 # audio
 
