@@ -15,101 +15,152 @@ from zope import component
 
 from zope.cachedescriptors.property import readproperty
 
+from plasTeX import Base
+
 from plasTeX.Renderers import render_children
 
 from nti.contentfragments.interfaces import HTMLContentFragment
 from nti.contentfragments.interfaces import ILatexContentFragment
+from nti.contentfragments.interfaces import LatexContentFragment
 from nti.contentfragments.interfaces import IPlainTextContentFragment
 
+
 def _asm_local_textcontent(self):
-	"""
-	Collects the text content for nodes that are direct
-	children of `self`, *not* recursively. Returns a `unicode` object,
-	*not* a :class:`plasTeX.DOM.Text` object.
-	"""
-	output = []
-	for item in self.childNodes:
-		if item.nodeType == self.TEXT_NODE:
-			output.append(unicode(item))
-		elif getattr(item, 'unicode', None) is not None:
-			output.append(item.unicode)
-	# We are doing an interface conversion here, because
-	# getting the unicode may be unescaping and we need to escap
-	# again (?)
-	return ILatexContentFragment(''.join(output).strip())
+    """
+    Collects the text content for nodes that are direct
+    children of `self`, *not* recursively. Returns a `unicode` object,
+    *not* a :class:`plasTeX.DOM.Text` object.
+    """
+    output = []
+    for item in self.childNodes:
+        if item.nodeType == self.TEXT_NODE:
+            output.append(unicode(item))
+        elif getattr(item, 'unicode', None) is not None:
+            output.append(item.unicode)
+    # We are doing an interface conversion here, because
+    # getting the unicode may be unescaping and we need to escap
+    # again (?)
+    return ILatexContentFragment(''.join(output).strip())
+
 
 def _is_renderable(renderer, elements):
-	"""
-	quick test to find out if elements are renderable
-	"""
-	result = bool(renderer is not None and elements)
-	if result:
-		for element in elements:
-			result = 	hasattr(element, 'nodeType') \
-					and hasattr(element, 'unicode')  \
-					and hasattr(element, 'nodeName') \
-					and hasattr(element, 'filename') \
-					and hasattr(element, 'attributes')
-			if not result:
-				break
-	return result
-	
+    """
+    quick test to find out if elements are renderable
+    """
+    result = bool(renderer is not None and elements)
+    if result:
+        for element in elements:
+            result = hasattr(element, 'nodeType') \
+                and hasattr(element, 'unicode')  \
+                and hasattr(element, 'nodeName') \
+                and hasattr(element, 'filename') \
+                and hasattr(element, 'attributes')
+            if not result:
+                break
+    return result
+
+
 def _htmlcontent_rendered_elements(renderer, elements):
-	output = render_children(renderer, elements)
-	# Now return an actual HTML content fragment. Note that this
-	# has been rendered so there's no need to do the interface
-	# conversion
-	result = HTMLContentFragment(''.join(output).strip())
-	return result
+    output = render_children(renderer, elements)
+    # Now return an actual HTML content fragment. Note that this
+    # has been rendered so there's no need to do the interface
+    # conversion
+    result = HTMLContentFragment(''.join(output).strip())
+    return result
+
 
 def _textcontent_rendered_elements(renderer, elements):
-	content = _htmlcontent_rendered_elements(renderer, elements)
-	text = component.getAdapter(content, IPlainTextContentFragment, name='text')
-	return text
+    content = _htmlcontent_rendered_elements(renderer, elements)
+    text = component.getAdapter(content,
+                                IPlainTextContentFragment,
+                                name='text')
+    return text
+
 
 def _asm_rendered_textcontent(self, ignorable_renderables=()):
-	"""
-	Collects the rendered values of the children of self. Can only be used
-	while in the rendering process. Returns a `unicode` object.
+    """
+    Collects the rendered values of the children of self. Can only be used
+    while in the rendering process. Returns a `unicode` object.
 
-	:keyword ignorable_renderables: If given, a tuple (yes, tuple)
-		of classes. If a given child node is an instance of a
-		class in the tuple, it will be ignored and not rendered.
-	"""
+    :keyword ignorable_renderables: If given, a tuple (yes, tuple)
+            of classes. If a given child node is an instance of a
+            class in the tuple, it will be ignored and not rendered.
+    """
 
-	if not ignorable_renderables:
-		selected_children = self.childNodes
-	else:
-		selected_children = \
-			tuple(node for node in self.childNodes \
-			 	  if not isinstance(node, ignorable_renderables))
+    if not ignorable_renderables:
+        selected_children = self.childNodes
+    else:
+        selected_children = \
+            tuple(node for node in self.childNodes
+                  if not isinstance(node, ignorable_renderables))
 
-	result = _htmlcontent_rendered_elements(self.renderer, selected_children)
-	return result
+    result = _htmlcontent_rendered_elements(self.renderer, selected_children)
+    return result
+
 
 class LocalContentMixin(object):
-	"""
-	Something that can collect local content. Defines one property,
-	`_asm_local_content` to be the value of the local content. If this
-	object has never been through the rendering pipline, this will be
-	a LaTeX fragment (probably with missing information and mostly
-	useful for debuging). If this object has been rendered, then it
-	will be an HTML content fragment according to the templates. If
-	the property ``_asm_ignorable_renderables`` is defined, it is a
-	tuple of classes of potential child elements that are not included
-	in the rendered content.
+    """
+    Something that can collect local content. Defines one property,
+    `_asm_local_content` to be the value of the local content. If this
+    object has never been through the rendering pipline, this will be
+    a LaTeX fragment (probably with missing information and mostly
+    useful for debuging). If this object has been rendered, then it
+    will be an HTML content fragment according to the templates. If
+    the property ``_asm_ignorable_renderables`` is defined, it is a
+    tuple of classes of potential child elements that are not included
+    in the rendered content.
 
-	Mixin order matters, this needs to be first; if you override
-	``_after_render`` you must be sure to call this implementation of it.
-	"""
+    Mixin order matters, this needs to be first; if you override
+    ``_after_render`` you must be sure to call this implementation of it.
+    """
 
-	_asm_ignorable_renderables = ()
+    _asm_ignorable_renderables = ()
 
-	#: Starts out as the non-rendered latex source fragment
-	#: of the children of this node, ignoring things defined in
-	#: _asm_ignorable_renderables; after this object
-	#: has been rendered, replaced with their HTML content.
-	_asm_local_content = readproperty(_asm_local_textcontent)
+    #: Starts out as the non-rendered latex source fragment
+    #: of the children of this node, ignoring things defined in
+    #: _asm_ignorable_renderables; after this object
+    #: has been rendered, replaced with their HTML content.
+    _asm_local_content = readproperty(_asm_local_textcontent)
 
-	def _after_render(self, rendered):
-		self._asm_local_content = _asm_rendered_textcontent(self, self._asm_ignorable_renderables)
+    def _after_render(self, rendered):
+        self._asm_local_content = _asm_rendered_textcontent(self,
+                                                            self._asm_ignorable_renderables)
+
+
+class OneText(Base.Command):
+
+    args = 'text:str'
+
+    def invoke(self, tex):
+        return super(_OneText, self).invoke(tex)
+_OneText = OneText
+
+
+class Ignored(Base.Command):
+
+    unicode = u''
+
+    def invoke(self, tex):
+        return []
+_Ignored = Ignored
+
+
+def incoming_sources_as_plain_text(texts):
+    """
+    Given the source of text nodes in a sequence, convert
+    them to a single string that should be viewable as plain text.
+    """
+    # They come in from latex, so by definition they are latex content
+    # fragments. But they probably don't implement the interface.
+    # If we try to convert them, they will be assumed to be a
+    # plain text string and we will try to latex escape them, which would
+    # be wrong. So directly instantiate the prime class.
+    # NOTE: Actually, the callers of this are converting the children to
+    # unicode() in a rendering context, which actually should
+    # properly render them...to HTML. So really this is probably
+    # incoming HTML.
+    latex_string = LatexContentFragment(''.join(texts).strip())
+    # TODO: The latex-to-plain conversion is essentially a no-op.
+    # We can probably do better
+    return IPlainTextContentFragment(latex_string)
+_incoming_sources_as_plain_text = incoming_sources_as_plain_text
