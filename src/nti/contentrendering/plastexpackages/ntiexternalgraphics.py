@@ -31,6 +31,7 @@ class ntiexternalgraphics(Command):
             return result
 
     def process_options(self):
+        self.external = self.attributes['url']
         options = self.attributes['options']
         if options:
             style = options.get('style')
@@ -51,7 +52,6 @@ class ntiexternalgraphics(Command):
 
     def invoke(self, tex):
         res = Command.invoke(self, tex)
-        self.external = self.attributes['url']
         self.process_options()
         return res
 

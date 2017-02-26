@@ -45,6 +45,43 @@ from nti.ntiids.ntiids import make_ntiid
 from nti.ntiids.ntiids import is_valid_ntiid_string
 
 
+class _Image(object):
+
+    __slots__ = (b'image',)
+
+    def __init__(self, image):
+        self.image = image
+
+
+class _Dimen(object):
+
+    __slots__ = (b'px',)
+
+    def __init__(self, px):
+        self.px = px
+
+
+def process_remote_data(self, url, data):
+    # get file info
+    filename = urlparse.urlparse(url).path.split('/')[-1]
+    named_image = NamedImage(data=data,
+                             filename=filename)
+    width, height = named_image.getImageSize()
+    # save it
+    self.image = _Image(named_image)
+    self.image.image.url = url
+    self.image.image.width = _Dimen(width)
+    self.image.image.height = _Dimen(height)
+    return self
+
+
+def process_remote_image(self, url):
+    response = requests.get(url)
+    return process_remote_data(self,
+                               url=url,
+                               data=response.content)
+
+
 class nticardname(Command):
     pass
 
@@ -101,9 +138,9 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
     type = 'summary'
 
     blockType = True
-    
+
     _href_override = None
-    
+
     #: Derived from the href property. If the href itself specifies
     #: a complete NTIID, then it will have that value. Otherwise,
     #: one will be computed from the href; if the href is a absolute
@@ -130,17 +167,6 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
         self.href = metadata.contentLocation or self.href
         self.description = metadata.description or self.description
 
-        # Just enough to go with our template
-        class Image(object):
-
-            def __init__(self, image):
-                self.image = image
-
-        class Dimen(object):
-
-            def __init__(self, px):
-                self.px = px
-
         if metadata.contentMimeType == 'application/pdf':
             # Generate and use the real thing
             thumb_file = self._pdf_to_thumbnail(metadata.sourcePath)
@@ -153,28 +179,15 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
         elif     metadata.images \
             and (metadata.images[0].width and metadata.images[0].height):
             # Yay, got the real size already
-            self.image = Image(metadata.images[0])
+            self.image = _Image(metadata.images[0])
         elif metadata.images:
             # Download and save the image?
             # Right now we are downloading it for size purposes (which may not be
             # needed) but we could choose to cache it locally
-            
 
             # Get filename and url
             val = metadata.images[0].url
-            response = requests.get(val)
-            filename = urlparse.urlparse(val).path.split('/')[-1]
-
-            # get file info
-            named_image = NamedImage(data=response.content,
-                                     filename=filename)
-            width, height = named_image.getImageSize()
-
-            # save it
-            self.image = Image(named_image)
-            self.image.image.url = val
-            self.image.image.height = Dimen(height)
-            self.image.image.width = Dimen(width)
+            process_remote_image(self, val)
 
         return True
     _auto_populate = auto_populate
@@ -182,9 +195,9 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
     def proces_local_href(self, tex=None):
         # Resolve local files to full paths with the same algorithm that
         # includegraphics uses
-        if ('href' in self.attributes
-                and '//' not in self.attributes['href']  # not a HTTP[S] url
-                and not self.attributes['href'].startswith('tag:')):  # not an NTIID
+        if (    'href' in self.attributes
+            and '//' not in self.attributes['href']  # not a HTTP[S] url
+            and not self.attributes['href'].startswith('tag:')):  # not an NTIID
 
             the_file = _locate_image_file(self, tex,
                                           self.attributes['href'],
@@ -264,6 +277,6 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
         for child in self.allChildNodes:
             # extract the text children, ignoring the caption and label, etc
             if      child.nodeType == self.TEXT_NODE \
-                and (child.parentNode == self or child.parentNode.nodeName == 'par'):
+                    and (child.parentNode == self or child.parentNode.nodeName == 'par'):
                 texts.append(unicode(child))
         return incoming_sources_as_plain_text(texts)
