@@ -5,6 +5,7 @@
 """
 
 from __future__ import print_function, unicode_literals, absolute_import, division
+from __builtin__ import None
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -70,7 +71,7 @@ def make_cache_dir(cache_name, env_var=None):
     return os.path.abspath(os.path.expanduser(result))
 
 
-def setup_chameleon_cache(config=False):
+def setup_chameleon_cache(config=False, cache_dir=None):
     """
     Sets the location for the :mod:`chameleon` cache using
     :func:`make_cache_dir`.
@@ -80,14 +81,15 @@ def setup_chameleon_cache(config=False):
             results of this function.
     :return: The string giving the path to the cache location.
     """
-    # Set up a cache for these things to make subsequent renders faster
 
-    cache_dir = None
-    if     not 'CHAMELEON_CACHE' in os.environ \
-        or not os.path.isdir(os.path.expanduser(os.environ['CHAMELEON_CACHE'])):
-        os.environ['CHAMELEON_CACHE'] = cache_dir = make_cache_dir('chameleon_cache')
-    else:
-        cache_dir = os.environ['CHAMELEON_CACHE']
+    # Set up a cache for these things to make subsequent renders faster
+    if not cache_dir:
+        env_name = 'CHAMELEON_CACHE'
+        if     not env_name in os.environ \
+            or not os.path.isdir(os.path.expanduser(os.environ[env_name])):
+            os.environ[env_name] = cache_dir = make_cache_dir('chameleon_cache')
+        else:
+            cache_dir = os.environ[env_name]
 
     if config:
         logger.debug("Configuring chamelean to cache at %s", cache_dir)
