@@ -61,7 +61,7 @@ class _Dimen(object):
         self.px = px
 
 
-def process_remote_data(self, url, data):
+def process_image_data(self, url, data):
     # get file info
     filename = urlparse.urlparse(url).path.split('/')[-1]
     named_image = NamedImage(data=data,
@@ -77,9 +77,9 @@ def process_remote_data(self, url, data):
 
 def process_remote_image(self, url):
     response = requests.get(url)
-    return process_remote_data(self,
-                               url=url,
-                               data=response.content)
+    return process_image_data(self,
+                              url=url,
+                              data=response.content)
 
 
 class nticardname(Command):
