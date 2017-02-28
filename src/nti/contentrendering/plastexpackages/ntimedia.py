@@ -65,7 +65,7 @@ class ntimediaref(Base.Crossref.ref):
     def digest(self, tokens):
         tok = super(ntimediaref, self).digest(tokens)
         self._options = self.attributes.get('options', {}) or {}
-        if 'to_render' in self._options.keys():
+        if 'to_render' in self._options:
             if self._options['to_render'] in [u'true', u'True']:
                 self.to_render = True
         return tok
