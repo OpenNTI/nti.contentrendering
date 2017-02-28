@@ -76,7 +76,7 @@ class ntimediaref(Base.Crossref.ref):
 
     @readproperty
     def visibility(self):
-        visibility = self._options.get('visibility') or None
+        visibility = self._options.get('visibility')
         if visibility is None:
             return self.media.visibility
         return visibility
@@ -371,4 +371,10 @@ class ntivideo(ntimedia):
 
 
 class ntivideoref(ntimediaref):
-    pass
+    
+    @readproperty
+    def poster(self):
+        poster = self._options.get('poster')
+        if poster is None:
+            return self.media.poster
+        return poster
