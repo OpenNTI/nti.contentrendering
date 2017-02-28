@@ -129,6 +129,7 @@ class ntiaudio(ntimedia):
         counter = 'figure'
 
     class ntiaudiosource(Command):
+
         blockType = True
         args = '[ options:dict ] service:str id:str'
 
@@ -254,32 +255,33 @@ class ntivideo(ntimedia):
 
             self.src = {}
             if self.attributes['service']:
+                vid = self.attributes.get('id')
                 if self.attributes['service'] == 'youtube':
-                    self.service = 'youtube'
-                    self.src['other'] = self.attributes['id']
                     self.width = 640
                     self.height = 360
-                    self.poster = '//img.youtube.com/vi/' + \
-                        self.attributes['id'] + '/0.jpg'
-                    self.thumbnail = '//img.youtube.com/vi/' + \
-                        self.attributes['id'] + '/1.jpg'
+                    self.src['other'] = vid
+                    self.service = 'youtube'
+                    self.poster = '//img.youtube.com/vi/' + vid + '/0.jpg'
+                    self.thumbnail = '//img.youtube.com/vi/' + vid + '/1.jpg'
                 elif self.attributes['service'] == 'html5':
                     self.service = 'html5'
-                    self.src['mp4'] = self.attributes['id'] + '.mp4'
-                    self.src['webm'] = self.attributes['id'] + '.webm'
-                    self.poster = self.attributes['id'] + '-poster.jpg'
-                    self.thumbnail = self.attributes['id'] + '-thumb.jpg'
+                    self.src['mp4'] = vid + '.mp4'
+                    self.src['webm'] = vid + '.webm'
+                    self.poster = vid + '-poster.jpg'
+                    self.thumbnail = vid + '-thumb.jpg'
                 elif self.attributes['service'] == 'kaltura':
                     self.service = 'kaltura'
-                    self.src['other'] = self.attributes['id']
-                    partnerId, entryId = self.attributes['id'].split(':')
-                    self.poster = '//www.kaltura.com/p/' + partnerId + \
-                        '/thumbnail/entry_id/' + entryId + '/width/1280/'
-                    self.thumbnail = '//www.kaltura.com/p/' + partnerId + \
-                        '/thumbnail/entry_id/' + entryId + '/width/640/'
+                    self.src['other'] = vid
+                    partnerId, entryId = vid.split(':')
+                    self.poster = ('//www.kaltura.com/p/' + partnerId + 
+                                   '/thumbnail/entry_id/' + entryId  + 
+                                   '/width/1280/')
+                    self.thumbnail = ('//www.kaltura.com/p/' + partnerId +
+                                      '/thumbnail/entry_id/' + entryId +
+                                      '/width/640/')
                 elif self.attributes['service'] == 'vimeo':
                     self.service = 'vimeo'
-                    self.src['other'] = self.attributes['id']
+                    self.src['other'] = vid
                 else:
                     logger.warning('Unknown video type: %s',
                                    self.attributes['service'])
