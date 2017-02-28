@@ -287,6 +287,7 @@ class ntivideo(ntimedia):
                                    self.attributes['service'])
 
     class ntiposteroverride(Command):
+
         blockType = True
         args = '[ options:dict ] url:str:source'
 
@@ -299,6 +300,7 @@ class ntivideo(ntimedia):
             return tok
 
     class ntithumbnailoverride(Command):
+
         blockType = True
         args = '[ options:dict ] url:str:source'
 
@@ -326,7 +328,7 @@ class ntivideo(ntimedia):
                 self.creator = options['creator']
 
             self.visibility = u'everyone'
-            if 'visibility' in options.keys():
+            if 'visibility' in options:
                 self.visibility = options['visibility']
 
         return res
