@@ -243,17 +243,10 @@ class ntivideo(ntimedia):
         height = 480
         priority = 0
 
-        def digest(self, tokens):
-            """
-            Handle creating the necessary datastructures for each video type.
-            """
-            super(ntivideo.ntivideosource, self).digest(tokens)
-
+        def process_options(self):
+            self.src = {}
             self.parentNode.num_sources += 1
             self.priority = self.parentNode.num_sources
-
-
-            self.src = {}
             if self.attributes['service']:
                 vid = self.attributes.get('id')
                 if self.attributes['service'] == 'youtube':
@@ -285,6 +278,13 @@ class ntivideo(ntimedia):
                 else:
                     logger.warning('Unknown video type: %s',
                                    self.attributes['service'])
+
+        def digest(self, tokens):
+            """
+            Handle creating the necessary datastructures for each video type.
+            """
+            super(ntivideo.ntivideosource, self).digest(tokens)
+            self.process_options()
 
     class ntiposteroverride(Command):
 
