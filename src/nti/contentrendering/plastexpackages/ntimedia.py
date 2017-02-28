@@ -9,6 +9,10 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import os
+
+from zope import interface
+
 from zope.cachedescriptors.property import readproperty
 
 from plasTeX import Base
@@ -20,8 +24,34 @@ from nti.contentfragments.interfaces import HTMLContentFragment
 
 from nti.contentrendering import plastexids
 
+from nti.contentrendering.resources.interfaces import IRepresentableContentUnit
+from nti.contentrendering.resources.interfaces import IRepresentationPreferences
+
 from nti.contentrendering.plastexpackages._util import LocalContentMixin
 from nti.contentrendering.plastexpackages._util import incoming_sources_as_plain_text
+
+
+@interface.implementer(IRepresentableContentUnit,
+                       IRepresentationPreferences)
+class mediatranscript(Command):
+
+    blockType = True
+    resourceTypes = ('jsonp', )
+    args = 'src:str type:str lang:str purpose:str'
+
+    transcript_mime_type = 'text/plain'
+
+    def invoke(self, tex):
+        result = super(mediatranscript, self).invoke(tex)
+        working_dir = self.ownerDocument.userdata.getPath('working-dir')
+        self.attributes['src'] = os.path.join(working_dir, self.attributes['src'])
+        return result
+
+    def digest(self, tokens):
+        res = super(mediatranscript, self).digest(tokens)
+        if self.attributes['type'] == 'webvtt':
+            self.transcript_mime_type = 'text/vtt'
+        return res
 
 
 class ntimediaref(Base.Crossref.ref):
@@ -147,7 +177,8 @@ class ntiaudio(ntimedia):
     def description(self):
         texts = []
         for child in self.allChildNodes:
-            # Try to extract the text children, ignoring the caption and label...
+            # Try to extract the text children, ignoring the caption and
+            # label...
             if      child.nodeType == self.TEXT_NODE \
                 and (child.parentNode == self or child.parentNode.nodeName == 'par'):
                 texts.append(unicode(child))

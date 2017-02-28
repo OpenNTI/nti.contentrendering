@@ -40,6 +40,8 @@ from nti.contentrendering import interfaces as crd_interfaces
 
 from nti.contentrendering.plastexpackages._util import _OneText
 from nti.contentrendering.plastexpackages._util import LocalContentMixin
+from nti.contentrendering.plastexpackages._util import incoming_sources_as_plain_text
+
 from nti.contentrendering.plastexpackages.graphicx import includegraphics
 
 from nti.contentrendering.resources import interfaces as resource_interfaces
@@ -53,6 +55,8 @@ Base.parbox.blockType = True
 Base.figure.forcePars = False
 Base.minipage.blockType = True
 Base.centerline.blockType = True
+
+_incoming_sources_as_plain_text = incoming_sources_as_plain_text
 
 # util classes
 
@@ -138,28 +142,6 @@ class DeclareMediaResource( Base.Command ):
 # The following block of commands concern media resource handling
 ###############################################################################
 
-@interface.implementer(resource_interfaces.IRepresentableContentUnit,
-					   resource_interfaces.IRepresentationPreferences)
-class mediatranscript(Base.Command):
-	args = 'src:str type:str lang:str purpose:str'
-	resourceTypes = ( 'jsonp', )
-	blockType = True
-
-	transcript_mime_type = 'text/plain'
-
-	def invoke( self, tex ):
-		result = super(mediatranscript, self).invoke( tex )
-		self.attributes['src'] = os.path.join(
-			self.ownerDocument.userdata.getPath('working-dir'), self.attributes['src'])
-		return result
-
-	def digest(self, tokens):
-		res = super(mediatranscript, self).digest(tokens)
-
-		if self.attributes['type'] == 'webvtt':
-			self.transcript_mime_type = 'text/vtt'
-
-		return res
 
 class ntiincludevideo(_OneText):
 	args = '[options:dict] video_url:url'
@@ -225,6 +207,9 @@ class ntiincludekalturavideo(Command):
 
 from nti.contentrendering.plastexpackages.ntimedia import ntimedia
 from nti.contentrendering.plastexpackages.ntimedia import ntimediaref
+from nti.contentrendering.plastexpackages.ntimedia import mediatranscript
+
+mediatranscript = mediatranscript
 
 # audio
 
@@ -687,14 +672,11 @@ class ntipreviouspage(Base.Command):
 
 # Cards
 
-from nti.contentrendering.plastexpackages._util import incoming_sources_as_plain_text
-
 from nti.contentrendering.plastexpackages.nticard import nticard
 from nti.contentrendering.plastexpackages.nticard import nticardname
 
 nticard = nticard
 nticardname = nticardname
-_incoming_sources_as_plain_text = incoming_sources_as_plain_text
 
 
 ###############################################################################
