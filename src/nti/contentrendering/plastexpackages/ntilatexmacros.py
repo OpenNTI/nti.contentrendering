@@ -228,96 +228,14 @@ from nti.contentrendering.plastexpackages.ntimedia import ntimediaref
 
 # audio
 
-class ntiaudioname(Command):
-	unicode = ''
+from nti.contentrendering.plastexpackages.ntimedia import ntiaudio
+from nti.contentrendering.plastexpackages.ntimedia import ntiaudioref
+from nti.contentrendering.plastexpackages.ntimedia import ntiaudioname
 
-class ntiaudio(ntimedia):
+ntiaudio = ntiaudio
+ntiaudioref = ntiaudioref
+ntiaudioname = ntiaudioname
 
-	counter = 'ntiaudio'
-
-	_ntiid_type = 'NTIAudio'
-	_ntiid_suffix = 'ntiaudio.'
-	_ntiid_allow_missing_title = True
-	_ntiid_cache_map_name = '_ntiaudio_ntiid_map'
-
-	itemprop = "presentation-audio"
-	mime_type = mimeType = "application/vnd.nextthought.ntiaudio"
-
-	# A Float subclass to get \caption handling
-	class caption(Base.Floats.Caption):
-		counter = 'figure'
-
-	class ntiaudiosource(Command):
-		args = '[ options:dict ] service:str id:str'
-		blockType = True
-
-		priority = 0
-		thumbnail = None
-
-		def digest(self, tokens):
-			"""
-			Handle creating the necessary datastructures for each audio type.
-			"""
-			super(ntiaudio.ntiaudiosource, self).digest(tokens)
-
-			self.priority = self.parentNode.num_sources
-			self.parentNode.num_sources += 1
-
-			self.src = {}
-			if self.attributes['service']:
-				if self.attributes['service'] == 'html5':
-					self.service = 'html5'
-					self.src['mp3'] = self.attributes['id'] + '.mp3'
-					# self.src['m4a'] = self.attributes['id'] + '.m4a'
-					self.src['wav'] = self.attributes['id'] + '.wav'
-					# self.src['ogg'] = self.attributes['id'] + '.ogg'
-					self.thumbnail = self.attributes['id'] + '-thumb.jpg'
-				else:
-					logger.warning('Unknown audio type: %s', self.attributes['service'])
-
-	def digest(self, tokens):
-		res = super(ntiaudio, self).digest(tokens)
-		if self.macroMode == self.MODE_BEGIN:
-			options = self.attributes.get('options', {}) or {}
-			__traceback_info__ = options, self.attributes
-
-			if 'show-card' in options:
-				self.itemprop = 'presentation-card'
-
-			if 'creator' in options:
-				self.creator = options['creator']
-
-			self.visibility = u'everyone'
-			if 'visibility' in options.keys():
-				self.visibility = options['visibility']
-
-		return res
-
-	@readproperty
-	def description(self):
-		texts = []
-		for child in self.allChildNodes:
-			# Try to extract the text children, ignoring the caption and label, etc
-			if 	child.nodeType == self.TEXT_NODE and \
-				(child.parentNode == self or child.parentNode.nodeName == 'par'):
-				texts.append(unicode(child))
-
-		return _incoming_sources_as_plain_text(texts)
-
-	@readproperty
-	def audio_sources(self):
-		sources = self.getElementsByTagName('ntiaudiosource')
-		output = render_children(self.renderer, sources)
-		return cfg_interfaces.HTMLContentFragment(''.join(output).strip())
-
-	@readproperty
-	def transcripts(self):
-		sources = self.getElementsByTagName('mediatranscript')
-		output = render_children(self.renderer, sources)
-		return cfg_interfaces.HTMLContentFragment(''.join(output).strip())
-
-class ntiaudioref(ntimediaref):
-	pass
 
 # video
 
