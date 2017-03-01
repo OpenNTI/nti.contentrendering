@@ -146,6 +146,7 @@ def _get_url_resources(url, out_dir="/tmp", user_spider=False):
 			return None
 
 	try:
+		logger.info('Fetching resources (%s)', args)
 		source = subprocess.Popen(args, shell=False, stderr=subprocess.PIPE).communicate()[1]  # stderr
 		for line in source:
 			m = re.search('(^--.*--)  (http:\/\/.*[^\/]$)', line)

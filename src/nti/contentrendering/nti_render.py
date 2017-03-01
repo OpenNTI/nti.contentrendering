@@ -147,7 +147,7 @@ def post_render(document,
     # we want to list in the manifest? If so, we should be able to combine
     # these steps (if nothing else, just list the contents of the archive to get the
     # manifest)
-    logger.info("Creating html cache-manifest")
+    logger.info("Creating html cache-manifest %s", contentPath)
     html5cachefile.main(contentPath, contentPath)
 
     logger.info('Changing intra-content links')
