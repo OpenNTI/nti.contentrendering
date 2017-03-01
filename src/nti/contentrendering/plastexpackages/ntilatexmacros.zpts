@@ -46,8 +46,6 @@ name: ntiimagecollection
 <span tal:replace="self"></span>
 </object>
 
-name: ntidescription
-
 name: vfrac
 <span class="vfrac"><sup class="nom" tal:content="self/attributes/nom"></sup><span class="divider">&#47;</span><sub class="denom" tal:content="self/attributes/denom"></sub></span>
 

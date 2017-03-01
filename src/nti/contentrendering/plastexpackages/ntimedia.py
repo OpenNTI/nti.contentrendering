@@ -17,6 +17,7 @@ from zope.cachedescriptors.property import readproperty
 
 from plasTeX import Base
 from plasTeX import Command
+from plasTeX import Environment
 
 from plasTeX.Renderers import render_children
 
@@ -185,7 +186,6 @@ class ntiaudio(ntimedia):
             if      child.nodeType == self.TEXT_NODE \
                 and (child.parentNode == self or child.parentNode.nodeName == 'par'):
                 texts.append(unicode(child))
-
         return incoming_sources_as_plain_text(texts)
 
     @readproperty
@@ -266,8 +266,8 @@ class ntivideo(ntimedia):
                     self.service = 'kaltura'
                     self.src['other'] = vid
                     partnerId, entryId = vid.split(':')
-                    self.poster = ('//www.kaltura.com/p/' + partnerId + 
-                                   '/thumbnail/entry_id/' + entryId  + 
+                    self.poster = ('//www.kaltura.com/p/' + partnerId +
+                                   '/thumbnail/entry_id/' + entryId +
                                    '/width/1280/')
                     self.thumbnail = ('//www.kaltura.com/p/' + partnerId +
                                       '/thumbnail/entry_id/' + entryId +
@@ -295,7 +295,7 @@ class ntivideo(ntimedia):
             tok = super(ntivideo.ntiposteroverride, self).digest(tokens)
             self.parentNode._poster_override = self.attributes['url']
             sources = self.parentNode.getElementsByTagName('ntivideosource')
-            for source in sources:
+            for source in sources or ():
                 source.poster = self.attributes['url']
             return tok
 
@@ -308,7 +308,7 @@ class ntivideo(ntimedia):
             tok = super(ntivideo.ntithumbnailoverride, self).digest(tokens)
             self.parentNode._thumb_override = self.attributes['url']
             sources = self.parentNode.getElementsByTagName('ntivideosource')
-            for source in sources:
+            for source in sources or ():
                 source.thumbnail = self.attributes['url']
             return tok
 
@@ -371,10 +371,49 @@ class ntivideo(ntimedia):
 
 
 class ntivideoref(ntimediaref):
-    
+
     @readproperty
     def poster(self):
         poster = self._options.get('poster')
         if poster is None:
             return self.media.poster
         return poster
+
+
+# Media collection
+
+
+class ntimediacollection(Environment, NTIIDMixin):
+
+    blockType = True
+    args = '[options] <title:str:source>'
+
+    _poster_override = None
+
+    def digest(self, tokens):
+        tok = super(ntimediacollection, self).digest(tokens)
+        self.options = self.attributes.get('options', {}) or {}
+        self.title = self.attributes.get('title')
+        return tok
+
+    @readproperty
+    def description(self):
+        description = u''
+        descriptions = self.getElementsByTagName('ntidescription')
+        if descriptions:
+            description = descriptions[0].attributes.get('content')
+        return description
+
+    class ntiposteroverride(Command):
+
+        blockType = True
+        args = '[ options:dict ] url:str:source'
+
+        def digest(self, tokens):
+            tok = Command.digest(self, tokens)
+            self.parentNode._poster_override = self.attributes['url']
+            return tok
+
+    @readproperty
+    def poster(self):
+        return self._poster_override

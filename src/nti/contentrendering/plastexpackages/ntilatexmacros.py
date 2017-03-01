@@ -442,48 +442,15 @@ class nobreak(Base.Command):
 class vfrac(Base.Command):
 	args = 'nom denom'
 
-# Command to add descriptions to some NTI objects
-class ntidescription(Base.Command):
-	args = 'content:str:source'
+
+# common
+
+from nti.contentrendering.plastexpackages.nticommon import ntidescription
+ntidescription = ntidescription
 
 # Media collection
-# class ntimediacollection(Base.Command):
-# 	pass
 
-class ntimediacollection(Base.Environment, plastexids.NTIIDMixin):
-	args = '[options] <title:str:source>'
-	blockType = True
-
-	_poster_override = None
-
-	def digest(self, tokens):
-		tok = super(ntimediacollection,self).digest(tokens)
-
-		self.options = self.attributes.get( 'options', {} ) or {}
-		self.title = self.attributes.get('title')
-
-		return tok
-
-	@readproperty
-	def description(self):
-		description = u''
-		descriptions = self.getElementsByTagName('ntidescription')
-		if descriptions:
-			description = descriptions[0].attributes.get('content')
-		return description
-
-	class ntiposteroverride( Command ):
-		args = '[ options:dict ] url:str:source'
-		blockType = True
-
-		def digest(self, tokens):
-			tok = super(ntimediacollection.ntiposteroverride,self).digest(tokens)
-			self.parentNode._poster_override = self.attributes['url']
-			return tok
-
-	@readproperty
-	def poster(self):
-		return self._poster_override
+from nti.contentrendering.plastexpackages.ntimedia import ntimediacollection
 
 # Videos
 class ntivideorollname(Base.Command):

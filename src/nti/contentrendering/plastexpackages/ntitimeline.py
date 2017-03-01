@@ -21,7 +21,7 @@ from plasTeX import Command
 from ..resources.interfaces import IRepresentableContentUnit
 from ..resources.interfaces import IRepresentationPreferences
 
-from .ntilatexmacros import ntimedia
+from .ntimedia import ntimedia
 
 class ntitimelinename(Command):
 	unicode = u'Timeline'
