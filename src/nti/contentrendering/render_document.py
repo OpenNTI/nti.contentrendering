@@ -125,7 +125,7 @@ def prepare_document_settings(document,
                               perform_transforms=True,
                               provider='AOPS',
                               working_dir=None,
-                              base_ntiid=None):
+                              specific_ntiid=None):
     # setup default config options we want
     document.config['files']['split-level'] = 1
     document.config['document']['sec-num-depth'] = 10
@@ -171,7 +171,7 @@ def prepare_document_settings(document,
     document.userdata['extra_scripts'] = NTI_CFG['extra-scripts'].split()
     document.userdata['document_timezone_name'] = NTI_CFG['timezone-name']
 
-    document.userdata['base_ntiid'] = base_ntiid
+    document.userdata['specific_ntiid'] = specific_ntiid
     document.userdata['transform_process'] = perform_transforms
     # When changes are made to the rendering process that would impact the ability
     # of deployed code to properly consume documents, this needs to be incremented.
@@ -257,7 +257,7 @@ def parse_tex(sourceFile,
 
     # Populate variables for use later
     jobname = tex.jobname
-    document.userdata['jobname'] = document.userdata['base_ntiid'] = jobname
+    document.userdata['specific_ntiid'] = document.userdata['jobname'] = jobname
 
     # Create a component lookup ("site manager") that will
     # look for components named for the job implicitly
