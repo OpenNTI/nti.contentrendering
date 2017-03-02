@@ -31,15 +31,6 @@ import zope.testing.cleanup
 from nti.testing.layers import ZopeComponentLayer
 from nti.testing.layers import ConfiguringLayerMixin
 
-def setChameleonCache(cls):
-	cls.old_cache_dir = os.getenv('CHAMELEON_CACHE')
-	cls.new_cache_dir = tempfile.mkdtemp(prefix="cham_")
-	os.environ['CHAMELEON_CACHE'] = cls.new_cache_dir
-
-
-def restoreChameleonCache(cls):
-	pass
-
 
 class SharedConfiguringTestLayer(ZopeComponentLayer,
 								 ConfiguringLayerMixin):
@@ -50,7 +41,6 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def setUp(cls):
-		setChameleonCache(cls)
 		cls.setUpPackages()
 
 	@classmethod
@@ -64,7 +54,7 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def testTearDown(cls):
-		restoreChameleonCache(cls)
+		pass
 
 
 class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
@@ -76,7 +66,6 @@ class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def setUp(cls):
-		setChameleonCache(cls)
 		cls.setUpPackages()
 
 	@classmethod
@@ -90,7 +79,7 @@ class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def testTearDown(cls):
-		restoreChameleonCache(cls)
+		pass
 
 
 import unittest
