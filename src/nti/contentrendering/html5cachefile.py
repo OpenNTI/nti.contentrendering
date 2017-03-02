@@ -220,6 +220,7 @@ def main(url_or_path, out_dir="/tmp/", manifest='cache-manifest', port=None):
             target.write("CACHE MANIFEST\n")
             for value in sorted(resources.keys()):
                 target.write("%s\n" % value)
+        return path
     finally:
         if httpd:
             httpd.shutdown()
