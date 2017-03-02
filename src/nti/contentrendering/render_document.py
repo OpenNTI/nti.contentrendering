@@ -120,10 +120,12 @@ def prepare_xml_context(source_file, context=None):
     return source_dir, packages_path, context
 
 
-def prepare_document_settings(document, outFormat='xhtml',
+def prepare_document_settings(document, 
+                              outFormat='xhtml',
                               perform_transforms=True,
                               provider='AOPS',
-                              working_dir=None):
+                              working_dir=None,
+                              base_ntiid=None):
     # setup default config options we want
     document.config['files']['split-level'] = 1
     document.config['document']['sec-num-depth'] = 10
@@ -169,8 +171,8 @@ def prepare_document_settings(document, outFormat='xhtml',
     document.userdata['extra_scripts'] = NTI_CFG['extra-scripts'].split()
     document.userdata['document_timezone_name'] = NTI_CFG['timezone-name']
 
+    document.userdata['base_ntiid'] = base_ntiid
     document.userdata['transform_process'] = perform_transforms
-
     # When changes are made to the rendering process that would impact the ability
     # of deployed code to properly consume documents, this needs to be incremented.
     # Currently it is for an entire renderable package (book) but in the future we
@@ -236,7 +238,9 @@ def parse_tex(sourceFile,
     # with imports. damn it (html suffix added automatically).
     Base.document.filenameoverride = property(lambda unused: 'index')
 
-    prepare_document_settings(document, outFormat, provider=provider)
+    prepare_document_settings(document, 
+                              outFormat,
+                              provider=provider)
 
     conf_name = os.path.join(source_dir, "nti_render_conf.ini")
     document.config.read((conf_name,))
@@ -252,7 +256,8 @@ def parse_tex(sourceFile,
     tex = TeX(document, file=sourceFile)
 
     # Populate variables for use later
-    jobname = document.userdata['jobname'] = tex.jobname
+    jobname = tex.jobname
+    document.userdata['jobname'] = document.userdata['base_ntiid'] = jobname
 
     # Create a component lookup ("site manager") that will
     # look for components named for the job implicitly
