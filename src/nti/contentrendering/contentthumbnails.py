@@ -16,10 +16,11 @@ import tempfile
 import subprocess
 
 from nti.contentrendering import _programs
-from nti.contentrendering import interfaces
 from nti.contentrendering import javascript_path
 from nti.contentrendering import ConcurrentExecutor
 from nti.contentrendering import run_phantom_on_page
+
+from nti.contentrendering.interfaces import IRenderedBookTransformer
 
 _rasterize_script = javascript_path('rasterize.js')
 thumbnailsLocationName = 'thumbnails'
@@ -101,7 +102,8 @@ def transform(book, context=None):
     eclipseTOC = book.toc
 
     # generate a place to put the thumbnails
-    thumbnails_dir = os.path.join(book.contentLocation, thumbnailsLocationName)
+    thumbnails_dir = os.path.join(book.contentLocation,
+                                  thumbnailsLocationName)
 
     if not os.path.isdir(thumbnails_dir):
         os.mkdir(thumbnails_dir)
@@ -134,4 +136,4 @@ def transform(book, context=None):
 
 
 from zope import component
-component.moduleProvides(interfaces.IRenderedBookTransformer)
+component.moduleProvides(IRenderedBookTransformer)
