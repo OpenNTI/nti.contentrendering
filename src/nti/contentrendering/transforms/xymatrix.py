@@ -3,6 +3,7 @@
 """
 .. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
@@ -17,8 +18,9 @@ from plasTeX.Base.LaTeX import Math
 from nti.contentrendering import domutils
 from nti.contentrendering.resources import interfaces as res_interfaces
 
-from . import interfaces
-interface.moduleProvides(interfaces.IDocumentTransformer)
+from nti.contentrendering.interfaces import IDocumentTransformer
+
+interface.moduleProvides(IDocumentTransformer)
 
 class ntixymatrix(Base.Command):
 	@property
@@ -44,6 +46,8 @@ def transform(document):
 
 	for xy in xys:
 		fixxy(document, xy)
+
+plasTeX_DOM = getattr(plasTeX, 'DOM')
 
 def fixxy(document, xy):
 	#figure out if the xy would be the only child
@@ -96,7 +100,7 @@ def fixxy(document, xy):
 			if newparent != None:
 				try:
 					parent.parentNode.replaceChild(newparent, parent)
-				except plasTeX.DOM.NotFoundErr:
+				except plasTeX_DOM.NotFoundErr:
 					#Since its not where its suppossed to be, hopefully its in an attribute
 					vals = parent.parentNode.attributes.values()
 

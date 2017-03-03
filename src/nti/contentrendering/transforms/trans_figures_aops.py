@@ -9,10 +9,7 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from zope import interface
-
-from . import interfaces
-interface.moduleProvides( interfaces.IDocumentTransformer )
+from nti.contentrendering.interfaces import IDocumentTransformer
 
 def transform( document ):
 	# In aopsbook, rightpic, leftpic, and parpic elements often appear
@@ -65,3 +62,7 @@ def transform( document ):
 				logger.debug( "Removing the empty former %s parent node.", nodeType )
 				_t = parentNode.parentNode
 				_t.removeChild( parentNode )
+
+
+from zope import interface
+interface.moduleProvides(IDocumentTransformer)

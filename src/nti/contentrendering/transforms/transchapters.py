@@ -3,15 +3,13 @@
 """
 .. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from zope import interface
-
-from . import interfaces
-interface.moduleProvides( interfaces.IDocumentTransformer )
+from nti.contentrendering.interfaces import IDocumentTransformer
 
 def transform(document):
 	# Chapterauthor and chapterquote need to move down a level, inside
@@ -35,3 +33,6 @@ def transform(document):
 			chapterquote.parentNode.removeChild( chapterquote )
 			parent.nextSibling.insert( 0, chapterquote )
 			parent.nextSibling.insert( 1, chapterauthor )
+
+from zope import interface
+interface.moduleProvides(IDocumentTransformer)
