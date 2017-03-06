@@ -19,7 +19,6 @@ import argparse
 
 from zope import component
 
-
 from zope.configuration import config
 from zope.configuration import xmlconfig
 
@@ -29,6 +28,9 @@ from nti.contentrendering.interfaces import IRenderedBookArchiver
 
 from nti.contentrendering.utils import EmptyMockDocument
 from nti.contentrendering.utils import NoConcurrentPhantomRenderedBook
+
+from zope import interface
+interface.moduleProvides(IRenderedBookArchiver)
 
 BLACK_LIST = (r'.*\.jsonp', r'indexdir', r'cache-manifest', r'archive\.zip',
               r'htaccess', r'assessment_index\.json', r'\.nti_acl', r'\.htaccess')
@@ -109,7 +111,7 @@ def main():
 
     arg_parser = argparse.ArgumentParser(description="Archive book content")
     arg_parser.add_argument('content_path', help="Book content path")
-    arg_parser.add_argument( "-o", "--outdir", 
+    arg_parser.add_argument("-o", "--outdir",
                             dest='out_dir', help="Output directory")
     arg_parser.add_argument('-a', '--archiver', dest='archiver',
                             help="The archiver name")
@@ -130,6 +132,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-from zope import interface
-interface.moduleProvides(IRenderedBookArchiver)
