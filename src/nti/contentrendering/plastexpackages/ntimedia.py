@@ -184,7 +184,7 @@ class ntiaudio(ntimedia):
             # Try to extract the text children, ignoring the caption and
             # label...
             if      child.nodeType == self.TEXT_NODE \
-                and (child.parentNode == self or child.parentNode.nodeName == 'par'):
+                    and (child.parentNode == self or child.parentNode.nodeName == 'par'):
                 texts.append(unicode(child))
         return incoming_sources_as_plain_text(texts)
 
@@ -339,7 +339,7 @@ class ntivideo(ntimedia):
         for child in self.allChildNodes:
             # Try to extract the text children, ignoring the caption and label
             if     child.nodeType == self.TEXT_NODE and \
-                (child.parentNode == self or child.parentNode.nodeName == 'par'):
+                    (child.parentNode == self or child.parentNode.nodeName == 'par'):
                 texts.append(unicode(child))
         return incoming_sources_as_plain_text(texts)
 
@@ -417,3 +417,25 @@ class ntimediacollection(Environment, NTIIDMixin):
     @readproperty
     def poster(self):
         return self._poster_override
+
+
+class ntivideorollname(Command):
+    pass
+
+
+class ntivideoroll(ntimediacollection):
+    counter = "ntivideoroll"
+
+    _ntiid_type = 'NTIVR'
+    _ntiid_suffix = 'ntivideoroll.'
+    _ntiid_title_attr_name = 'ref'
+    _ntiid_allow_missing_title = True
+    _ntiid_cache_map_name = '_ntivideoroll_ntiid_map'
+
+    @readproperty
+    def poster(self):
+        _first = None
+        contents = self.getElementsByTagName('ntivideoref')
+        if contents:
+            _first = contents[0].media.poster
+        return self._poster_override if self._poster_override else _first

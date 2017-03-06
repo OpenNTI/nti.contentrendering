@@ -450,27 +450,12 @@ ntidescription = ntidescription
 
 # Media collection
 
+from nti.contentrendering.plastexpackages.ntimedia import ntivideoroll
+from nti.contentrendering.plastexpackages.ntimedia import ntivideorollname
 from nti.contentrendering.plastexpackages.ntimedia import ntimediacollection
 
-# Videos
-class ntivideorollname(Base.Command):
-	pass
-
-class ntivideoroll(ntimediacollection):
-	counter = "ntivideoroll"
-	_ntiid_cache_map_name = '_ntivideoroll_ntiid_map'
-	_ntiid_allow_missing_title = True
-	_ntiid_suffix = 'ntivideoroll.'
-	_ntiid_title_attr_name = 'ref'
-	_ntiid_type = 'NTIVR'
-
-	@readproperty
-	def poster(self):
-		_first = None
-		contents = self.getElementsByTagName('ntivideoref')
-		if contents:
-			_first = contents[0].media.poster
-		return self._poster_override if self._poster_override else _first
+ntivideoroll = ntivideoroll
+ntivideorollname = ntivideorollname
 
 # Image collections
 class ntiimagecollectionname(Base.Command):

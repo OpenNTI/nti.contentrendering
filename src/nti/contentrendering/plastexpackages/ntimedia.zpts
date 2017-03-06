@@ -99,3 +99,12 @@ name: mediatranscript
   <param name="lang" tal:attributes="value self/attributes/lang"/>
   <param name="purpose" tal:attributes="value self/attributes/purpose"/>
 </object>
+
+name: ntivideoroll
+<object type="application/vnd.nextthought.videoroll" tal:attributes="data-ntiid self/ntiid; data self/ntiid">
+  <param name="ntiid" value="the-ntiid" tal:attributes="value self/ntiid" />
+  <param name="title" value="title" tal:condition="self/title" tal:attributes="value self/title" />
+  <param name="description" value="description" tal:condition="self/description" tal:attributes="value self/description" />
+  <param name="poster" value="poster image" tal:condition="self/poster" tal:attributes="value self/poster" />
+  <span tal:replace="self"></span>
+</object>
