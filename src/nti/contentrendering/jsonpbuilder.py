@@ -24,6 +24,9 @@ from nti.contentrendering import RenderedBook
 from nti.contentrendering.interfaces import JobComponents
 from nti.contentrendering.interfaces import IRenderedBookTransformer
 
+from zope import interface
+interface.moduleProvides(IRenderedBookTransformer)
+
 
 class _JSONPWrapper(object):
 
@@ -45,25 +48,6 @@ class _JSONPWrapper(object):
             f.write(self.jsonpFunctionName + '(')
             json.dump(self.data, f)
             f.write(');')
-
-
-def main():
-    """
-    Main program routine
-    """
-
-    contentLocation = sys.argv[1]
-
-    xmlconfig.file('configure.zcml', package="nti.contentrendering")
-    zope_conf_name = os.path.join(contentLocation, '..', 'configure.zcml')
-    if os.path.exists(zope_conf_name):
-        xmlconfig.file(os.path.abspath(zope_conf_name),
-                       package="nti.contentrendering")
-
-    path = os.path.abspath(contentLocation)
-    context = JobComponents(os.path.split(path)[-1])
-    book = RenderedBook.RenderedBook(None, contentLocation)
-    transform(book, context=context)
 
 
 def transform(book, context=None):
@@ -103,8 +87,23 @@ def _process_topic(topic, contentLocation):
         _process_topic(child, contentLocation)
 
 
-from zope import interface
-interface.moduleProvides(IRenderedBookTransformer)
+def main():
+    """
+    Main program routine
+    """
+
+    contentLocation = sys.argv[1]
+
+    xmlconfig.file('configure.zcml', package="nti.contentrendering")
+    zope_conf_name = os.path.join(contentLocation, '..', 'configure.zcml')
+    if os.path.exists(zope_conf_name):
+        xmlconfig.file(os.path.abspath(zope_conf_name),
+                       package="nti.contentrendering")
+
+    path = os.path.abspath(contentLocation)
+    context = JobComponents(os.path.split(path)[-1])
+    book = RenderedBook.RenderedBook(None, contentLocation)
+    transform(book, context=context)
 
 if __name__ == '__main__':
     main()
