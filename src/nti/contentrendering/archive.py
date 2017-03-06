@@ -22,8 +22,6 @@ from zope import component
 from zope.configuration import config
 from zope.configuration import xmlconfig
 
-import nti.contentrendering
-
 from nti.contentrendering.interfaces import IRenderedBookArchiver
 
 from nti.contentrendering.utils import EmptyMockDocument
@@ -107,7 +105,9 @@ def create_archive(book, out_dir=None, verbose=False, name=u''):
 def main():
     context = config.ConfigurationMachine()
     xmlconfig.registerCommonDirectives(context)
-    xmlconfig.file("configure.zcml", nti.contentrendering, context=context)
+    xmlconfig.file("configure.zcml", 
+                   package="nti.contentrendering", 
+                   context=context)
 
     arg_parser = argparse.ArgumentParser(description="Archive book content")
     arg_parser.add_argument('content_path', help="Book content path")
