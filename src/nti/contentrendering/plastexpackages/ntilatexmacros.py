@@ -26,7 +26,6 @@ from plasTeX import Command
 from plasTeX import Environment 
 from plasTeX import TeXFragment
 
-from plasTeX.Base import Crossref
 from plasTeX.Base import TextCommand
 
 from plasTeX.Packages.hyperref import href as base_href
@@ -54,6 +53,7 @@ _incoming_sources_as_plain_text = incoming_sources_as_plain_text
 # util classes
 
 from nti.contentrendering.plastexpackages._util import Ignored
+
 _Ignored = Ignored
 
 # eurosym
@@ -64,32 +64,29 @@ from nti.contentrendering.plastexpackages.eurosym import euro
 eur = eur
 euro = euro
 
-# SAJ: Sectioning commands for custom rendering treatment
-class chaptertitlesuppressed( Base.chapter ):
-	pass
+# sectioning 
 
-class sectiontitlesuppressed( Base.section ):
-	pass
+from nti.contentrendering.plastexpackages.ntisectioning import titlelesspart
+from nti.contentrendering.plastexpackages.ntisectioning import titlelesschapter
+from nti.contentrendering.plastexpackages.ntisectioning import titlelesssection
+from nti.contentrendering.plastexpackages.ntisectioning import titlelesssubsection
+from nti.contentrendering.plastexpackages.ntisectioning import titlelesssubsubsection
 
-# TODO: do pagerefs even make sense in our dom?
-# Try to find an intelligent page name for the reference
-# so we don't have to render the link text as '3'
-class pageref(Crossref.pageref):
-	# we would hope to generate the pagename attribute in
-	# the invoke method but since it is dependent on the page
-	# splits used at render time we define a function to be called
-	# from the page template
-	def getPageNameForRef(self):
-		# Look up the dom tree until we find something
-		# that would create a file
-		fileNode = self.idref['label']
-		while not getattr(fileNode, 'title', None) and getattr(fileNode, 'parentNode', None):
-			fileNode = fileNode.parentNode
+ntititlelesspart = titlelesspart
+ntititlelesschapter = titlelesschapter
+ntititlelesssection = titlelesssection
+ntititlelesssubsection = titlelesssubsection
+ntititlelesssubsubsection = titlelesssubsubsection
 
-		if hasattr(fileNode, 'title'):
-			return getattr(fileNode.title, 'textContent', fileNode.title)
+from nti.contentrendering.plastexpackages.ntisectioning import chaptertitlesuppressed
+from nti.contentrendering.plastexpackages.ntisectioning import sectiontitlesuppressed
 
-		return None
+chaptertitlesuppressed = chaptertitlesuppressed
+sectiontitlesuppressed = sectiontitlesuppressed
+
+from nti.contentrendering.plastexpackages.ntisectioning import pageref
+
+pageref = pageref
 
 # lists
 
