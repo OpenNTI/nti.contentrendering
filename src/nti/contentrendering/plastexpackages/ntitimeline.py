@@ -88,7 +88,8 @@ class ntitimeline(ntimedia):
     @readproperty
     def icon(self):
         icon = None
-        icons = self.getElementsByTagName('includegraphics')
+        icons = self.getElementsByTagName('includegraphics') \
+             or self.getElementsByTagName('ntiexternalgraphics')
         if icons:
             icon = icons[0]
         return icon
