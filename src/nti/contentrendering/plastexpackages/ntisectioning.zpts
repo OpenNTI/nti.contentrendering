@@ -1,0 +1,5 @@
+# -*- mode: html -*-
+
+name: ntititlelesssection
+<h1 tal:attributes="id self/html_id"></h1>
+<p tal:replace="self"></p>
