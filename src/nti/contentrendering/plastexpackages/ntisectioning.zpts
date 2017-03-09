@@ -1,20 +1,5 @@
 # -*- mode: html -*-
 
-name: ntititlelesspart titlelesspart ntititlelesschapter titlelesschapter ntititlelesssection titlelesssection
-<h1 tal:attributes="id self/html_id"></h1>
-<p tal:replace="self"></p>
-
-
-name: ntititlelesssubsection titlelesssubsection
-<h2 tal:attributes="id self/html_id"></h2>
-<p tal:replace="self"></p>
-
-
-name: ntititlelesssubsubsection titlelesssubsubsection
-<h3 tal:attributes="id self/html_id"></h3>
-<p tal:replace="self"></p>
-
-
 name: chaptertitlesuppressed sectiontitlesuppressed
 <div tal:attributes="id self/id; ntiid self/ntiid; data-ntiid self/ntiid">
 <p class="placeholder"></p>

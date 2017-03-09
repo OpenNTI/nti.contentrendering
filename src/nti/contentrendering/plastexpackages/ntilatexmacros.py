@@ -66,18 +66,6 @@ euro = euro
 
 # sectioning 
 
-from nti.contentrendering.plastexpackages.ntisectioning import titlelesspart
-from nti.contentrendering.plastexpackages.ntisectioning import titlelesschapter
-from nti.contentrendering.plastexpackages.ntisectioning import titlelesssection
-from nti.contentrendering.plastexpackages.ntisectioning import titlelesssubsection
-from nti.contentrendering.plastexpackages.ntisectioning import titlelesssubsubsection
-
-ntititlelesspart = titlelesspart
-ntititlelesschapter = titlelesschapter
-ntititlelesssection = titlelesssection
-ntititlelesssubsection = titlelesssubsection
-ntititlelesssubsubsection = titlelesssubsubsection
-
 from nti.contentrendering.plastexpackages.ntisectioning import chaptertitlesuppressed
 from nti.contentrendering.plastexpackages.ntisectioning import sectiontitlesuppressed
 
