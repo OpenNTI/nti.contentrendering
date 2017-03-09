@@ -98,7 +98,7 @@ def _ntiid_get_local_part_title(self):
     if hasattr(self, attr) or not getattr(self, '_ntiid_allow_missing_title', False):
         title = getattr(self, attr)
         if      title \
-            and getattr(title, 'textContent', title):
+            and getattr(title, 'textContent', title) is not None:
             # Sometimes title is a string, sometimes its a TexFragment
             if hasattr(title, 'textContent'):
                 title = title.textContent
