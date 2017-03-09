@@ -34,6 +34,23 @@ from nti.contentrendering.plastexpackages._util import incoming_sources_as_plain
 
 @interface.implementer(IRepresentableContentUnit,
                        IRepresentationPreferences)
+class DeclareMediaResource(Command):
+    """
+    This command is extremely experimental and should be avoided for now.
+    """
+
+    args = 'src:str label:id'
+    resourceTypes = ('jsonp', )
+
+    def invoke(self, tex):
+        result = super(DeclareMediaResource, self).invoke(tex)
+        wk_dir = self.ownerDocument.userdata.getPath('working-dir')
+        self.attributes['src'] = os.path.join(wk_dir, self.attributes['src'])
+        return result
+
+
+@interface.implementer(IRepresentableContentUnit,
+                       IRepresentationPreferences)
 class mediatranscript(Command):
 
     blockType = True

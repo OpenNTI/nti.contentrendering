@@ -109,26 +109,6 @@ from nti.contentrendering.plastexpackages.ntiexternalgraphics import ntiexternal
 ntiexternalgraphics = ntiexternalgraphics
 
 ###############################################################################
-# The following block of commands concern general resource handling
-###############################################################################
-
-@interface.implementer(resource_interfaces.IRepresentableContentUnit,	
-					   resource_interfaces.IRepresentationPreferences)
-class DeclareMediaResource( Base.Command ):
-	"""
-	This command is extremely experimental and should be avoided for now.
-	"""
-
-	args = 'src:str label:id'
-	resourceTypes = ( 'jsonp', )
-
-	def invoke( self, tex ):
-		result = super(DeclareMediaResource, self).invoke( tex )
-		self.attributes['src'] = os.path.join(
-			self.ownerDocument.userdata.getPath('working-dir'), self.attributes['src'])
-		return result
-
-###############################################################################
 # The following block of commands concern media resource handling
 ###############################################################################
 
@@ -192,6 +172,12 @@ class ntiincludekalturavideo(Command):
 		self.width = u'640'
 		self.height = u'390'
 		return res
+
+# media resources
+
+from nti.contentrendering.plastexpackages.ntimedia import DeclareMediaResource
+
+DeclareMediaResource = DeclareMediaResource
 
 # media
 

@@ -124,8 +124,6 @@ name: ntipreviouspage
 name: modified
 <span class="modified" tal:content="self"></span>
 
-name: DeclareMediaResource
-
 name: worktitle workcreator worksource worksourceref
 
 name: ntidiscussion

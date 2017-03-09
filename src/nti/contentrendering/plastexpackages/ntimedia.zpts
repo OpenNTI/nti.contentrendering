@@ -1,5 +1,7 @@
 # -*- mode: html -*-
 
+name: DeclareMediaResource
+
 name: ntiaudioref
 <object class="ntiaudio" tal:condition="self/to_render"
 		tal:attributes="type self/idref/label/mimeType; itemprop self/idref/label/itemprop; data-ntiid self/idref/label/ntiid">
