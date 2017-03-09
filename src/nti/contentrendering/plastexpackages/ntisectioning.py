@@ -22,6 +22,13 @@ class chaptertitlesuppressed(chapter):
 class sectiontitlesuppressed(section):
     pass
 
+# SAJ: Fake sectioning commands support UI authoring creating things
+# that look like sections but are  not really sections
+class fakesection(command):
+    args = '* [ toc ] title'
+
+class fakesubsection(command):
+    args = '* [ toc ] title'
 
 # TODO: do pagerefs even make sense in our dom?
 # Try to find an intelligent page name for the reference
