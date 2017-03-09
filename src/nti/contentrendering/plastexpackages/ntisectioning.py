@@ -18,27 +18,32 @@ from plasTeX.Base.LaTeX.Sectioning import subsubsection
 
 
 class titlelesspart(part):
-    pass
+    _ntiid_title_attr_name = u''
+    _ntiid_allow_missing_title = True
 ntititlelesspart = titlelesspart
 
 
 class titlelesschapter(chapter):
-    pass
+    _ntiid_title_attr_name = u''
+    _ntiid_allow_missing_title = True
 ntititlelesschapter = titlelesschapter
 
 
 class titlelesssection(section):
-    pass
+    _ntiid_title_attr_name = u''
+    _ntiid_allow_missing_title = True
 ntititlelesssection = titlelesssection
 
 
 class titlelesssubsection(subsection):
-    pass
+    _ntiid_title_attr_name = u''
+    _ntiid_allow_missing_title = True
 ntititlelessubsection = titlelesssubsection
 
 
 class ntititlelesssubsubsection(subsubsection):
-    pass
+    _ntiid_title_attr_name = u''
+    _ntiid_allow_missing_title = True
 titlelesssubsubsection = ntititlelesssubsubsection
 
 
@@ -64,7 +69,7 @@ class pageref(Crossref.pageref):
         # Look up the dom tree until we find something
         # that would create a file
         fileNode = self.idref['label']
-        while not getattr(fileNode, 'title', None) \
+        while     not getattr(fileNode, 'title', None) \
               and getattr(fileNode, 'parentNode', None):
             fileNode = fileNode.parentNode
         if hasattr(fileNode, 'title'):
