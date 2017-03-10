@@ -33,11 +33,10 @@ class fakesection(Command):
 class fakesubsection(Command):
     args = '* [ toc ] title'
 
+
 # TODO: do pagerefs even make sense in our dom?
 # Try to find an intelligent page name for the reference
 # so we don't have to render the link text as '3'
-
-
 class pageref(Crossref.pageref):
     # we would hope to generate the pagename attribute in
     # the invoke method but since it is dependent on the page
