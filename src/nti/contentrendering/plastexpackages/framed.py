@@ -16,8 +16,10 @@ logger = __import__('logging').getLogger(__name__)
 
 from plasTeX import Environment
 
+
 class framed(Environment):
-	pass
+    pass
+
 
 class shaded(Environment):
-	pass
+    pass

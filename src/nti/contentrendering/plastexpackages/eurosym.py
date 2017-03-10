@@ -14,14 +14,16 @@ from plasTeX import Command
 
 from plasTeX.DOM import Text
 
-class eur(Command):
-	args = 'self'
-	macroName = 'EUR'
 
-	def invoke(self, tex):
-		super(eur, self).invoke(tex)
-		node = Text(u'\u20AC\u202F')
-		self.attributes['self'].childNodes.insert(0, node)
+class eur(Command):
+    args = 'self'
+    macroName = 'EUR'
+
+    def invoke(self, tex):
+        super(eur, self).invoke(tex)
+        node = Text(u'\u20AC\u202F')
+        self.attributes['self'].childNodes.insert(0, node)
+
 
 class euro(Command):
-	unicode = u'\u20AC'
+    unicode = u'\u20AC'

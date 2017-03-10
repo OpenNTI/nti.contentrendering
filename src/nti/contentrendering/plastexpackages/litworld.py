@@ -9,49 +9,67 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from plasTeX import Base
+from plasTeX.Base import chapter
+from plasTeX.Base import section
+from plasTeX.Base import subsection
+from plasTeX.Base import subsubsection
 
-class litclubsession(Base.chapter):
+
+class litclubsession(chapter):
     pass
 
-class litclubsessionsection(Base.section):
+
+class litclubsessionsection(section):
     pass
 
-class litclubsection(Base.subsection):
+
+class litclubsection(subsection):
     pass
 
-class litclubsubsection(Base.subsubsection):
+
+class litclubsubsection(subsubsection):
     pass
 
-class litclubwelcomesection(Base.section):
+
+class litclubwelcomesection(section):
     pass
 
-class litclubhellosongsubsection(Base.subsubsection):
+
+class litclubhellosongsubsection(subsubsection):
     pass
 
-class litclubcheckinsubsection(Base.subsubsection):
+
+class litclubcheckinsubsection(subsubsection):
     pass
 
-class litclubcommunitysection(Base.section):
+
+class litclubcommunitysection(section):
     pass
 
-class litclubreadaloudsection(Base.section):
+
+class litclubreadaloudsection(section):
     pass
 
-class litclubdiscussionsubsection(Base.subsubsection):
+
+class litclubdiscussionsubsection(subsubsection):
     pass
 
-class litclubcoresection(Base.section):
+
+class litclubcoresection(section):
     pass
 
-class litclubindereadingsection(Base.subsection):
+
+class litclubindereadingsection(subsection):
     pass
 
-class litclubwrapupsection(Base.section):
+
+class litclubwrapupsection(section):
     pass
 
-class litclubpraisesubsection(Base.subsubsection):
+
+class litclubpraisesubsection(subsubsection):
     pass
 
-class litclubgoodbyesongsubsection(Base.subsubsection):
+
+class litclubgoodbyesongsubsection(subsubsection):
     pass
