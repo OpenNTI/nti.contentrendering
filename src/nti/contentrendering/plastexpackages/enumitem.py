@@ -37,12 +37,11 @@ class enumerate_(Base.enumerate_):
             # Set start to the default value of 1. If there is a specified value
             # in the doc it will override this.
             self.options['start'] = 1
-            if options:
-                for option in options:
-                    o = option.strip().split('=')
-                    self.options[o[0]] = o[1]
+            for option in options or ():
+                o = option.strip().split('=')
+                self.options[o[0]] = o[1]
             # Fast forward the counter to the start
             counter = Base.List.counters[Base.List.depth - 1]
-            self.ownerDocument.context.counters[
-                counter].value = int(self.options['start']) - 1
+            start = self.options['start']
+            self.ownerDocument.context.counters[counter].value = int(start) - 1
         return result
