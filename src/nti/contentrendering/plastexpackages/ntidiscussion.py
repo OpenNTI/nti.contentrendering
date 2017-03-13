@@ -120,7 +120,8 @@ class ntidiscussion(Environment):
 
     def digest(self, tokens):
         tok = super(ntidiscussion, self).digest(tokens)
-        icons = self.getElementsByTagName('includegraphics')
+        icons = self.getElementsByTagName('includegraphics') \
+             or self.getElementsByTagName('ntiexternalgraphics')
         if icons:
             self.iconResource = icons[0]
         return tok
