@@ -12,10 +12,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 import os
-import codecs
 import hashlib
-
-import simplejson as json
 
 from zope import interface
 
@@ -464,102 +461,17 @@ relatedworkref = relatedworkref
 relatedworkname = relatedworkname
 relatedworkrefname = relatedworkrefname
 
-###############################################################################
-# The following block of commands concern representing forum discussions.
-###############################################################################
+# discussions
 
-class ntidiscussionname(Base.Command):
-	pass
+from nti.contentrendering.plastexpackages.ntidiscussion import ntidiscussion
+from nti.contentrendering.plastexpackages.ntidiscussion import ntidiscussionref
+from nti.contentrendering.plastexpackages.ntidiscussion import ntidiscussionname
 
-class ntidiscussionref(Base.Crossref.ref):
+ntidiscussion = ntidiscussion
+ntidiscussionref = ntidiscussionref
+ntidiscussionname = ntidiscussionname
 
-	@readproperty
-	def discussion(self):
-		return self.idref['label']
-
-class ntidiscussion(Base.Environment):
-	args = '[ options:dict ] '
-
-	# Only classes with counters can be labeled, and \label sets the
-	# id property, which in turn is used as part of the NTIID (when no NTIID is set explicitly)
-	counter = 'ntidiscussion'
-	blockType = True
-
-	targetMimeType = "application/vnd.nextthought.discussion"
-	iconResource = None
-	title = ''
-	subtitle = ''
-	topic_ntiid = ''
-	autogenuri = ''
-
-	class discussiontitle(Base.Command):
-		args = 'title'
-
-		def digest(self, tokens):
-			tok = super(ntidiscussion.discussiontitle,self).digest(tokens)
-			self.parentNode.title = self.attributes['title']
-			return tok
-
-	class discussionsubtitle(Base.Command):
-		args = 'subtitle'
-
-		def digest(self, tokens):
-			tok = super(ntidiscussion.discussionsubtitle,self).digest(tokens)
-			self.parentNode.subtitle = self.attributes['subtitle']
-			return tok
-
-	class discussionuri(Base.Command):
-		args = 'uri:url'
-
-		to_replace = ( (' ', '' ), ('\\&', '&' ), ('\\_', '_' ), ( '\\%', '%' ),
-					   (u'\u2013', u'--'), (u'\u2014', u'---') )
-		
-		COURSE_BUNDLE = r'nti-course-bundle://'
-
-		def replacer(self, source):
-			for a, b in self.to_replace:
-				source = source.replace(a, b)
-			return source
-
-		def digest(self, tokens):
-			tok = super(ntidiscussion.discussionuri,self).digest(tokens)
-			self.parentNode.autogenuri = self.replacer(self.attributes['uri'].source)
-			
-			# discussion_path
-			course_bundle_path = self.ownerDocument.userdata['course_bundle_path']
-			discussion_path = self.parentNode.autogenuri.split(self.COURSE_BUNDLE)[1]
-			discussion_path = os.path.join(course_bundle_path, discussion_path)
-			
-			# read discussion
-			if os.path.exists(discussion_path):
-				with codecs.open(discussion_path, 'rb', 'utf-8') as fp:
-					discussion = json.load(fp)
-			else:
-				discussion = None
-				logger.warning( 'Unable to find discussion definition at %s',
-								discussion_path)
-			if discussion is not None:
-				if 'label' in discussion:
-					self.parentNode.title = discussion['label']
-				if 'title' in discussion:
-					self.parentNode.subtitle = discussion['title']
-			return tok
-
-	class topicntiid(Base.Command):
-		args = 'ntiid:str'
-
-		def digest(self, tokens):
-			tok = super(ntidiscussion.topicntiid,self).digest(tokens)
-			self.parentNode.topic_ntiid = self.attributes['ntiid']
-			return tok
-
-	def digest(self, tokens):
-		tok = super(ntidiscussion,self).digest(tokens)
-
-		icons = self.getElementsByTagName('includegraphics')
-		if icons:
-			self.iconResource = icons[0]
-		return tok
+# Sequence
 
 class ntisequenceitem(LocalContentMixin, Base.Environment):
 	args = '[options:dict]'

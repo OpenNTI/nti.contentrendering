@@ -1,0 +1,14 @@
+# -*- mode: html -*-
+
+name: ntidiscussion
+
+name: discussionuri
+
+name: ntidiscussionref
+<object class="ntidiscussionref">
+	<param name="mimeType" value="MIME type" tal:attributes="value self/discussion/targetMimeType" />
+	<param name="icon" value="icon" tal:attributes="value self/discussion/iconResource/image/url" />
+	<param name="label" value="discussion title" tal:attributes="value self/discussion/title" />
+	<param name="ntiid" value="NTIID of the discussion" tal:attributes="value self/discussion/topic_ntiid" />
+	<param name="title" value="discussion subtitle" tal:attributes="value self/discussion/subtitle" />
+</object>
