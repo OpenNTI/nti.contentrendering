@@ -34,6 +34,14 @@ class fakesubsection(Command):
     args = '* [ toc ] title'
 
 
+class subsubsectiontitle(Command):
+    args = '* [ toc ] title'
+
+
+class paragraphtitle(Command):
+    args = '* [ toc ] title'
+
+
 # TODO: do pagerefs even make sense in our dom?
 # Try to find an intelligent page name for the reference
 # so we don't have to render the link text as '3'

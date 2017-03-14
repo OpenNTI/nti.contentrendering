@@ -65,11 +65,19 @@ euro = euro
 
 from nti.contentrendering.plastexpackages.ntisectioning import fakesection
 from nti.contentrendering.plastexpackages.ntisectioning import fakesubsection
-from nti.contentrendering.plastexpackages.ntisectioning import chaptertitlesuppressed
-from nti.contentrendering.plastexpackages.ntisectioning import sectiontitlesuppressed
 
 fakesection = fakesection
 fakesubsection = fakesubsection
+
+from nti.contentrendering.plastexpackages.ntisectioning import paragraphtitle
+from nti.contentrendering.plastexpackages.ntisectioning import subsubsectiontitle
+
+fakeparagraph = paragraphtitle
+fakesubsubsection = subsubsectiontitle
+
+from nti.contentrendering.plastexpackages.ntisectioning import chaptertitlesuppressed
+from nti.contentrendering.plastexpackages.ntisectioning import sectiontitlesuppressed
+
 chaptertitlesuppressed = chaptertitlesuppressed
 sectiontitlesuppressed = sectiontitlesuppressed
 

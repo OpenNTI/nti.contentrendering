@@ -16,3 +16,11 @@ name: fakesection
 name: fakesubsection
 <div class="subsection title" tal:attributes="id self/id" tal:content="self/title">Cras dignissim</div>
 <p tal:replace="self"></p>
+
+name: fakesubsubsection subsubsectiontitle
+<div class="subsubsection title" tal:attributes="id self/id" tal:content="self/title">Velit id pharetra</div>
+<p tal:replace="self"></p>
+
+name: fakeparagraph paragraphtitle
+<div class="paragraph title" tal:attributes="id self/id" tal:content="self/title">Donec elementum mauris vel urna</div>
+<p tal:replace="self"></p>
