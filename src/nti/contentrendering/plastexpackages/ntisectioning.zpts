@@ -7,7 +7,12 @@ name: chaptertitlesuppressed sectiontitlesuppressed
 </div>
 
 name: fakesection
-<h1 tal:attributes="id self/html_id" tal:content="self/fullTitle">Morbi metus pede, imperdiet vitae</h1>
+<div tal:attributes="id self/id">
+<div class="chapter title" tal:content="self/title">Morbi metus pede, imperdiet vitae</div>
+<p class="placeholder"></p>
+<p tal:replace="self"></p>
+</div>
 
 name: fakesubsection
-<h2 tal:attributes="id self/html_id" tal:content="self/fullTitle">Morbi metus pede, imperdiet vitae</h2>
+<div class="subsection title" tal:attributes="id self/id" tal:content="self/title">Cras dignissim</div>
+<p tal:replace="self"></p>
