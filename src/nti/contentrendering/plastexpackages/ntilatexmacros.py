@@ -201,41 +201,16 @@ ntiaudioname = ntiaudioname
 from nti.contentrendering.plastexpackages.ntimedia import ntivideo
 from nti.contentrendering.plastexpackages.ntimedia import ntivideoref
 from nti.contentrendering.plastexpackages.ntimedia import ntivideoname
+from nti.contentrendering.plastexpackages.ntimedia import ntilocalvideo
+from nti.contentrendering.plastexpackages.ntimedia import ntilocalvideoname
 
 ntivideo = ntivideo
 ntivideoref = ntivideoref
 ntivideoname = ntivideoname
+ntilocalvideo = ntilocalvideo
+ntilocalvideoname = ntilocalvideoname
 
-class ntilocalvideoname(Command):
-	unicode = ''
-
-class ntilocalvideo( Base.Environment ):
-	args = '[ options:dict ]'
-	counter = "ntilocalvideo"
-	blockType=True
-
-	def invoke(self, tex):
-		_t = super(ntilocalvideo, self).invoke(tex)
-		if 'options' not in self.attributes or not self.attributes['options']:
-			self.attributes['options'] = {}
-		return _t
-
-	def digest(self, tex):
-		super(ntilocalvideo, self).digest(tex)
-		video = self.getElementsByTagName( 'ntiincludelocalvideo' )[0]
-		self.src = {}
-		self.src['mp4'] = video.attributes['src'] + u'.mp4'
-		self.src['webm'] = video.attributes['src'] + u'.webm'
-		self.title = video.attributes['title']
-		self.poster = video.attributes['poster']
-		if 'width' in video.attributes['options']:
-			self.width = video.attributes['options']['width']
-		if 'height' in video.attributes['options']:
-			self.height = video.attributes['options']['height']
-		self.id = video.id
-
-	class ntiincludelocalvideo( Base.Command ):
-		args = '[ options:dict ] src title poster'
+# include raphics
 
 class ntiincludeannotationgraphics(includegraphics):
 

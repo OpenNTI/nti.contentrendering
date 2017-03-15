@@ -397,6 +397,39 @@ class ntivideoref(ntimediaref):
         return poster
 
 
+class ntilocalvideoname(Command):
+    unicode = ''
+
+
+class ntilocalvideo(Environment):
+
+    blockType = True
+    args = '[ options:dict ]'
+    counter = "ntilocalvideo"
+
+    def invoke(self, tex):
+        result = super(ntilocalvideo, self).invoke(tex)
+        if 'options' not in self.attributes or not self.attributes['options']:
+            self.attributes['options'] = {}
+        return result
+
+    def digest(self, tex):
+        super(ntilocalvideo, self).digest(tex)
+        video = self.getElementsByTagName('ntiincludelocalvideo')[0]
+        self.src = {'mp4': video.attributes['src'] + u'.mp4',
+                    'webm':  video.attributes['src'] + u'.webm'}
+        self.title = video.attributes['title']
+        self.poster = video.attributes['poster']
+        if 'width' in video.attributes['options']:
+            self.width = video.attributes['options']['width']
+        if 'height' in video.attributes['options']:
+            self.height = video.attributes['options']['height']
+        self.id = video.id
+
+    class ntiincludelocalvideo(Command):
+        args = '[ options:dict ] src title poster'
+
+
 # Media collection
 
 

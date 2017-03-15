@@ -3,8 +3,7 @@
 name: DeclareMediaResource
 
 name: ntiaudioref
-<object class="ntiaudio" tal:condition="self/to_render"
-		tal:attributes="type self/idref/label/mimeType; itemprop self/idref/label/itemprop; data-ntiid self/idref/label/ntiid">
+<object class="ntiaudio" tal:condition="self/to_render" tal:attributes="type self/idref/label/mimeType; itemprop self/idref/label/itemprop; data-ntiid self/idref/label/ntiid">
 	<param name="title" tal:condition="self/idref/label/title" tal:attributes="value self/idref/label/title" />
 	<param name="close_captions" tal:condition="self/idref/label/closed_captions" tal:attributes="value self/idref/label/closed_captions" />
 	<span class="description" tal:content="self/idref/label/description" tal:condition="self/idref/label/description">
@@ -21,8 +20,7 @@ name: ntiaudioref
 </object>
 
 name: ntiaudio
-<object class="ntiaudio"
-		tal:attributes="type self/mimeType; itemprop self/itemprop; data-ntiid self/ntiid">
+<object class="ntiaudio" tal:attributes="type self/mimeType; itemprop self/itemprop; data-ntiid self/ntiid">
 	<param name="title" tal:condition="self/title" tal:attributes="value self/title" />
 	<param name="close_captions" tal:condition="self/closed_captions" tal:attributes="value self/closed_captions" />
 	<span class="description" tal:content="self/description" tal:condition="self/description">
@@ -46,16 +44,15 @@ name: ntiaudiosource
 </object>
 
 name: ntivideoref
-<object class="ntivideo" tal:condition="self/to_render"
-	tal:attributes="type self/idref/label/mimeType; itemprop self/idref/label/itemprop; data-ntiid self/idref/label/ntiid">
-  <param name="title" tal:condition="self/idref/label/title" tal:attributes="value self/idref/label/title">
-  <param name="subtitle" tal:condition="self/idref/label/subtitle" tal:attributes="value self/idref/label/subtitle">
-  <param name="close_captions" tal:condition="self/idref/label/closed_captions" tal:attributes="value self/idref/label/closed_captions">
-  <span class="description" tal:content="self/idref/label/description" tal:condition="self/idref/label/description">
-    The description of the target.
-  </span>
-  <span tal:replace="self/idref/label/video_sources"></span>
-  <span tal:replace="self/idref/label/transcripts"></span>
+<object class="ntivideo" tal:condition="self/to_render" tal:attributes="type self/idref/label/mimeType; itemprop self/idref/label/itemprop; data-ntiid self/idref/label/ntiid">
+	<param name="title" tal:condition="self/idref/label/title" tal:attributes="value self/idref/label/title">
+	<param name="subtitle" tal:condition="self/idref/label/subtitle" tal:attributes="value self/idref/label/subtitle">
+	<param name="close_captions" tal:condition="self/idref/label/closed_captions" tal:attributes="value self/idref/label/closed_captions">
+	<span class="description" tal:content="self/idref/label/description" tal:condition="self/idref/label/description">
+		The description of the target.
+	</span>
+	<span tal:replace="self/idref/label/video_sources"></span>
+	<span tal:replace="self/idref/label/transcripts"></span>
 </object>
 <object class="ntivideoref" tal:condition="not:self/to_render">
 	<param name="label" value="Video Title" tal:attributes="value self/media/title" />
@@ -66,47 +63,58 @@ name: ntivideoref
 </object>
 
 name: ntivideo
-<object class="ntivideo"
-	tal:attributes="type self/mimeType; itemprop self/itemprop; data-ntiid self/ntiid">
-  <param name="title" tal:condition="self/title" tal:attributes="value self/title">
-  <param name="subtitle" tal:condition="self/subtitle" tal:attributes="value self/subtitle">
-  <param name="close_captions" tal:condition="self/closed_captions" tal:attributes="value self/closed_captions">
-  <span class="description" tal:content="self/description" tal:condition="self/description">
-    The description of the target.
-  </span>
-  <span tal:replace="self/video_sources"></span>
-  <span tal:replace="self/transcripts"></span>
+<object class="ntivideo" tal:attributes="type self/mimeType; itemprop self/itemprop; data-ntiid self/ntiid">
+	<param name="title" tal:condition="self/title" tal:attributes="value self/title">
+	<param name="subtitle" tal:condition="self/subtitle" tal:attributes="value self/subtitle">
+	<param name="close_captions" tal:condition="self/closed_captions" tal:attributes="value self/closed_captions">
+	<span class="description" tal:content="self/description" tal:condition="self/description">
+		The description of the target.
+	</span>
+	<span tal:replace="self/video_sources"></span>
+	<span tal:replace="self/transcripts"></span>
 </object>
 
 name: ntivideosource
 <object type="application/vnd.nextthought.videosource" tal:attributes="data-priority self/priority; data-width self/width; data-height self/height">
-  <param name="service" tal:attributes="value self/service">
-  <param name="source" tal:condition="exists:self/src/other" tal:attributes="value self/src/other">
-  <param name="source" tal:condition="exists:self/src/mp4" tal:attributes="value self/src/mp4" data-type="video/mp4">
-  <param name="type" tal:condition="exists:self/src/mp4" value="video/mp4">
-  <param name="source" tal:condition="exists:self/src/webm" tal:attributes="value self/src/webm" data-type="video/webm">
-  <param name="type" tal:condition="exists:self/src/webm" value="video/webm">
-  <param name="source" tal:condition="exists:self/src/ntiid" tal:attributes="value self/src/ntiid">
-  <param name="height" tal:attributes="value self/height">
-  <param name="width" tal:attributes="value self/width">
-  <param name="poster" tal:condition="self/poster" tal:attributes="value self/poster">
-  <param name="thumbnail" tal:condition="self/thumbnail" tal:attributes="value self/thumbnail">
+	<param name="service" tal:attributes="value self/service">
+	<param name="source" tal:condition="exists:self/src/other" tal:attributes="value self/src/other">
+	<param name="source" tal:condition="exists:self/src/mp4" tal:attributes="value self/src/mp4" data-type="video/mp4">
+	<param name="type" tal:condition="exists:self/src/mp4" value="video/mp4">
+	<param name="source" tal:condition="exists:self/src/webm" tal:attributes="value self/src/webm" data-type="video/webm">
+	<param name="type" tal:condition="exists:self/src/webm" value="video/webm">
+	<param name="source" tal:condition="exists:self/src/ntiid" tal:attributes="value self/src/ntiid">
+	<param name="height" tal:attributes="value self/height">
+	<param name="width" tal:attributes="value self/width">
+	<param name="poster" tal:condition="self/poster" tal:attributes="value self/poster">
+	<param name="thumbnail" tal:condition="self/thumbnail" tal:attributes="value self/thumbnail">
 </object>
 
 name: mediatranscript
 <object type="application/vnd.nextthought.mediatranscript" tal:attributes="data-lang self/attributes/lang">
-  <param name="src" tal:attributes="value self/raw/url"/>
-  <param name="srcjsonp" tal:attributes="value self/wrapped/url"/>
-  <param name="type" tal:attributes="value self/transcript_mime_type"/>
-  <param name="lang" tal:attributes="value self/attributes/lang"/>
-  <param name="purpose" tal:attributes="value self/attributes/purpose"/>
+ 	<param name="src" tal:attributes="value self/raw/url"/>
+	<param name="srcjsonp" tal:attributes="value self/wrapped/url"/>
+	<param name="type" tal:attributes="value self/transcript_mime_type"/>
+	<param name="lang" tal:attributes="value self/attributes/lang"/>
+	<param name="purpose" tal:attributes="value self/attributes/purpose"/>
 </object>
 
 name: ntivideoroll
 <object type="application/vnd.nextthought.videoroll" tal:attributes="data-ntiid self/ntiid; data self/ntiid">
-  <param name="ntiid" value="the-ntiid" tal:attributes="value self/ntiid" />
-  <param name="title" value="title" tal:condition="self/title" tal:attributes="value self/title" />
-  <param name="description" value="description" tal:condition="self/description" tal:attributes="value self/description" />
-  <param name="poster" value="poster image" tal:condition="self/poster" tal:attributes="value self/poster" />
-  <span tal:replace="self"></span>
+	<param name="ntiid" value="the-ntiid" tal:attributes="value self/ntiid" />
+	<param name="title" value="title" tal:condition="self/title" tal:attributes="value self/title" />
+	<param name="description" value="description" tal:condition="self/description" tal:attributes="value self/description" />
+	<param name="poster" value="poster image" tal:condition="self/poster" tal:attributes="value self/poster" />
+ 	<span tal:replace="self"></span>
 </object>
+
+name: ntiincludelocalvideo
+
+name: ntilocalvideo
+<div class="externalvideo" tal:attributes="id self/id; data-ntiid self/id; style self/style/inline">
+	<video controls preload="meta" tal:attributes="poster self/poster; width self/width; height self/height">
+		<source type="video/mp4" tal:attributes="src self/src/mp4" />
+		<source type="video/webm" tal:attributes="src self/src/webm" />
+		<span tal:replace="self"></span>
+	</video>
+</div>
+
