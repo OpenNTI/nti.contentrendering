@@ -11,5 +11,6 @@ logger = __import__('logging').getLogger(__name__)
 
 from plasTeX import Command
 
+
 class bm(Command):
-	args = 'self'
+    args = 'self'
