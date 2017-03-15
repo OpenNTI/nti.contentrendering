@@ -2,11 +2,10 @@
 
 name: framed
 <div class="framed">
-<span tal:replace="self"></span>
+	<span tal:replace="self"></span>
 </div>
 
 name: shaded
 <div class="shaded">
-<span tal:replace="self"></span>
+	<span tal:replace="self"></span>
 </div>
-
