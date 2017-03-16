@@ -98,7 +98,7 @@ def _ntiid_get_local_part_title(self):
     if hasattr(self, attr) or not getattr(self, '_ntiid_allow_missing_title', False):
         title = getattr(self, attr)
         if      title \
-            and getattr(title, 'textContent', title) is not None:
+                and getattr(title, 'textContent', title) is not None:
             # Sometimes title is a string, sometimes its a TexFragment
             if hasattr(title, 'textContent'):
                 title = title.textContent
@@ -119,7 +119,7 @@ def _preferred_local_part(context):
     if title:
         # TODO: When we need to generate a number, if the object is associated
         # with a counter, could/should we use the counter?
-        map_name = getattr(context, 
+        map_name = getattr(context,
                            '_ntiid_cache_map_name',
                            '_section_ntiids_map')
         _section_ntiids_map = document.userdata.setdefault(map_name, {})
@@ -134,7 +134,6 @@ def _preferred_local_part(context):
 
 
 def _section_ntiid(self):
-
     # If an NTIID was specified in the source, use that
     if hasattr(self, 'attributes') and 'NTIID' in self.attributes:
         return self.attributes['NTIID']
@@ -171,6 +170,16 @@ def _section_ntiid(self):
     return ntiid
 
 
+def _document_ntiid(self):
+    try:
+        userdata = self.ownerDocument.userdata
+        if userdata.get('document_ntiid'):
+            return userdata.get('document_ntiid')
+    except (AttributeError, KeyError):
+        pass
+    return _section_ntiid(self)
+
+
 def _section_ntiid_filename(self):
     if not hasattr(self, 'config'):
         return
@@ -179,8 +188,8 @@ def _section_ntiid_filename(self):
     if override:
         return override
 
-    level = getattr(self, 
-                    'splitlevel', 
+    level = getattr(self,
+                    'splitlevel',
                     self.config['files']['split-level'])
 
     # If our level doesn't invoke a split, don't return a filename
@@ -361,6 +370,9 @@ def patch_all():
     SectionUtils._ntiid_get_local_part = property(_catching(_ntiid_get_local_part_title))
     SectionUtils.embedded_doc_cross_ref_url = property(_embedded_node_cross_ref_url)
 
+    from plasTeX.Base.LaTeX.Document import document
+    document.ntiid = property(_catching(_document_ntiid))
+
     # Math mode and floats. Only do this for environments that are auto-numbered,
     # since those are the ones typically referenced. These
     # MUST be labeled (or in the case of figures and tables, be given a caption
@@ -385,5 +397,7 @@ def patch_all():
 
     # Ensure we persist these things, if we have them, for
     # better cross-document referencing
-    plasTeX.Macro.refAttributes += ('ntiid', 'filenameoverride', 'embedded_doc_cross_ref_url')
+    plasTeX.Macro.refAttributes += ('ntiid',
+                                    'filenameoverride', 
+                                    'embedded_doc_cross_ref_url')
     plasTeX.TeXDocument.nextNTIID = nextID  # Non-destructive patch
