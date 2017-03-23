@@ -89,7 +89,7 @@ class ntidiscussion(Environment):
 
             # discussion_path
             parent = self.parentNode
-            userdata = self.ownerDocument
+            userdata = self.ownerDocument.userdata
             course_bundle_path = userdata['course_bundle_path']
             discussion_path = parent.autogenuri.split(self.COURSE_BUNDLE)[1]
             discussion_path = os.path.join(course_bundle_path, discussion_path)
