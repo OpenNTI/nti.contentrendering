@@ -237,7 +237,8 @@ generateImages = generate_images
 
 
 def process_document(document, jobname, components=None,
-                     out_format='xhtml', dochecking=True, db=None):
+                     out_format='xhtml', dochecking=True, db=None
+                     docachefile=True):
     if components is None:
         logger.info("Perform prerender transforms.")
         components = JobComponents(jobname)
@@ -257,7 +258,8 @@ def process_document(document, jobname, components=None,
         post_render(document,
                     jobname=jobname,
                     context=components,
-                    dochecking=dochecking)
+                    dochecking=dochecking,
+                    docachefile=docachefile)
     elif out_format == 'xml':
         logger.info("To Xml.")
         to_xml(document, jobname)
