@@ -19,6 +19,7 @@ import pytz
 
 from plasTeX import Command
 from plasTeX import Environment
+
 from plasTeX.Base.LaTeX.Crossref import ref
 from plasTeX.Base.LaTeX.Sectioning import part
 from plasTeX.Base.LaTeX.Sectioning import chapter
@@ -26,321 +27,361 @@ from plasTeX.Base.LaTeX.Sectioning import section
 from plasTeX.Base.LaTeX.Sectioning import subsection
 from plasTeX.Base.LaTeX.Sectioning import subsubsection
 
-from nti.contentrendering import plastexids
+from nti.contentrendering.plastexids import NTIIDMixin
 
 DEFAULT_TZ = 'US/Central'
 
+
 class coursename(Command):
-	pass
+    pass
 
-class course(Environment, plastexids.NTIIDMixin):
-	args = '[ options:dict ] title number'
 
-	tz = None
-	counter = 'course'
-	blockType = True
-	forcePars = False
+class course(Environment, NTIIDMixin):
 
-	_ntiid_suffix = 'course.'
-	_ntiid_type = 'NTICourse'
-	_ntiid_title_attr_name = 'ref'
-	_ntiid_allow_missing_title = False
-	_ntiid_cache_map_name = '_course_ntiid_map'
+    args = '[ options:dict ] title number'
 
-	def invoke(self, tex):
-		res = super(course, self).invoke(tex)
-		if self.macroMode == self.MODE_BEGIN:
-			self.title = self.attributes['title']
-			self.number = self.attributes['number']
-		return res
+    tz = None
+    blockType = True
+    forcePars = False
+    counter = 'course'
 
-	def digest(self, tokens):
-		tok = super(course, self).digest(tokens)
-		if self.macroMode == self.MODE_BEGIN:
-			if not getattr(self, 'title', ''):
-				raise ValueError("Must specify a title using \\caption")
+    _ntiid_suffix = 'course.'
+    _ntiid_type = 'NTICourse'
+    _ntiid_title_attr_name = 'ref'
+    _ntiid_allow_missing_title = False
+    _ntiid_cache_map_name = '_course_ntiid_map'
 
-			options = self.attributes.get('options', {}) or {}
-			__traceback_info__ = options, self.attributes
+    def invoke(self, tex):
+        res = super(course, self).invoke(tex)
+        if self.macroMode == self.MODE_BEGIN:
+            self.title = self.attributes['title']
+            self.number = self.attributes['number']
+        return res
 
-			if 'tz' in options:
-				# Blow up if the user gave us a bad timezone, rather
-				# then silently producing the wrong output
-				self.tz = pytz.timezone(options['tz'])
-				logger.warn('tz option is deprecated, use nti_render_conf.ini')
-				self.ownerDocument.userdata['document_timezone_name'] = options['tz']
-			else:
-				logger.warn('No valid timezone specified')
-				self.tz = pytz.timezone(DEFAULT_TZ)
-				self.ownerDocument.userdata['document_timezone_name'] = DEFAULT_TZ
+    def digest(self, tokens):
+        tok = super(course, self).digest(tokens)
+        if self.macroMode == self.MODE_BEGIN:
+            if not getattr(self, 'title', ''):
+                raise ValueError("Must specify a title using \\caption")
 
-		return tok
+            options = self.attributes.get('options', {}) or {}
+            __traceback_info__ = options, self.attributes
 
-	class courseboard(Command):
-		args = '[ options:dict ] ntiid:str'
+            if 'tz' in options:
+                # Blow up if the user gave us a bad timezone, rather
+                # then silently producing the wrong output
+                self.tz = pytz.timezone(options['tz'])
+                logger.warn('tz option is deprecated, use nti_render_conf.ini')
+                self.ownerDocument.userdata['document_timezone_name'] = options['tz']
+            else:
+                logger.warn('No valid timezone specified')
+                self.tz = pytz.timezone(DEFAULT_TZ)
+                self.ownerDocument.userdata['document_timezone_name'] = DEFAULT_TZ
 
-		def digest(self, tokens):
-			super(course.courseboard, self).digest(tokens)
-			self.parentNode.discussion_board = self.attributes.get('ntiid')
+        return tok
 
-	class courseannouncementboard(Command):
-		args = '[ options:dict ] ntiid:str'
+    class courseboard(Command):
+        args = '[ options:dict ] ntiid:str'
 
-		def digest(self, tokens):
-			super(course.courseannouncementboard, self).digest(tokens)
-			self.parentNode.announcement_board = self.attributes.get('ntiid')
+        def digest(self, tokens):
+            super(course.courseboard, self).digest(tokens)
+            self.parentNode.discussion_board = self.attributes.get('ntiid')
 
-	class coursecommunity(Command):
-		args = '[ options:dict ] ntiid:str'
+    class courseannouncementboard(Command):
+        args = '[ options:dict ] ntiid:str'
 
-		def digest(self, tokens):
-			tok = super(course.coursecommunity, self).digest(tokens)
+        def digest(self, tokens):
+            super(course.courseannouncementboard, self).digest(tokens)
+            self.parentNode.announcement_board = self.attributes.get('ntiid')
 
-			options = self.attributes.get('options', {}) or {}
-			if 'scope' in options:
-				self.scope = options['scope']
-			else:
-				self.scope = u'public'
+    class coursecommunity(Command):
+        args = '[ options:dict ] ntiid:str'
 
-			__traceback_info__ = options, self.attributes
+        def digest(self, tokens):
+            tok = super(course.coursecommunity, self).digest(tokens)
 
-			return tok
+            options = self.attributes.get('options', {}) or {}
+            if 'scope' in options:
+                self.scope = options['scope']
+            else:
+                self.scope = u'public'
 
-	class coursebundle(Command):
-		args = '[ options:dict ] bundle_path:str:raw'
+            __traceback_info__ = options, self.attributes
 
-		def digest(self, tokens):
-			super(course.coursebundle, self).digest(tokens)
-			bundle_path = self.attributes.get('bundle_path')
-			working_dir = self.ownerDocument.userdata['working-dir']
-			course_bundle_path = os.path.abspath(os.path.join(working_dir, bundle_path))
-			self.ownerDocument.userdata['course_bundle_path'] = course_bundle_path # set before cmp
-			if not os.path.exists(os.path.join(course_bundle_path, 'bundle_meta_info.json')):
-				logger.warn('Course bundle not found at %s', course_bundle_path)
-				self.ownerDocument.userdata.pop('course_bundle_path', None) # reset
+            return tok
+
+    class coursebundle(Command):
+
+        args = '[ options:dict ] bundle_path:str:raw'
+
+        def digest(self, tokens):
+            super(course.coursebundle, self).digest(tokens)
+            bundle_path = self.attributes.get('bundle_path')
+            userdata = self.ownerDocument.userdata
+            working_dir = userdata['working-dir']
+            course_bundle_path = os.path.join(working_dir, bundle_path)
+            course_bundle_path = os.path.abspath(course_bundle_path)
+            # set before cmp
+            userdata['course_bundle_path'] = course_bundle_path
+            if not os.path.exists(os.path.join(course_bundle_path, 'bundle_meta_info.json')):
+                logger.warn('Course bundle not found at %s',
+                            course_bundle_path)
+                userdata.pop('course_bundle_path', None)  # reset
+
 
 class courseunitname(Command):
-	pass
+    pass
 
-class courseunit(Environment, plastexids.NTIIDMixin):
-	args = '[ options:dict ] title'
 
-	blockType = True
-	forcePars = False
-	counter = "courseunit"
+class courseunit(Environment, NTIIDMixin):
 
-	_ntiid_suffix = 'course.unit.'
-	_ntiid_type = 'NTICourseUnit'
-	_ntiid_title_attr_name = 'ref'
-	_ntiid_allow_missing_title = False
-	_ntiid_cache_map_name = '_courseunit_ntiid_map'
+    args = '[ options:dict ] title'
 
-	def invoke(self, tex):
-		res = super(courseunit, self).invoke(tex)
-		if self.macroMode == self.MODE_BEGIN:
-			self.title = self.attributes['title']
-		return res
+    blockType = True
+    forcePars = False
+    counter = "courseunit"
 
-	def digest(self, tokens):
-		res = super(courseunit, self).digest(tokens)
-		if self.macroMode == self.MODE_BEGIN:
-			if not getattr(self, 'title', ''):
-				raise ValueError("Must specify a title using \\caption")
+    _ntiid_suffix = 'course.unit.'
+    _ntiid_type = 'NTICourseUnit'
+    _ntiid_title_attr_name = 'ref'
+    _ntiid_allow_missing_title = False
+    _ntiid_cache_map_name = '_courseunit_ntiid_map'
 
-			options = self.attributes.get('options', {}) or {}
-			__traceback_info__ = options, self.attributes
-		return res
+    def invoke(self, tex):
+        res = super(courseunit, self).invoke(tex)
+        if self.macroMode == self.MODE_BEGIN:
+            self.title = self.attributes['title']
+        return res
+
+    def digest(self, tokens):
+        res = super(courseunit, self).digest(tokens)
+        if self.macroMode == self.MODE_BEGIN:
+            if not getattr(self, 'title', ''):
+                raise ValueError("Must specify a title using \\caption")
+            options = self.attributes.get('options', {}) or {}
+            __traceback_info__ = options, self.attributes
+        return res
+
 
 from nti.externalization.datetime import datetime_from_string
 
+
 def _parse_local_date(self, val):
-	# If they gave no timezone information,
-	# use the document's
-	local_tzname = self.ownerDocument.userdata.get('document_timezone_name')
-	return datetime_from_string(val,
-								assume_local=True,
-								local_tzname=local_tzname)
+    # If they gave no timezone information,
+    # use the document's
+    local_tzname = self.ownerDocument.userdata.get('document_timezone_name')
+    return datetime_from_string(val,
+                                assume_local=True,
+                                local_tzname=local_tzname)
+
 
 class coursepartname(Command):
-	pass
+    pass
+
 
 class coursepart(part):
-	counter = 'course' + part.counter
+    counter = 'course' + part.counter
+
 
 class courselessonref(ref):
-	args = 'label:idref {date:str}'
+    args = 'label:idref {date:str}'
 
-	date = ()
+    date = ()
 
-	def invoke(self, tex):
-		res = super(courselessonref, self).invoke(tex)
-		if self.attributes.get('date'):
-			__traceback_info__ = self.attributes['date']
-			dates = self.attributes['date'].split(',')
-			self.date = []
-			for date in dates:
-				if date:
-					if '/' in date:
-						date = date.split('/')
-						# FIXME: Non-standard date representation
-						iso_date = '%s-%s-%s' % (date[2], date[0], date[1])
-						logger.info("Interpreting %s to mean %s in ISO format (YYYY-MM-DD)",
-									date, iso_date)
-						date = iso_date
-					if 'T' not in date:
-						date += 'T00:00'
-					self.date.append(_parse_local_date(self, date))
-				else:
-					self.date.append(datetime.today())
-			self.date[-1] = self.date[-1] + timedelta(days=1) - timedelta(microseconds=1)
-		return res
+    def invoke(self, tex):
+        res = super(courselessonref, self).invoke(tex)
+        if self.attributes.get('date'):
+            __traceback_info__ = self.attributes['date']
+            dates = self.attributes['date'].split(',')
+            self.date = []
+            for date in dates:
+                if date:
+                    if '/' in date:
+                        date = date.split('/')
+                        # FIXME: Non-standard date representation
+                        iso_date = '%s-%s-%s' % (date[2], date[0], date[1])
+                        logger.info("Interpreting %s to mean %s in ISO format (YYYY-MM-DD)",
+                                    date, iso_date)
+                        date = iso_date
+                    if 'T' not in date:
+                        date += 'T00:00'
+                    self.date.append(_parse_local_date(self, date))
+                else:
+                    self.date.append(datetime.today())
+            delta = timedelta(days=1) - timedelta(microseconds=1)
+            self.date[-1] = self.date[-1] + delta
+        return res
+
 
 class courselessonname(Command):
-	pass
+    pass
+
 
 class courselesson(chapter):
-	args = '* [ toc ] title label:id {options:dict:str}'  # TODO: Move towards dates at this level
-	blockType = True
-	counter = 'courselesson'
-	forcePars = False
+    # TODO: Move towards dates at this level
+    args = '* [ toc ] title label:id {options:dict:str}'
 
-	is_outline_stub_only = None
+    blockType = True
+    forcePars = False
+    counter = 'courselesson'
+
+    is_outline_stub_only = None
+
 
 def _parse_date_at_invoke(self):
-	# FIXME: We want these to be relative, not absolute, so they
-	# can be made absolute based on when the course begins.
-	# How to represent that? Probably need some schema transformation
-	# step in nti.externalization? Or some auixilliary data fields?
-	options = self.attributes.get('options') or ()
-	def _parse(key, default_time):
-		if key in options:
-			val = options[key]
-			if 'T' not in val:
-				# If they give no timestamp, make it default_time
-				val += default_time
-			# Now parse it.
-			return _parse_local_date(self, val)
+    # FIXME: We want these to be relative, not absolute, so they
+    # can be made absolute based on when the course begins.
+    # How to represent that? Probably need some schema transformation
+    # step in nti.externalization? Or some auixilliary data fields?
+    options = self.attributes.get('options') or ()
 
-	not_before = _parse('not_before_date', 'T00:00')
-	not_after = _parse('not_after_date', 'T23:59')
+    def _parse(key, default_time):
+        if key in options:
+            val = options[key]
+            if 'T' not in val:
+                # If they give no timestamp, make it default_time
+                val += default_time
+            # Now parse it.
+            return _parse_local_date(self, val)
 
-	if not_before is not None and not_after is not None:
-		# Both are required.
-		# TODO: Check sequence.
-		return not_before, not_after
-	# For compatibility with \courselessonref, we also accept just the ending
-	# date.
-	if not_after is not None:
-		return (not_after,)
+    not_before = _parse('not_before_date', 'T00:00')
+    not_after = _parse('not_after_date', 'T23:59')
+    if not_before is not None and not_after is not None:
+        # Both are required.
+        # TODO: Check sequence.
+        return not_before, not_after
+    # For compatibility with \courselessonref, we also accept just the ending
+    # date.
+    if not_after is not None:
+        return (not_after,)
+    return ()
 
-	return ()
 
 from paste.deploy.converters import asbool
 
+
 def _parse_isoutline_at_invoke(self):
-	options = self.attributes.get('options')
-	if options and 'is_outline_stub_only' in options:
-		return asbool(options.get('is_outline_stub_only'))
+    options = self.attributes.get('options')
+    if options and 'is_outline_stub_only' in options:
+        return asbool(options.get('is_outline_stub_only'))
+
 
 def _make_invoke(cls):
-	def invoke(self, tex):
-		res = super(cls, self).invoke(tex)
-		self.date = _parse_date_at_invoke(self)
-		self.is_outline_stub_only = _parse_isoutline_at_invoke(self)
-		return res
-	return invoke
+    def invoke(self, tex):
+        res = super(cls, self).invoke(tex)
+        self.date = _parse_date_at_invoke(self)
+        self.is_outline_stub_only = _parse_isoutline_at_invoke(self)
+        return res
+    return invoke
+
 
 class courselessonsectionname(Command):
-	pass
+    pass
+
 
 class courselessonsection(section):
-	"""
-	Example::
+    """
+    Example::
 
-		\courselessonsection{Title}{not_after_date=2014-01-13}
-	"""
-	counter = 'course' + section.counter
-	args = '* [ toc ] title {options:dict:str}'
+            \courselessonsection{Title}{not_after_date=2014-01-13}
+    """
+    counter = 'course' + section.counter
+    args = '* [ toc ] title {options:dict:str}'
 
-	is_outline_stub_only = None
+    is_outline_stub_only = None
+
 
 class courselessonsubsectionname(Command):
-	pass
+    pass
+
 
 class courselessonsubsection(subsection):
-	"""
-	Example::
+    """
+    Example::
 
-		\courselessonsubsection{Title}{not_after_date=2014-01-13}
-	"""
+            \courselessonsubsection{Title}{not_after_date=2014-01-13}
+    """
 
-	counter = 'course' + subsection.counter
-	args = '* [ toc ] title {options:dict:str}'
+    counter = 'course' + subsection.counter
+    args = '* [ toc ] title {options:dict:str}'
 
-	is_outline_stub_only = None
+    is_outline_stub_only = None
+
 
 class courselessonsubsubsectionname(Command):
-	pass
+    pass
+
 
 class courselessonsubsubsection(subsubsection):
-	"""
-	Example::
+    """
+    Example::
 
-		\courselessonsubsubsection{Title}{not_after_date=2014-01-13}
-	"""
-	counter = 'course' + subsubsection.counter
-	args = '* [ toc ] title {options:dict:str}'
+            \courselessonsubsubsection{Title}{not_after_date=2014-01-13}
+    """
+    counter = 'course' + subsubsection.counter
+    args = '* [ toc ] title {options:dict:str}'
 
-	is_outline_stub_only = None
+    is_outline_stub_only = None
+
 
 for _c in (courselesson, courselessonsection, courselessonsubsection,
-		   courselessonsubsubsection):
-	_c.invoke = _make_invoke(_c)
+           courselessonsubsubsection):
+    _c.invoke = _make_invoke(_c)
+
 
 class courseinfoname(Command):
-	pass
+    pass
+
 
 class courseinfo(section):
-	args = '* [ toc ] title'
-	blockType = True
-	counter = 'courseinfo'
-	forcePars = False
+    args = '* [ toc ] title'
+    
+    blockType = True
+    forcePars = False
+    counter = 'courseinfo'
+
 
 class courseoverviewgroupname(Command):
-	pass
+    pass
+
 
 class courseoverviewgroup(Environment):
-	"""
-	Data structure to organize a 'lessons' resources on the overview page.
-	If the content author does not sepecify and overview groups, then the
-	resources will be grouped by resource type.
-	"""
-	args = '[ options:dict ] <title>'
-	blockType = True
-	forcePars = False
-	counter = 'courseoverviewgroup'
+    """
+    Data structure to organize a 'lessons' resources on the overview page.
+    If the content author does not sepecify and overview groups, then the
+    resources will be grouped by resource type.
+    """
+    args = '[ options:dict ] <title>'
 
-	mime_type = "application/vnd.nextthought.nticourseoverviewgroup"
+    blockType = True
+    forcePars = False
+    counter = 'courseoverviewgroup'
 
-	class titlebackgroundcolor(Command):
-		"""
-		Sets the background color of the overview title bar.
-		This should be specified in hex.
-		"""
-		args = 'color:str'
+    mime_type = "application/vnd.nextthought.nticourseoverviewgroup"
 
-		def digest(self, tokens):
-			super(courseoverviewgroup.titlebackgroundcolor, self).digest(tokens)
-			self.parentNode.title_background_color = self.attributes.get('color')
+    class titlebackgroundcolor(Command):
+        """
+        Sets the background color of the overview title bar.
+        This should be specified in hex.
+        """
+        args = 'color:str'
+
+        def digest(self, tokens):
+            super(courseoverviewgroup.titlebackgroundcolor, self).digest(tokens)
+            attributes = self.attributes # pylint
+            self.parentNode.title_background_color = attributes.get('color')
+
 
 class courseoverviewspacer(Command):
-	mime_type = "application/vnd.nextthought.nticourseoverviewspacer"
+    mime_type = "application/vnd.nextthought.nticourseoverviewspacer"
+
 
 def ProcessOptions(options, document):
-	for counter_cls in (course, courseinfo, courseunit, coursepart, courselesson,
-						courselessonsection, courselessonsubsection,
-						courselessonsubsubsection, courseoverviewgroup):
-		document.context.newcounter(counter_cls.counter)
+    for counter_cls in (course, courseinfo, courseunit, coursepart, courselesson,
+                        courselessonsection, courselessonsubsection,
+                        courselessonsubsubsection, courseoverviewgroup):
+        document.context.newcounter(counter_cls.counter)
+
 
 from zope import interface
 
