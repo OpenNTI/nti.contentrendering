@@ -237,7 +237,7 @@ generateImages = generate_images
 
 
 def process_document(document, jobname, components=None,
-                     out_format='xhtml', dochecking=True, db=None
+                     out_format='xhtml', dochecking=True, db=None,
                      docachefile=True):
     if components is None:
         logger.info("Perform prerender transforms.")
