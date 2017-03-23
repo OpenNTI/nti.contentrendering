@@ -101,7 +101,8 @@ def post_render(document,
                 contentLocation='.',
                 jobname='prealgebra',
                 context=None,
-                dochecking=True):
+                dochecking=True,
+                docachefile=True):
     # FIXME: This was not particularly well thought out. We're using components,
     # but named utilities, not generalized adapters or subscribers.
     # That makes this not as extensible as it should be.
@@ -143,12 +144,13 @@ def post_render(document,
 
     contentPath = os.path.realpath(contentLocation)
 
-    # TODO: Aren't the things in the archive mirror file the same things
-    # we want to list in the manifest? If so, we should be able to combine
-    # these steps (if nothing else, just list the contents of the archive to get the
-    # manifest)
-    logger.info("Creating html cache-manifest %s", contentPath)
-    html5cachefile.main(contentPath, contentPath)
+    if docachefile:
+        # TODO: Aren't the things in the archive mirror file the same things
+        # we want to list in the manifest? If so, we should be able to combine
+        # these steps (if nothing else, just list the contents of the archive to get the
+        # manifest)
+        logger.info("Creating html cache-manifest %s", contentPath)
+        html5cachefile.main(contentPath, contentPath)
 
     logger.info('Changing intra-content links')
     ntiidlinksetter.transform(book)
