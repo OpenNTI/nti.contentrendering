@@ -275,7 +275,8 @@ def process_document(document, jobname, components=None,
     return document
 
 
-def render(sourceFile, provider='AOPS', out_format='xhtml', nochecking=False):
+def render(sourceFile, provider='AOPS', out_format='xhtml', 
+           nochecking=False, docachefile=True):
     logger.info("Start rendering for %s", sourceFile)
     start_t = time.time()
     dochecking = not nochecking
@@ -283,7 +284,12 @@ def render(sourceFile, provider='AOPS', out_format='xhtml', nochecking=False):
                                                  provider=provider,
                                                  outFormat=out_format)
 
-    process_document(document, jobname, components, out_format, dochecking)
+    process_document(document, 
+                     jobname, 
+                     components, 
+                     out_format, 
+                     dochecking=dochecking,
+                     docachefile=docachefile)
 
     elapsed = time.time() - start_t
     logger.info("Rendering took %s(s)", elapsed)
