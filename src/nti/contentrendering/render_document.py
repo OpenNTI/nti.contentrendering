@@ -57,8 +57,11 @@ class PluginPoint(object):
 
     def __init__(self, name):
         self.__name__ = name
-
 PP_CONTENT_RENDERING = PluginPoint('nti.contentrendering')
+
+
+# setup id generation
+patch_all()
 
 
 def prepare_rendering_context(context=None):
@@ -113,14 +116,14 @@ def load_packages(source_dir=None, context=None, load_configs=True):
     return context, packages_path
 
 
-def prepare_xml_context(source_file, context=None):
+def prepare_xml_context(source_file, context=None, load_configs=True):
     source_file = os.path.abspath(os.path.expanduser(source_file))
     source_dir = os.path.dirname(source_file)
-    context, packages_path = load_packages(source_dir, context)
+    context, packages_path = load_packages(source_dir, context, load_configs)
     return source_dir, packages_path, context
 
 
-def prepare_document_settings(document, 
+def prepare_document_settings(document,
                               outFormat='xhtml',
                               perform_transforms=True,
                               provider='AOPS',
@@ -191,9 +194,8 @@ def setup_environ(document, jobname, packages_path, source_dir=None):
         for fname in glob.glob(os.path.join(dirname, '*.paux')):
             if os.path.basename(fname) == pauxname:
                 continue
-            document.context.restore(
-                fname,
-                document.config['general']['renderer'])
+            document.context.restore(fname,
+                                     document.config['general']['renderer'])
 
     # Set up TEXINPUTS to include the current directory for the renderer,
     # plus our packages directory
@@ -217,28 +219,25 @@ def setup_environ(document, jobname, packages_path, source_dir=None):
 
 def parse_tex(sourceFile,
               outFormat='xhtml',
+              provider='AOPS',
               outdir=None,
+              load_configs=True,
               perform_transforms=True,
               set_chameleon_cache=True,
-              xml_conf_context=None,
-              provider='AOPS'):
+              xml_conf_context=None):
 
     source_dir, packages_path, xml_conf_context = \
-            prepare_xml_context(sourceFile,
-                                xml_conf_context)
+        prepare_xml_context(sourceFile, xml_conf_context, load_configs)
 
     # Create document instance that output will be put into
     document = TeXDocument()
-
-    # setup id generation
-    patch_all()
 
     # Certain things like to assume that the root document is called index.html. Make it so.
     # This is actually plasTeX.Base.LaTeX.Document.document, but games are played
     # with imports. damn it (html suffix added automatically).
     Base.document.filenameoverride = property(lambda unused: 'index')
 
-    prepare_document_settings(document, 
+    prepare_document_settings(document,
                               outFormat,
                               provider=provider)
 
@@ -247,7 +246,7 @@ def parse_tex(sourceFile,
 
     # Configure components and utilities
     zope_conf_name = os.path.join(source_dir, 'configure.zcml')
-    if os.path.exists(zope_conf_name):
+    if load_configs and os.path.exists(zope_conf_name):
         xml_conf_context = xmlconfig.file(os.path.abspath(zope_conf_name),
                                           package=nti.contentrendering,
                                           context=xml_conf_context)

@@ -276,14 +276,16 @@ def process_document(document, jobname, components=None,
 
 
 def render(sourceFile, provider='AOPS', out_format='xhtml', 
-           nochecking=False, docachefile=True):
+           nochecking=False, docachefile=True, 
+           load_configs=True, set_chameleon_cache=True):
     logger.info("Start rendering for %s", sourceFile)
     start_t = time.time()
     dochecking = not nochecking
     document, components, jobname, _ = parse_tex(sourceFile,
                                                  provider=provider,
-                                                 outFormat=out_format)
-
+                                                 outFormat=out_format,
+                                                 load_configs=load_configs,
+                                                 set_chameleon_cache=set_chameleon_cache)
     process_document(document, 
                      jobname, 
                      components, 
