@@ -24,7 +24,8 @@ _locate_image_file = _locate_image_file
 
 from plasTeX import Command
 
+
 # Adds a stub version of the \DeclareGraphicsRule command
 class DeclareGraphicsRule(Command):
-	packageName = 'graphics'
-	args = '{extension:str}{type:str}{readfile:str}{command:str}'
+    packageName = 'graphics'
+    args = '{extension:str}{type:str}{readfile:str}{command:str}'

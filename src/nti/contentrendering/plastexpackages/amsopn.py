@@ -13,5 +13,6 @@ logger = __import__('logging').getLogger(__name__)
 
 from plasTeX import Command
 
+
 class DeclareMathOperator(Command):
-	args = '* {name:str}{arguments:str} '
+    args = '* {name:str}{arguments:str} '

@@ -17,15 +17,19 @@ from plasTeX.Packages.graphics import DeclareGraphicsExtensions as BaseDeclareGr
 
 from nti.contentrendering.plastexpackages.graphics import DeclareGraphicsRule as BaseDeclareGraphicsRule
 
-# SAJ: Monkey patch to cover files with capital extentions on case-sensitive filesystems
+# SAJ: Monkey patch to cover files with capital extentions on
+# case-sensitive filesystems
 includegraphics.default_extensions = ('.png', '.jpg', '.jpeg', '.gif', '.pdf', '.ps', '.eps',
-									  '.PNG', '.JPG', '.JPEG', '.GIF', '.PDF', '.PS', '.EPS')
+                                      '.PNG', '.JPG', '.JPEG', '.GIF', '.PDF', '.PS', '.EPS')
+
 
 class DeclareGraphicsExtensions(BaseDeclareGraphicsExtensions):
-	packageName = 'graphicx'
+    packageName = 'graphicx'
+
 
 class DeclareGraphicsRule(BaseDeclareGraphicsRule):
-	packageName = 'graphicx'
+    packageName = 'graphicx'
+
 
 class graphicspath(BaseGraphicspath):
-	packageName = 'graphicx'
+    packageName = 'graphicx'
