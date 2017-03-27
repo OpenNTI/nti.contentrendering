@@ -11,5 +11,6 @@ logger = __import__('logging').getLogger(__name__)
 
 from plasTeX.Base import chapter
 
+
 class mathcountschapter(chapter):
-	args = '* [ toc ] title img'
+    args = '* [ toc ] title img'
