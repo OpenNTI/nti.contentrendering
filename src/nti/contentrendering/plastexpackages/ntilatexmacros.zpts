@@ -108,16 +108,6 @@ name: worktitle workcreator worksource worksourceref
 
 name: targetntiid
 
-name: ntisequence
-<object type="application/vnd.nextthought.ntisequence">
-<span tal:replace="self"></span>
-</object>
-
-name: ntisequenceitem
-<object type="application/vnd.nextthought.ntisequenceitem">
-<span tal:replace="self"></span>
-</object>
-
 name: ntidirectionsblock
 <div class="ntidirectionsblock">
 	<div class="directions">

@@ -2,15 +2,15 @@
 
 name: chaptertitlesuppressed sectiontitlesuppressed
 <div tal:attributes="id self/id; ntiid self/ntiid; data-ntiid self/ntiid">
-<p class="placeholder"></p>
-<p tal:replace="self"></p>
+	<p class="placeholder"></p>
+	<p tal:replace="self"></p>
 </div>
 
 name: fakesection
 <div tal:attributes="id self/id">
-<div class="chapter title" tal:content="self/title">Morbi metus pede, imperdiet vitae</div>
-<p class="placeholder"></p>
-<p tal:replace="self"></p>
+	<div class="chapter title" tal:content="self/title">Morbi metus pede, imperdiet vitae</div>
+	<p class="placeholder"></p>
+	<p tal:replace="self"></p>
 </div>
 
 name: fakesubsection

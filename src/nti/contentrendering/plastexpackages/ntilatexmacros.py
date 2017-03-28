@@ -30,7 +30,6 @@ from plasTeX.Packages.hyperref import href as base_href
 from nti.contentrendering import plastexids
 
 from nti.contentrendering.plastexpackages._util import _OneText
-from nti.contentrendering.plastexpackages._util import LocalContentMixin
 from nti.contentrendering.plastexpackages._util import incoming_sources_as_plain_text
 
 from nti.contentrendering.plastexpackages.graphicx import includegraphics
@@ -389,7 +388,18 @@ from nti.contentrendering.plastexpackages.ntimedia import ntimediacollection
 ntivideoroll = ntivideoroll
 ntivideorollname = ntivideorollname
 
+# Sequence
+
+from nti.contentrendering.plastexpackages.ntisequence import ntisequence
+from nti.contentrendering.plastexpackages.ntisequence import ntisequenceref
+from nti.contentrendering.plastexpackages.ntisequence import ntisequenceitem
+
+ntisequence = ntisequence
+ntisequenceref = ntisequenceref
+ntisequenceitem = ntisequenceitem
+
 # Image collections
+
 class ntiimagecollectionname(Base.Command):
 	pass
 
@@ -424,7 +434,7 @@ relatedworkref = relatedworkref
 relatedworkname = relatedworkname
 relatedworkrefname = relatedworkrefname
 
-# discussions
+# Discussions
 
 from nti.contentrendering.plastexpackages.ntidiscussion import ntidiscussion
 from nti.contentrendering.plastexpackages.ntidiscussion import ntidiscussionref
@@ -434,7 +444,7 @@ ntidiscussion = ntidiscussion
 ntidiscussionref = ntidiscussionref
 ntidiscussionname = ntidiscussionname
 
-# refs
+# Refs
 
 from nti.contentrendering.plastexpackages.ntihyperref import ntihref
 from nti.contentrendering.plastexpackages.ntihyperref import ntiidref
@@ -448,50 +458,7 @@ simpleref = simpleref
 ntifancyhref = ntifancyhref
 ntiimagehref = ntiimagehref
 
-# Sequence
-
-class ntisequenceitem(LocalContentMixin, Base.Environment):
-	args = '[options:dict]'
-
-	def invoke(self, tex):
-		res = super(ntisequenceitem, self).invoke(tex)
-		if 'options' not in self.attributes or not self.attributes['options']:
-			self.attributes['options'] = {}
-		return res
-
-	def digest(self, tokens):
-		tok = super(ntisequenceitem, self).digest(tokens)
-		if self.macroMode != Base.Environment.MODE_END:
-			options = self.attributes.get('options', {}) or {}
-			__traceback_info__ = options, self.attributes
-			for k, v in options.items():
-				setattr(self, k, v)
-		return tok
-
-class ntisequence(LocalContentMixin, Base.List):
-	args = '[options:dict]'
-
-	def invoke(self, tex):
-		res = super(ntisequence, self).invoke(tex)
-		if 'options' not in self.attributes or not self.attributes['options']:
-			self.attributes['options'] = {}
-		return res
-
-	def digest(self, tokens):
-		tok = super(ntisequence, self).digest(tokens)
-		if self.macroMode != Base.Environment.MODE_END:
-			_items = self.getElementsByTagName('ntisequenceitem')
-			assert len(_items) >= 1
-
-			options = self.attributes.get('options', {}) or {}
-			__traceback_info__ = options, self.attributes
-			for k, v in options.items():
-				setattr(self, k, v)
-		return tok
-
-class ntisequenceref(Base.Crossref.ref):
-	args = '[options:dict] label:idref'
-
+# side bars
 
 class ntidirectionsblock(Base.Command):
 	args = 'directions example lang_code:str:source'
