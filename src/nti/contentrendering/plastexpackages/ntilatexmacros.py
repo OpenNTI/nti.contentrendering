@@ -105,6 +105,12 @@ from nti.contentrendering.plastexpackages.ntiexternalgraphics import ntiexternal
 
 ntiexternalgraphics = ntiexternalgraphics
 
+# refs
+
+class simpleref(base_href):
+	pass
+
+
 ###############################################################################
 # The following block of commands concern media resource handling
 ###############################################################################
