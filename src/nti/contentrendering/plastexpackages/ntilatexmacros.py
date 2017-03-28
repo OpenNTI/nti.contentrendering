@@ -246,32 +246,6 @@ class ntipagenum(_OneText):
 class ntiglossaryterm(Base.Command):
 	args = 'term self'
 
-class ntihref(base_href):
-	args = '[options:dict] url:url self'
-
-	def invoke(self, tex):
-		_t = super(ntihref, self).invoke(tex)
-		if 'options' not in self.attributes or not self.attributes['options']:
-			self.attributes['options'] = {}
-		options = self.attributes.get('options')
-		self.attributes['nti-requirements'] = u''
-		requirements = options.get('nti-requirements', u'').split()
-		for requirement in requirements:
-			if requirement == u'flash':
-				requirement = u'mime-type:application/x-shockwave-flash'
-			self.attributes['nti-requirements'] = ' '.join([self.attributes['nti-requirements'], requirement])
-		self.attributes['nti-requirements'] = self.attributes['nti-requirements'].strip()
-		if self.attributes['nti-requirements'] == u'':
-			self.attributes['nti-requirements'] = None
-
-		return _t
-
-class ntiimagehref(Base.Command):
-	args = 'img url'
-
-class ntifancyhref(Base.Command):
-	args = 'url:str:source self class'
-
 class textsuperscript(Base.Command):
 	args = 'self'
 
@@ -460,6 +434,20 @@ ntidiscussion = ntidiscussion
 ntidiscussionref = ntidiscussionref
 ntidiscussionname = ntidiscussionname
 
+# refs
+
+from nti.contentrendering.plastexpackages.ntihyperref import ntihref
+from nti.contentrendering.plastexpackages.ntihyperref import ntiidref
+from nti.contentrendering.plastexpackages.ntihyperref import simpleref
+from nti.contentrendering.plastexpackages.ntihyperref import ntifancyhref
+from nti.contentrendering.plastexpackages.ntihyperref import ntiimagehref
+
+ntihref = ntihref
+ntiidref = ntiidref
+simpleref = simpleref
+ntifancyhref = ntifancyhref
+ntiimagehref = ntiimagehref
+
 # Sequence
 
 class ntisequenceitem(LocalContentMixin, Base.Environment):
@@ -533,13 +521,6 @@ class audiosidebar(sidebar):
 
 class ntigraphicsidebar(sidebar):
 	args = 'title graphic_class:str:source'
-
-class ntiidref(Base.Crossref.ref):
-	"""
-	Used for producing a cross-document link, like a normal
-	ref, but output as an NTIID.
-	"""
-	macroName = 'ntiidref'
 
 @interface.implementer(resource_interfaces.IRepresentableContentUnit,
 		       resource_interfaces.IRepresentationPreferences)

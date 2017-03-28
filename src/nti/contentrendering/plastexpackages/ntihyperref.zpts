@@ -1,0 +1,16 @@
+# -*- mode: html -*-
+
+name: simplehref
+<a tal:attributes="href self/attributes/url; tal:content="self">simple text</a>
+
+name: ntihref
+<a tal:attributes="class self/attributes/class; href self/attributes/url; data-nti-requirements self/attributes/nti-requirements | nothing" tal:content="self">Link Text</a>
+
+name: ntiimagehref
+<a class="thumb" tal:attributes="href self/attributes/url"><img tal:attributes="src self/attributes/img"></a>
+
+name: ntifancyhref
+<a tal:attributes="class self/attributes/class; href self/attributes/url" tal:content="self">Link Text</a>
+
+name: ntiidref
+<a tal:attributes="href self/idref/label/embedded_doc_cross_ref_url|self/idref/label/ntiid" tal:content="self/idref/label/title">#.#.#</a>
