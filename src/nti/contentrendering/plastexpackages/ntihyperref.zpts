@@ -1,7 +1,7 @@
 # -*- mode: html -*-
 
 name: simplehref
-<a tal:attributes="href self/attributes/url; tal:content="self">simple text</a>
+<a tal:attributes="href self/attributes/url" tal:content="self">simple text</a>
 
 name: ntihref
 <a tal:attributes="class self/attributes/class; href self/attributes/url; data-nti-requirements self/attributes/nti-requirements | nothing" tal:content="self">Link Text</a>
