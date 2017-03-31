@@ -254,8 +254,8 @@ def parse_tex(sourceFile,
                                           context=xml_conf_context)
 
     # Instantiate the TeX processor
-    with codecs.open(sourceFile, 'r', encoding, 'replace') as fp:
-        tex = TeX(document, file=fp)
+    fp = codecs.open(sourceFile, 'r', encoding, 'replace')
+    tex = TeX(document, file=fp)
 
     # Populate variables for use later
     jobname = tex.jobname
