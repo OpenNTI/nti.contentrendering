@@ -10,6 +10,7 @@ __docformat__ = "restructuredtext en"
 import os
 import sys
 import glob
+import codecs
 import string
 import datetime
 
@@ -224,7 +225,8 @@ def parse_tex(sourceFile,
               load_configs=True,
               perform_transforms=True,
               set_chameleon_cache=True,
-              xml_conf_context=None):
+              xml_conf_context=None,
+              encoding='utf-8'):
 
     source_dir, packages_path, xml_conf_context = \
         prepare_xml_context(sourceFile, xml_conf_context, load_configs)
@@ -252,7 +254,8 @@ def parse_tex(sourceFile,
                                           context=xml_conf_context)
 
     # Instantiate the TeX processor
-    tex = TeX(document, file=sourceFile)
+    with codecs.open(sourceFile, 'r', encoding, 'replace') as fp:
+        tex = TeX(document, file=fp)
 
     # Populate variables for use later
     jobname = tex.jobname
