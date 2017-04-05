@@ -13,15 +13,16 @@ name: maketitle
 	</div>
 	<div tal:condition="metadata/date" tal:content="metadata/date">date</div>
 	<div tal:condition="metadata/thanks" tal:content="metadata/thanks">thanks</div>
+	<div tal:condition="metadata/description" tal:content="metadata/description">description</div>
 </div>
 
 # TODO: Should we use HTML5 microdata to include the NTIID?
 
 name: part chapter section
 <div tal:attributes="id self/id; ntiid self/ntiid; data-ntiid self/ntiid">
-<div class="chapter title" tal:content="self/title">Morbi metus pede, imperdiet vitae</div>
-<p class="placeholder"></p>
-<p tal:replace="self"></p>
+	<div class="chapter title" tal:content="self/title">Morbi metus pede, imperdiet vitae</div>
+	<p class="placeholder"></p>
+	<p tal:replace="self"></p>
 </div>
 
 
