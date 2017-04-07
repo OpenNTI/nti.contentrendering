@@ -10,6 +10,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 import os
+import hashlib
 
 from zope import interface
 
@@ -23,11 +24,14 @@ from plasTeX.Renderers import render_children
 
 from nti.contentfragments.interfaces import HTMLContentFragment
 
+from nti.contentprocessing._compat import unicode_
+
 from nti.contentrendering.plastexids import NTIIDMixin
 
 from nti.contentrendering.resources.interfaces import IRepresentableContentUnit
 from nti.contentrendering.resources.interfaces import IRepresentationPreferences
 
+from nti.contentrendering.plastexpackages._util import OneText
 from nti.contentrendering.plastexpackages._util import LocalContentMixin
 from nti.contentrendering.plastexpackages._util import incoming_sources_as_plain_text
 
@@ -201,8 +205,8 @@ class ntiaudio(ntimedia):
             # Try to extract the text children, ignoring the caption and
             # label...
             if      child.nodeType == self.TEXT_NODE \
-                    and (child.parentNode == self or child.parentNode.nodeName == 'par'):
-                texts.append(unicode(child))
+                and (child.parentNode == self or child.parentNode.nodeName == 'par'):
+                texts.append(unicode_(child))
         return incoming_sources_as_plain_text(texts)
 
     @readproperty
@@ -223,6 +227,7 @@ class ntiaudioref(ntimediaref):
 
 
 # video
+
 
 class ntivideoname(Command):
     unicode = ''
@@ -355,9 +360,9 @@ class ntivideo(ntimedia):
         texts = []
         for child in self.allChildNodes:
             # Try to extract the text children, ignoring the caption and label
-            if     child.nodeType == self.TEXT_NODE and \
-                    (child.parentNode == self or child.parentNode.nodeName == 'par'):
-                texts.append(unicode(child))
+            if      child.nodeType == self.TEXT_NODE \
+                and (child.parentNode == self or child.parentNode.nodeName == 'par'):
+                texts.append(unicode_(child))
         return incoming_sources_as_plain_text(texts)
 
     @readproperty
@@ -489,3 +494,78 @@ class ntivideoroll(ntimediacollection):
         if contents:
             _first = contents[0].media.poster
         return self._poster_override if self._poster_override else _first
+
+
+# legacy
+
+
+class ntiincludevideo(OneText):
+
+    args = '[options:dict] video_url:url'
+
+    def invoke(self, tex):
+        result = super(ntiincludevideo, self).invoke(tex)
+        options = self.attributes.get('options', None) or {}
+
+        # Set the id of the element
+        source = self.source
+        uid = hashlib.md5(source.strip().encode('utf-8')).hexdigest()
+        setattr(self, "@id", uid)
+        setattr(self, "@hasgenid", True)
+
+        # change youtube view links to embed
+        if hasattr(self.attributes['video_url'], 'source'):
+            video_url = self.attributes['video_url'] \
+                        .source.replace(' ', '') \
+                        .replace('\\&', '&') \
+                        .replace('\\_', '_') \
+                        .replace('\\%', '%') \
+                        .replace(u'\u2013', u'--') \
+                        .replace(u'\u2014', u'---')
+            self.attributes['video_url']  = video_url
+
+        video_url = self.attributes['video_url']
+        self.attributes['video_url'] = video_url.replace("/watch?v=", '/embed/')
+        
+        self.width = options.get('width') or u'640px'
+        self.height =  options.get('height') \
+                    or unicode_(str((int(self.width.replace('px', '')) / 640) * 360)) + 'px'
+
+        video_url = self.attributes['video_url'].split('/')
+        if 'youtube' in video_url[2]:
+            # TODO: See https://github.com/coleifer/micawber
+            # for handling this; our poster and thumbnail are just guesses.
+            self.attributes['service'] = 'youtube'
+            self.attributes['video_id'] = video_url[len(video_url) - 1].split('?')[0]
+            self.attributes['poster'] = '//img.youtube.com/vi/' + \
+                                        self.attributes['video_id'] + '/0.jpg'
+            self.attributes['thumbnail'] = '//img.youtube.com/vi/' + \
+                                            self.attributes['video_id'] + '/1.jpg'
+        return result
+
+
+# This command is a HACK to work around issues in the web app and pad with in-line
+# Kaltura videos in the content.
+class ntiincludekalturavideo(Command):
+
+    args = '[ options:dict ] video_id:str'
+
+    def digest(self, tokens):
+        res = super(ntiincludekalturavideo, self).digest(tokens)
+        options = self.attributes.get('options', {}) or {}
+        __traceback_info__ = options, self.attributes
+
+        video = self.attributes.get('video_id').split(':')
+
+        partner_id = video[0]
+        subpartner_id = video[0] + u'00'
+
+        entry_id = video[1]
+        uiconf_id = u'16401392'
+        player_id = u'kaltura_player_' + video[1]
+        self.video_source = \
+                "https://cdnapisec.kaltura.com/p/%s/sp/%s/embedIframeJs/uiconf_id/%s/partner_id/%s?iframeembed=true&playerId=%s&entry_id=%s&flashvars[streamerType]=auto" % \
+                (partner_id, subpartner_id, uiconf_id, partner_id, player_id, entry_id)
+        self.width = u'640'
+        self.height = u'390'
+        return res

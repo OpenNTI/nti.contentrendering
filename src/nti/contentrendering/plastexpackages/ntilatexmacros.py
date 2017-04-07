@@ -114,66 +114,13 @@ class simpleref(base_href):
 # The following block of commands concern media resource handling
 ###############################################################################
 
+# legacy 
 
-class ntiincludevideo(_OneText):
-	args = '[options:dict] video_url:url'
+from nti.contentrendering.plastexpackages.ntimedia import ntiincludevideo
+from nti.contentrendering.plastexpackages.ntimedia import ntiincludekalturavideo
 
-	def invoke( self, tex ):
-		result = super(ntiincludevideo, self).invoke( tex )
-		options = self.attributes.get('options', None) or {}
-
-		# Set the id of the element
-		source = self.source
-		_id = hashlib.md5(source.strip().encode('utf-8')).hexdigest()
-		setattr( self, "@id", _id )
-		setattr( self, "@hasgenid", True )
-
-		# change youtube view links to embed
-		if hasattr(self.attributes['video_url'], 'source'):
-			self.attributes['video_url'] = self.attributes['video_url'].source.replace(' ', '') \
-										.replace('\\&', '&') \
-										.replace('\\_', '_') \
-										.replace('\\%', '%') \
-										.replace(u'\u2013', u'--') \
-										.replace(u'\u2014', u'---')
-
-		self.attributes['video_url'] = self.attributes['video_url'].replace( "/watch?v=", '/embed/' )
-		self.width = options.get('width') or u'640px'
-		self.height = options.get('height') or unicode((int(self.width.replace('px',''))/640) * 360)+'px'
-		_t = self.attributes['video_url'].split('/')
-		if 'youtube' in _t[2]:
-			# TODO: See https://github.com/coleifer/micawber
-			# for handling this; our poster and thumbnail are just
-			# guesses.
-			self.attributes['service'] = 'youtube'
-			self.attributes['video_id'] = _t[len(_t)-1].split('?')[0]
-			self.attributes['poster'] = '//img.youtube.com/vi/' + self.attributes['video_id'] + '/0.jpg'
-			self.attributes['thumbnail'] = '//img.youtube.com/vi/' + self.attributes['video_id'] + '/1.jpg'
-		return result
-
-# This command is a HACK to work around issues in the web app and pad with in-line
-# Kaltura videos in the content.
-class ntiincludekalturavideo(Command):
-	args = '[ options:dict ] video_id:str'
-
-	def digest(self, tokens):
-		res = super(ntiincludekalturavideo, self).digest(tokens)
-
-		options = self.attributes.get( 'options', {} ) or {}
-		__traceback_info__ = options, self.attributes
-
-		video = self.attributes.get( 'video_id' ).split(':')
-
-		partner_id = video[0]
-		subpartner_id = video[0] + u'00'
-		uiconf_id = u'16401392'
-		player_id = u'kaltura_player_' + video[1]
-		entry_id = video[1]
-		self.video_source = "https://cdnapisec.kaltura.com/p/%s/sp/%s/embedIframeJs/uiconf_id/%s/partner_id/%s?iframeembed=true&playerId=%s&entry_id=%s&flashvars[streamerType]=auto" % \
-							(partner_id, subpartner_id, uiconf_id, partner_id, player_id, entry_id)
-		self.width = u'640'
-		self.height = u'390'
-		return res
+ntiincludevideo = ntiincludevideo
+ntiincludekalturavideo = ntiincludekalturavideo
 
 # media resources
 
