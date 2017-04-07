@@ -23,7 +23,7 @@ from zope.deprecation import deprecate
 from plasTeX.ConfigManager import NoOptionError
 from plasTeX.ConfigManager import NoSectionError
 
-from nti.base._compat import unicode_
+from nti.contentprocessing._compat import unicode_
 
 from nti.ntiids.ntiids import make_ntiid
 from nti.ntiids.ntiids import make_specific_safe

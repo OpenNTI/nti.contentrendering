@@ -12,7 +12,7 @@ logger = __import__('logging').getLogger(__name__)
 
 import io
 
-from nti.base._compat import unicode_
+from nti.contentprocessing._compat import unicode_
 
 
 def minidom_writexml(document, outfile, encoding=u'utf-8'):
