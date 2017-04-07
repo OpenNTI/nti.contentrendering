@@ -1,27 +1,19 @@
 # -*- mode: html -*-
 
-name: ntiincludevideo
-# The things we have links to right now we embed as iframes. This
-# will need to get smarter as there are more types. Note that WebKit
-# refuses to load iframes properly from on-disk files.
-#<video tal:attributes="src self/attributes/text" />
-# NOTE that this must stay consistent with sectionvideoadder.py (TODO: Can we use this template?)
-<div class="externalvideo" tal:attributes="id self/id"><iframe tal:attributes="width self/width; height self/height; src self/attributes/video_url" frameborder="0" allowfullscreen="true" webkitallowfullscreen mozAllowFullScreen></iframe></div>
-
-name: ntiincludekalturavideo
-<iframe tal:attributes="src self/video_source; width self/width; height self/height" allowfullscreen webkitallowfullscreen mozAllowFullScreen frameborder="0"></iframe>
-
 name: ntiimagecollection
 <object type="application/vnd.nextthought.image-collection" tal:attributes="data-ntiid self/ntiid; data self/ntiid">
-<param name="ntiid" value="the-ntiid" tal:attributes="value self/ntiid" />
-<param name="title" value="title" tal:condition="self/title" tal:attributes="value self/title" />
-<param name="description" value="description" tal:condition="self/description" tal:attributes="value self/description" />
-<param name="poster" value="poster image" tal:condition="self/poster" tal:attributes="value self/poster" />
-<span tal:replace="self"></span>
+	<param name="ntiid" value="the-ntiid" tal:attributes="value self/ntiid" />
+	<param name="title" value="title" tal:condition="self/title" tal:attributes="value self/title" />
+	<param name="description" value="description" tal:condition="self/description" tal:attributes="value self/description" />
+	<param name="poster" value="poster image" tal:condition="self/poster" tal:attributes="value self/poster" />
+	<span tal:replace="self"></span>
 </object>
 
 name: vfrac
-<span class="vfrac"><sup class="nom" tal:content="self/attributes/nom"></sup><span class="divider">&#47;</span><sub class="denom" tal:content="self/attributes/denom"></sub></span>
+<span class="vfrac">
+	<sup class="nom" tal:content="self/attributes/nom"></sup><span class="divider">&#47;</span>
+	<sub class="denom" tal:content="self/attributes/denom"></sub>
+</span>
 
 name: textsuperscript
 <sup tal:content="self"></sup>
