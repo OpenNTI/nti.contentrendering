@@ -277,6 +277,6 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
         for child in self.allChildNodes:
             # extract the text children, ignoring the caption and label, etc
             if      child.nodeType == self.TEXT_NODE \
-                    and (child.parentNode == self or child.parentNode.nodeName == 'par'):
+                and (child.parentNode == self or child.parentNode.nodeName == 'par'):
                 texts.append(unicode(child))
         return incoming_sources_as_plain_text(texts)
