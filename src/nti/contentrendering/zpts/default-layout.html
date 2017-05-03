@@ -15,7 +15,7 @@
 		<link tal:condition="links/up" rel="up" tal:attributes="href links/up/url; title links/up/title/textContent | nothing" />
 		<link rel="stylesheet" href="styles/styles.css" />
 		<link rel="stylesheet" href="styles/content.css" />
-		<script tal:condition="python: not self.ownerDocument.userdata.has_key('transform_process')" type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+		<script tal:condition="python: not self.ownerDocument.userdata.has_key('transform_process')" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.4.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 		<script tal:condition="python: not self.ownerDocument.userdata.has_key('transform_process')" type="text/javascript" src="js/mathjaxconfig.js"></script>
 		<!--!
 		anything in this file that 404s breaks the mirror process, so be very careful to
