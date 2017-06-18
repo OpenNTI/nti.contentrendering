@@ -118,7 +118,7 @@ class PDF2SVG(plasTeX.Imagers.VectorImager):
 
 		filenames = []
 		with ProcessPoolExecutor(max_workers=16) as executor:
-			for filename in executor.map(_do_convert, xrange(1, maxpages + 1)):
+			for filename in executor.map(_do_convert, range(1, maxpages + 1)):
 				filenames.append(filename)
 
 		return 0, filenames

@@ -154,7 +154,7 @@ class _GSPDFPNG2(plasTeX.Imagers.gspdfpng.GSPDFPNG):
 		#maxpages = int(subprocess.Popen( "pdfinfo images.out | grep Pages | awk '{print $2}'", shell=True, stdout=subprocess.PIPE).communicate()[0])
 		# Record the fact that we've cropped them (in parallel, getting the size takes time)
 		## with ProcessPoolExecutor() as executor:
-		## 	for the_tuple in executor.map( _size, xrange(1, maxpages + 1 ), self.images.keys() ):
+		## 	for the_tuple in executor.map( _size, range(1, maxpages + 1 ), self.images.keys() ):
 		## 		img = self.images[the_tuple[0]]
 		## 		img._cropped = True
 		## 		img.width = math.ceil( float(the_tuple[1]) ) * 1.3
