@@ -5,14 +5,14 @@ Utilities for working with :mod:`xml.dom.minidom` objects.
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
 import io
 
-from nti.contentprocessing._compat import unicode_
+from nti.contentprocessing._compat import text_
 
 
 def minidom_writexml(document, outfile, encoding=u'utf-8'):
@@ -27,7 +27,7 @@ def minidom_writexml(document, outfile, encoding=u'utf-8'):
 
         def write(self, x):
             if isinstance(x, str):
-                x = unicode_(x)
+                x = text_(x)
             self._under.write(x)
 
     with io.open(outfile, "w", encoding=encoding) as f:
