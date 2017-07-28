@@ -282,8 +282,8 @@ class ntivideo(ntimedia):
                     self.service = 'html5'
                     self.src['mp4'] = vid + '.mp4'
                     self.src['webm'] = vid + '.webm'
-                    self.poster = vid + '-poster.jpg'
-                    self.thumbnail = vid + '-thumb.jpg'
+                    self.poster = vid + '-poster.png'
+                    self.thumbnail = vid + '-thumb.png'
                 elif self.attributes['service'] == 'kaltura':
                     self.service = 'kaltura'
                     self.src['other'] = vid
