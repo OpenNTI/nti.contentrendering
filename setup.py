@@ -1,8 +1,6 @@
 import codecs
 from setuptools import setup, find_packages
 
-VERSION = '0.0.0'
-
 entry_points = {
     'console_scripts': [
         "nti_render = nti.contentrendering.nti_render:main",
@@ -17,26 +15,27 @@ entry_points = {
 }
 
 TESTS_REQUIRE = [
-    'nose',
-    'nose-timer',
-    'nose-pudb',
-    'nose-progressive',
-    'nose2[coverage_plugin]',
     'pyhamcrest',
-    'zope.testing',
-    'nti.nose_traceback_info',
-    'nti.testing'
+    'nti.testing',
+    'zope.testrunner',
 ]
+
+
+def _read(fname):
+    with codecs.open(fname, encoding='utf-8') as f:
+        return f.read()
+
 
 setup(
     name='nti.contentrendering',
-    version=VERSION,
+    version=_read('version.txt').strip(),
     author='Jason Madden',
     author_email='jason@nextthought.com',
     description="NTI Content Rendering",
-    long_description=codecs.open('README.rst', encoding='utf-8').read(),
-    license='Proprietary',
-    keywords='Content LaTeX Rendering',
+    long_description=(_read('README.rst') + '\n\n' + _read("CHANGES.rst")),
+    url="https://github.com/NextThought/nti.contentrendering",
+    license='Apache',
+    keywords='content latec rendering',
     classifiers=[
         'Intended Audience :: Developers',
         'Natural Language :: English',
@@ -45,8 +44,10 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: Implementation :: CPython'
     ],
+    zip_safe=True,
     packages=find_packages('src'),
     package_dir={'': 'src'},
+    include_package_data=True,
     namespace_packages=['nti'],
     tests_require=TESTS_REQUIRE,
     install_requires=[
@@ -97,7 +98,6 @@ setup(
     extras_require={
         'test': TESTS_REQUIRE,
     },
-    dependency_links=[
-    ],
+    dependency_links=[],
     entry_points=entry_points
 )
