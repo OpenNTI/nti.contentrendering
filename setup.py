@@ -35,7 +35,7 @@ setup(
     long_description=(_read('README.rst') + '\n\n' + _read("CHANGES.rst")),
     url="https://github.com/NextThought/nti.contentrendering",
     license='Apache',
-    keywords='content latec rendering',
+    keywords='content latex rendering',
     classifiers=[
         'Intended Audience :: Developers',
         'Natural Language :: English',
