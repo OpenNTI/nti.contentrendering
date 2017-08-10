@@ -125,3 +125,6 @@ name: ntiembedwidget
     <param name="no-sandboxing" tal:attributes="value self/attributes/no-sandboxing" tal:condition="self/attributes/no-sandboxing"/>
 </object>
 
+name: realpagenumber
+<realpagenumber tal:attributes="value self/pagenumber"/>
+

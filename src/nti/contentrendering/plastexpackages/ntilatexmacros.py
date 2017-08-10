@@ -514,6 +514,29 @@ class ntiembedwidget(Command, plastexids.NTIIDMixin):
 			self.attributes['uidname'] = self.attributes['uid-name'] = uidname
 		return res
 
+class realpagenumbername(Command):
+	pass
+
+class realpagenumber(Command):
+	args = 'pagenumber:str'
+	blockType = False
+
+	counter = 'realpagenumber'
+	_pagenumber = ''
+
+	def invoke(self, tex):
+		result = super(Command, self).invoke(tex)
+		if self.attributes['pagenumber']:
+			self._pagenumber = self.attributes['pagenumber']
+			self.counter = ''
+		else :
+			self._pagenumber = self.ownerDocument.context.counters[self.counter].value
+		return result
+
+	@readproperty
+	def pagenumber(self):
+		return self._pagenumber
+
 
 def ProcessOptions(options, document):
 	document.context.newcounter('nticard')
@@ -528,6 +551,7 @@ def ProcessOptions(options, document):
 	document.context.newcounter('ntidiscussion')
 	document.context.newcounter('ntiimagecollection')
 	document.context.newcounter('relatedworkref', initial=-1)
+	document.context.newcounter('realpagenumber')
 
 from plasTeX.interfaces import IOptionAwarePythonPackage
 interface.moduleProvides(IOptionAwarePythonPackage)
