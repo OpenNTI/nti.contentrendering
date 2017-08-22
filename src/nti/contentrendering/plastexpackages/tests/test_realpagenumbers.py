@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 # disable: accessing protected members, too many methods
@@ -21,14 +21,14 @@ from nti.contentrendering.tests import buildDomFromString as _buildDomFromString
 
 def _simpleLatexDocument(maths):
     return simpleLatexDocumentText(
-                  preludes=(br'\usepackage{nti.contentrendering.plastexpackages.ntilatexmacros}',),
+                  preludes=(r'\usepackage{nti.contentrendering.plastexpackages.ntilatexmacros}',),
                             bodies=maths)
 
 
 class TestRealPageNumber(unittest.TestCase):
 
     def test_autoincrement(self):
-        example = br"""
+        example = r"""
             \realpagenumber{}
             \realpagenumber{}
             \realpagenumber{}
@@ -48,7 +48,7 @@ class TestRealPageNumber(unittest.TestCase):
         assert_that(elems[3].pagenumber, is_(4))
 
     def test_manualnumber(self):
-        example = br"""
+        example = r"""
             \realpagenumber{A-1}
             \realpagenumber{A-2}
             \realpagenumber{A-3}
