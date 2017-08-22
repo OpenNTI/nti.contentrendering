@@ -6,7 +6,7 @@ Define NTI Latex Macros
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -19,14 +19,14 @@ from zope import interface
 from zope.cachedescriptors.property import readproperty
 
 from plasTeX import Base
-from plasTeX import Command 
-from plasTeX import Environment 
+from plasTeX import Command
+from plasTeX import Environment
 from plasTeX import TeXFragment
 
 from plasTeX.Base import TextCommand
 
 from plasTeX.Packages.hyperref import href as base_href
-		
+
 from nti.contentrendering import plastexids
 
 from nti.contentrendering.plastexpackages._util import _OneText
@@ -60,7 +60,7 @@ from nti.contentrendering.plastexpackages.eurosym import euro
 eur = eur
 euro = euro
 
-# sectioning 
+# sectioning
 
 from nti.contentrendering.plastexpackages.ntisectioning import fakesection
 from nti.contentrendering.plastexpackages.ntisectioning import fakesubsection
@@ -106,15 +106,16 @@ ntiexternalgraphics = ntiexternalgraphics
 
 # refs
 
+
 class simpleref(base_href):
-	pass
+    pass
 
 
 ###############################################################################
 # The following block of commands concern media resource handling
 ###############################################################################
 
-# legacy 
+# legacy
 
 from nti.contentrendering.plastexpackages.ntimedia import ntiincludevideo
 from nti.contentrendering.plastexpackages.ntimedia import ntiincludekalturavideo
@@ -164,161 +165,209 @@ ntilocalvideoname = ntilocalvideoname
 
 # include raphics
 
+
 class ntiincludeannotationgraphics(includegraphics):
 
-	@readproperty
-	def caption(self):
-		if self.title:
-			title = TeXFragment()
-			title.parentNode = self
-			title.ownerDocument = self.ownerDocument
-			title.appendChild(self.title)
-			return title
+    @readproperty
+    def caption(self):
+        if self.title:
+            title = TeXFragment()
+            title.parentNode = self
+            title.ownerDocument = self.ownerDocument
+            title.appendChild(self.title)
+            return title
+
 
 class ntiincludenoannotationgraphics(includegraphics):
 
-	@readproperty
-	def caption(self):
-		if self.title:
-			title = TeXFragment()
-			title.parentNode = self
-			title.ownerDocument = self.ownerDocument
-			title.appendChild(self.title)
-			return title
+    @readproperty
+    def caption(self):
+        if self.title:
+            title = TeXFragment()
+            title.parentNode = self
+            title.ownerDocument = self.ownerDocument
+            title.appendChild(self.title)
+            return title
+
 
 class ntipagenum(_OneText):
-	pass
+    pass
+
 
 class ntiglossaryterm(Base.Command):
-	args = 'term self'
+    args = 'term self'
+
 
 class textsuperscript(Base.Command):
-	args = 'self'
+    args = 'self'
+
 
 class textsubscript(Base.Command):
-	args = 'self'
+    args = 'self'
 
 # Custom text treatments
+
+
 class modified(TextCommand):
-	pass
+    pass
 
 # The following are LaTeX 2e escape commands
 
+
 class backslash(Base.Command):
-	unicode = u'\u005C'
+    unicode = u'\u005C'
 
 # The following 'text' symbols are 'Predefined' LaTeX 2e commands
 
+
 class textcopyright(Base.Command):
-	unicode = u'\u00A9'
+    unicode = u'\u00A9'
+
 
 class textgreater(Base.Command):
-	unicode = u'\u003E'
+    unicode = u'\u003E'
+
 
 class textless(Base.Command):
-	unicode = u'\u003C'
+    unicode = u'\u003C'
+
 
 class textregistered(Base.Command):
-	unicode = u'\u00AE'
+    unicode = u'\u00AE'
+
 
 class texttrademark(Base.Command):
-	unicode = u'\u2122'
+    unicode = u'\u2122'
 
 # The following 'text' symbols are from the textcomp package.
 
+
 class textapprox(Base.Command):
-	unicode = u'\u2248'
+    unicode = u'\u2248'
+
 
 class textdegree(Base.Command):
-	unicode = u'\u00B0'
+    unicode = u'\u00B0'
+
 
 class textdiv(Base.Command):
-	unicode = u'\u00F7'
+    unicode = u'\u00F7'
+
 
 class textminus(Base.Command):
-	unicode = u'\u2212'
+    unicode = u'\u2212'
+
 
 class textpm(Base.Command):
-	unicode = u'\u00B1'
+    unicode = u'\u00B1'
+
 
 class textrightarrow(Base.Command):
-	unicode = u'\u2192'
+    unicode = u'\u2192'
+
 
 class textsmiley(Base.Command):
-	unicode = u'\u263A'
+    unicode = u'\u263A'
+
 
 class texttimes(Base.Command):
-	unicode = u'\u00D7'
+    unicode = u'\u00D7'
 
 # The following 'text' commands are custom and specific to NTI
+
+
 class textangle(Base.Command):
-	unicode = u'\u2220'
+    unicode = u'\u2220'
+
 
 class textcong(Base.Command):
-	unicode = u'\u2245'
+    unicode = u'\u2245'
+
 
 class textge(Base.Command):
-	unicode = u'\u2265'
+    unicode = u'\u2265'
+
 
 class textle(Base.Command):
-	unicode = u'\u2264'
+    unicode = u'\u2264'
+
 
 class textneq(Base.Command):
-	unicode = u'\u2260'
+    unicode = u'\u2260'
+
 
 class textparallel(Base.Command):
-	unicode = u'\u2016'
+    unicode = u'\u2016'
+
 
 class textsurd(Base.Command):
-	unicode = u'\u221A'
+    unicode = u'\u221A'
+
 
 class textperp(Base.Command):
-	unicode = u'\u22A5'
+    unicode = u'\u22A5'
+
 
 class textinfty(Base.Command):
-	unicode = u'\u221E'
+    unicode = u'\u221E'
+
 
 class textprime(Base.Command):
-	unicode = u'\u2032'
+    unicode = u'\u2032'
+
 
 class textsim(Base.Command):
-	unicode = u'\u007E'
+    unicode = u'\u007E'
+
 
 class textsquare(Base.Command):
-	unicode = u'\u25A1'
+    unicode = u'\u25A1'
+
 
 class texttriangle(Base.Command):
-	unicode = u'\u25B3'
+    unicode = u'\u25B3'
+
 
 class textdoublehyphen(Command):
-	unicode = u'\u002D' + u'\u002D'
+    unicode = u'\u002D' + u'\u002D'
+
 
 class textcelsius(Base.Command):
-	unicode = u'\u2103'
+    unicode = u'\u2103'
+
 
 class textfahrenheit(Base.Command):
-	unicode = u'\u2109'
+    unicode = u'\u2109'
 
 # Currency symbols
+
+
 class yen(Base.Command):
-	unicode = u'\xA5'
+    unicode = u'\xA5'
+
 
 class textcent(Base.Command):
-	unicode = u'\xA2'
+    unicode = u'\xA2'
 
 # Handle pdfLatex primatives
+
+
 class pdfminorversion(Command):
-	args = 'version:int'
+    args = 'version:int'
 
 # Handle latex commands that make no sense in a web layout
+
+
 class flushbottom(Command):
-	args = ''
+    args = ''
+
 
 class nobreak(Base.Command):
-	args = 'self'
+    args = 'self'
+
 
 class vfrac(Base.Command):
-	args = 'nom denom'
+    args = 'nom denom'
 
 
 # common
@@ -347,21 +396,26 @@ ntisequenceitem = ntisequenceitem
 
 # Image collections
 
+
 class ntiimagecollectionname(Base.Command):
-	pass
+    pass
+
 
 class ntiimagecollection(ntimediacollection):
-	counter = "ntiimagecollection"
-	_ntiid_cache_map_name = '_ntiimagecollection_ntiid_map'
-	_ntiid_allow_missing_title = True
-	_ntiid_suffix = 'ntiimagecollection.'
-	_ntiid_title_attr_name = 'ref'
-	_ntiid_type = 'NTIIC'
+    counter = "ntiimagecollection"
+
+    _ntiid_type = u'NTIIC'
+    _ntiid_title_attr_name = 'ref'
+    _ntiid_allow_missing_title = True
+    _ntiid_suffix = u'ntiimagecollection.'
+    _ntiid_cache_map_name = '_ntiimagecollection_ntiid_map'
+
 
 class ntipreviouspage(Base.Command):
-	pass
+    pass
 
 # Cards
+
 
 from nti.contentrendering.plastexpackages.nticard import nticard
 from nti.contentrendering.plastexpackages.nticard import nticardname
@@ -407,151 +461,169 @@ ntiimagehref = ntiimagehref
 
 # side bars
 
-class ntidirectionsblock(Base.Command):
-	args = 'directions example lang_code:str:source'
-	blockType = True
 
-# The sidebar environment is to be the base class for other side types such as those from AoPS.
+class ntidirectionsblock(Base.Command):
+    args = 'directions example lang_code:str:source'
+    blockType = True
+
+# The sidebar environment is to be the base class for other side types
+# such as those from AoPS.
+
+
 class sidebarname(Command):
-	unicode = ''
+    unicode = ''
+
 
 class sidebar(Environment, plastexids.NTIIDMixin):
-	args = 'title'
-	blockType = True
+    args = 'title'
+    blockType = True
 
-	counter = 'sidebar'
-	_ntiid_cache_map_name = '_sidebar_ntiid_map'
-	_ntiid_allow_missing_title = True
-	_ntiid_suffix = 'sidebar.'
-	_ntiid_title_attr_name = 'title'
-	_ntiid_type = 'HTML:NTISidebar'
-	embedded_doc_cross_ref_url = property(plastexids._embedded_node_cross_ref_url)
+    counter = 'sidebar'
+
+    _ntiid_suffix = u'sidebar.'
+    _ntiid_title_attr_name = 'title'
+    _ntiid_type = u'HTML:NTISidebar'
+    _ntiid_allow_missing_title = True
+    _ntiid_cache_map_name = '_sidebar_ntiid_map'
+
+    embedded_doc_cross_ref_url = property(plastexids._embedded_node_cross_ref_url)
+
 
 class flatsidebar(sidebar):
-	pass
+    pass
+
 
 class audiosidebar(sidebar):
-	args = 'audioref'
+    args = 'audioref'
+
 
 class ntigraphicsidebar(sidebar):
-	args = 'title graphic_class:str:source'
+    args = 'title graphic_class:str:source'
+
 
 @interface.implementer(resource_interfaces.IRepresentableContentUnit,
-		       resource_interfaces.IRepresentationPreferences)
+                       resource_interfaces.IRepresentationPreferences)
 class ntifileview(Command, plastexids.NTIIDMixin):
-	args = '[options:dict] src:str:source self class'
-	resourceTypes = ( 'html_wrapped', )
+    args = '[options:dict] src:str:source self class'
+    resourceTypes = ('html_wrapped', )
 
-	counter = 'fileview'
-	_ntiid_cache_map_name = '_fileview_ntiid_map'
-	_ntiid_allow_missing_title = True
-	_ntiid_suffix = 'fileview.'
-	_ntiid_title_attr_name = 'src'
-	_ntiid_type = 'HTML:FileView'
+    counter = 'fileview'
+    _ntiid_cache_map_name = '_fileview_ntiid_map'
+    _ntiid_allow_missing_title = True
+    _ntiid_suffix = u'fileview.'
+    _ntiid_title_attr_name = 'src'
+    _ntiid_type = u'HTML:FileView'
 
-	def invoke( self, tex ):
-		result = super(ntifileview, self).invoke( tex )
-		self.attributes['src'] = os.path.join(
-			self.ownerDocument.userdata.getPath('working-dir'), self.attributes['src'])
-		self.attributes['presentation'] = 'popup'
-		return result
+    def invoke(self, tex):
+        result = super(ntifileview, self).invoke(tex)
+        self.attributes['src'] = os.path.join(self.ownerDocument.userdata.getPath('working-dir'), 
+                                              self.attributes['src'])
+        self.attributes['presentation'] = 'popup'
+        return result
+
 
 class embedwidgetname(Command):
-	pass
+    pass
+
 
 class ntiembedwidget(Command, plastexids.NTIIDMixin):
-	args = '[ options:dict ] url:str:source <splash:str:source>'
-	blockType = True
+    args = '[ options:dict ] url:str:source <splash:str:source>'
+    blockType = True
 
-	counter = 'embedwidget'
-	_ntiid_type = 'EmbedWidget'
-	_ntiid_suffix = 'embedwidget.'
-	_ntiid_cache_map_name = '_embedwidget_ntiid_map'
+    counter = 'embedwidget'
+    _ntiid_type = u'EmbedWidget'
+    _ntiid_suffix = u'embedwidget.'
+    _ntiid_cache_map_name = '_embedwidget_ntiid_map'
 
-	itemprop = "presentation-embedwidget"
-	mimeType = "application/vnd.nextthought.content.embeded.widget"
-	
-	to_replace = ( (' ', '' ), ('\\&', '&' ), ('\\_', '_' ), ( '\\%', '%' ),
-				 (u'\u2013', u'--'), (u'\u2014', u'---') )
-		
-	def replacer(self, source):
-		for a, b in self.to_replace:
-			source = source.replace(a, b)
-		return source
+    itemprop = "presentation-embedwidget"
+    mimeType = "application/vnd.nextthought.content.embeded.widget"
 
-	def digest(self, tokens):
-		res = super(ntiembedwidget, self).digest(tokens)
-		options = self.attributes.get( 'options', {} ) or {}
-		__traceback_info__ = options, self.attributes
+    to_replace = ((u' ', u''), (u'\\&', u'&'), (u'\\_', u'_'), (u'\\%', u'%'),
+                  (u'\u2013', u'--'), (u'\u2014', u'---'))
 
-		# process the parsed URI to workaround extra spaces added by the parcer
-		self.attributes['url'] = self.replacer(self.attributes['url'])
+    def replacer(self, source):
+        for a, b in self.to_replace:
+            source = source.replace(a, b)
+        return source
 
-		itemprop = options.get('show-card')
-		if itemprop is not None:
-			self.itemprop = 'presentation-card'
+    def digest(self, tokens):
+        res = super(ntiembedwidget, self).digest(tokens)
+        options = self.attributes.get('options', {}) or {}
+        __traceback_info__ = options, self.attributes
 
-		defer = options.get('defer')
-		if defer is not None:
-			self.attributes['defer'] = defer
+        # process the parsed URI to workaround extra spaces added by the parcer
+        self.attributes['url'] = self.replacer(self.attributes['url'])
 
-		height = options.get('height')
-		if height is not None:
-			self.attributes['height'] = height
+        itemprop = options.get('show-card')
+        if itemprop is not None:
+            self.itemprop = 'presentation-card'
 
-		no_sandboxing = options.get('no-sandboxing')
-		if no_sandboxing is not None:
-			self.attributes['no-sandboxing'] = self.attributes['no-sandboxing'] = no_sandboxing
+        defer = options.get('defer')
+        if defer is not None:
+            self.attributes['defer'] = defer
 
-		uid = options.get('uid')
-		if uid is not None:
-			self.attributes['uid'] = uid
-		else:
-			self.attributes['uid'] = u'widget' + hashlib.md5(self.attributes['url']+self.ntiid).hexdigest()
+        height = options.get('height')
+        if height is not None:
+            self.attributes['height'] = height
 
-		uidname = options.get('uid-name') or options.get('uidname') #uidname for legacy
-		if uidname is not None:
-			self.attributes['uidname'] = self.attributes['uid-name'] = uidname
-		return res
+        no_sandboxing = options.get('no-sandboxing')
+        if no_sandboxing is not None:
+            self.attributes['no-sandboxing'] = self.attributes['no-sandboxing'] = no_sandboxing
+
+        uid = options.get('uid')
+        if uid is not None:
+            self.attributes['uid'] = uid
+        else:
+            digest = hashlib.md5(self.attributes['url'] + self.ntiid).hexdigest()
+            self.attributes['uid'] = u'widget' + digest
+
+        # uidname for legacy
+        uidname = options.get('uid-name') or options.get('uidname')
+        if uidname is not None:
+            self.attributes['uidname'] = self.attributes['uid-name'] = uidname
+        return res
+
 
 class realpagenumbername(Command):
-	pass
+    pass
+
 
 class realpagenumber(Command):
-	args = 'pagenumber:str'
-	blockType = False
+    args = 'pagenumber:str'
+    blockType = False
 
-	counter = 'realpagenumber'
-	_pagenumber = ''
+    counter = 'realpagenumber'
+    _pagenumber = ''
 
-	def invoke(self, tex):
-		result = super(Command, self).invoke(tex)
-		if self.attributes['pagenumber']:
-			self._pagenumber = self.attributes['pagenumber']
-			self.counter = ''
-		else :
-			self._pagenumber = self.ownerDocument.context.counters[self.counter].value
-		return result
+    def invoke(self, tex):
+        result = super(Command, self).invoke(tex)
+        if self.attributes['pagenumber']:
+            self._pagenumber = self.attributes['pagenumber']
+            self.counter = ''
+        else:
+            self._pagenumber = self.ownerDocument.context.counters[self.counter].value
+        return result
 
-	@readproperty
-	def pagenumber(self):
-		return self._pagenumber
+    @readproperty
+    def pagenumber(self):
+        return self._pagenumber
 
 
 def ProcessOptions(options, document):
-	document.context.newcounter('nticard')
-	document.context.newcounter('sidebar')
-	document.context.newcounter('fileview')
-	document.context.newcounter('ntiaudio')
-	document.context.newcounter('ntivideo')
-	document.context.newcounter('embedwidget')
-	document.context.newcounter('relatedwork')
-	document.context.newcounter('ntivideoroll')
-	document.context.newcounter('ntilocalvideo')
-	document.context.newcounter('ntidiscussion')
-	document.context.newcounter('ntiimagecollection')
-	document.context.newcounter('relatedworkref', initial=-1)
-	document.context.newcounter('realpagenumber')
+    document.context.newcounter('nticard')
+    document.context.newcounter('sidebar')
+    document.context.newcounter('fileview')
+    document.context.newcounter('ntiaudio')
+    document.context.newcounter('ntivideo')
+    document.context.newcounter('embedwidget')
+    document.context.newcounter('relatedwork')
+    document.context.newcounter('ntivideoroll')
+    document.context.newcounter('ntilocalvideo')
+    document.context.newcounter('ntidiscussion')
+    document.context.newcounter('realpagenumber')
+    document.context.newcounter('ntiimagecollection')
+    document.context.newcounter('relatedworkref', initial=-1)
+
 
 from plasTeX.interfaces import IOptionAwarePythonPackage
 interface.moduleProvides(IOptionAwarePythonPackage)
