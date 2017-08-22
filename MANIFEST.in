@@ -14,4 +14,17 @@ recursive-include doc *.py
 recursive-include doc *.rst
 recursive-include doc Makefile
 recursive-exclude doc changelog.rst
+recursive-include src *.js
+recursive-include src *.css
+recursive-include src *.gif
+recursive-include src *.ini
+recursive-include src *.jpg
+recursive-include src *.pdf
+recursive-include src *.png
+recursive-include src *.sty
+recursive-include src *.tex
+recursive-include src *.txt
+recursive-include src *.html
+recursive-include src *.pyts
 recursive-include src *.zcml
+recursive-include src *.zpts

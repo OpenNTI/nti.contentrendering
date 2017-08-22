@@ -14,8 +14,8 @@ entry_points = {
     ],
 }
 
+
 TESTS_REQUIRE = [
-    'pyhamcrest',
     'nti.testing',
     'zope.testrunner',
 ]
@@ -33,7 +33,6 @@ setup(
     author_email='jason@nextthought.com',
     description="NTI Content Rendering",
     long_description=(_read('README.rst') + '\n\n' + _read("CHANGES.rst")),
-    url="https://github.com/NextThought/nti.contentrendering",
     license='Apache',
     keywords='content latex rendering',
     classifiers=[
@@ -44,6 +43,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: Implementation :: CPython'
     ],
+    url="https://github.com/NextThought/nti.contentrendering",
     zip_safe=True,
     packages=find_packages('src'),
     package_dir={'': 'src'},
