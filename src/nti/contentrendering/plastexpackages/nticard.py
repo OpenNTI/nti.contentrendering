@@ -4,7 +4,7 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -18,10 +18,10 @@ from zope import interface
 
 from zope.cachedescriptors.property import readproperty
 
+from zope.file.file import File
+
 from plasTeX import Base
 from plasTeX import Command
-
-from plone.namedfile import NamedImage
 
 from nti.contentprocessing.interfaces import IContentMetadata
 
@@ -40,6 +40,8 @@ from nti.contentrendering.plastexpackages.graphics import _locate_image_file
 
 from nti.contentrendering.plastexpackages.graphicx import includegraphics
 
+from nti.namedfile.utils import getImageInfo
+
 from nti.ntiids.ntiids import TYPE_UUID
 from nti.ntiids.ntiids import make_ntiid
 from nti.ntiids.ntiids import is_valid_ntiid_string
@@ -47,7 +49,7 @@ from nti.ntiids.ntiids import is_valid_ntiid_string
 
 class _Image(object):
 
-    __slots__ = (b'image',)
+    __slots__ = ('image',)
 
     def __init__(self, image):
         self.image = image
@@ -55,7 +57,7 @@ class _Image(object):
 
 class _Dimen(object):
 
-    __slots__ = (b'px',)
+    __slots__ = ('px',)
 
     def __init__(self, px):
         self.px = px
@@ -64,9 +66,10 @@ class _Dimen(object):
 def process_image_data(self, url, data):
     # get file info
     filename = urlparse.urlparse(url).path.split('/')[-1]
-    named_image = NamedImage(data=data,
-                             filename=filename)
-    width, height = named_image.getImageSize()
+    contentType, width, height = getImageInfo(data)
+    named_image = File(contentType)
+    named_image.data = data
+    named_image.filename = filename
     # save it
     self.image = _Image(named_image)
     self.image.image.url = url
@@ -121,7 +124,7 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
     # is set explicitly)
     counter = 'nticard'
 
-    _ntiid_type = 'NTICard'
+    _ntiid_type = u'NTICard'
     _ntiid_suffix = 'nticard.'
 
     # Use our counter to generate IDs if no ID is given
@@ -176,7 +179,7 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
             include.attributes['file'] = thumb_file
             include.argSource = r'[width=93pt,height=120pt]{%s}' % thumb_file
             self.appendChild(include)
-        elif     metadata.images \
+        elif    metadata.images \
             and (metadata.images[0].width and metadata.images[0].height):
             # Yay, got the real size already
             self.image = _Image(metadata.images[0])
@@ -224,7 +227,7 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
         else:
             # TODO: Hmm, what to use as the provider?
             # Look for a hostname in the URL?
-            self.target_ntiid = make_ntiid(provider='NTI',
+            self.target_ntiid = make_ntiid(provider=u'NTI',
                                            nttype=TYPE_UUID,
                                            specific=md5(self.href).hexdigest())
 
@@ -245,10 +248,10 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
         self.attributes['nti-requirements'] = u''
         requirements = options.get('nti-requirements', u'').split()
         for requirement in requirements:
-            if requirement == u'flash':
+            if requirement == 'flash':
                 requirement = u'mime-type:application/x-shockwave-flash'
             value = self.attributes['nti-requirements']
-            self.attributes['nti-requirements'] = ' '.join([value, requirement])
+            self.attributes['nti-requirements'] = u' '.join([value, requirement])
 
         self.attributes['nti-requirements'] = self.attributes['nti-requirements'].strip()
         if self.attributes['nti-requirements'] == u'':
