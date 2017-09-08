@@ -105,8 +105,8 @@ html_static_path = ['_static']
 
 # -- Options for HTMLHelp output ------------------------------------------
 
-# Output file contentrendering name for HTML help builder.
-htmlhelp_contentrenderingname = 'nticontentrenderingdoc'
+# Output file base name for HTML help builder.
+htmlhelp_basename = 'nticontentrenderingdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
