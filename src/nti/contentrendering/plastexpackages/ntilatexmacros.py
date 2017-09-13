@@ -452,12 +452,14 @@ from nti.contentrendering.plastexpackages.ntihyperref import ntiidref
 from nti.contentrendering.plastexpackages.ntihyperref import simpleref
 from nti.contentrendering.plastexpackages.ntihyperref import ntifancyhref
 from nti.contentrendering.plastexpackages.ntihyperref import ntiimagehref
+from nti.contentrendering.plastexpackages.ntihyperref import ntiidnamedref
 
 ntihref = ntihref
 ntiidref = ntiidref
 simpleref = simpleref
 ntifancyhref = ntifancyhref
 ntiimagehref = ntiimagehref
+ntiidnamedref = ntiidnamedref
 
 # side bars
 
