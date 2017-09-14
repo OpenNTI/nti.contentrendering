@@ -56,6 +56,16 @@ class ntiidref(Crossref.ref):
     ref, but output as an NTIID.
     """
     macroName = 'ntiidref'
+    args = 'label:idref <title:str:source>'
+    titleOverride = None
+
+    def invoke(self, tex):
+        token = super(ntiidref, self).invoke(tex)
+        if 'options' not in self.attributes or not self.attributes['options']:
+            self.attributes['options'] = {}
+        options = self.attributes.get('options')
+        self.titleOverride = options.get('title', None)
+        return token
 
 
 class ntiidnamedref(Crossref.ref):

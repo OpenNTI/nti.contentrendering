@@ -13,7 +13,7 @@ name: ntifancyhref
 <a tal:attributes="class self/attributes/class; href self/attributes/url" tal:content="self">Link Text</a>
 
 name: ntiidref
-<a tal:attributes="href self/idref/label/embedded_doc_cross_ref_url|self/idref/label/ntiid" tal:content="self/idref/label/title">#.#.#</a>
+<a tal:attributes="href self/idref/label/embedded_doc_cross_ref_url|self/idref/label/ntiid" tal:content="self/titleOverride|self/idref/label/title">#.#.#</a>
 
 name: ntiidnamedref
 <a tal:attributes="href self/idref/label/embedded_doc_cross_ref_url|self/idref/label/ntiid" tal:content="self/attributes/name">#.#.#</a>
