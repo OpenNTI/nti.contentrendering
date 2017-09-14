@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 # disable: accessing protected members, too many methods
@@ -22,14 +22,14 @@ from nti.contentrendering.tests import buildDomFromString as _buildDomFromString
 
 def _simpleLatexDocument(maths):
     return simpleLatexDocumentText(
-                  preludes=(br'\usepackage{nti.contentrendering.plastexpackages.ntilists}',),
-                            bodies=maths)
+                preludes=(r'\usepackage{nti.contentrendering.plastexpackages.ntilists}',),
+                bodies=maths)
 
 
 class TestNTILists(unittest.TestCase):
 
     def test_ntienumerate(self):
-        example = br"""
+        example = r"""
             \begin{ntienumerate}
                 \item[0] Ichigo
                 \item[1] Aizen
@@ -40,7 +40,7 @@ class TestNTILists(unittest.TestCase):
 
         # Check that the DOM has the expected structure
         assert_that(dom.getElementsByTagName('ntienumerate'), has_length(1))
-        assert_that(dom.getElementsByTagName('ntienumerate')[0], 
+        assert_that(dom.getElementsByTagName('ntienumerate')[0],
                     is_(ntienumerate))
 
         # Check that the ntienumerate object has the expected children

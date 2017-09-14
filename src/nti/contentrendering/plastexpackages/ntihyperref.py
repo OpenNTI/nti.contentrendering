@@ -56,3 +56,12 @@ class ntiidref(Crossref.ref):
     ref, but output as an NTIID.
     """
     macroName = 'ntiidref'
+
+
+class ntiidnamedref(Crossref.ref):
+    """
+    Used for producing a cross-document link, like a normal
+    ref, but output as an NTIID.
+    """
+    args = 'label:idref name:str:source'
+    macroName = 'ntiidnamedref'
