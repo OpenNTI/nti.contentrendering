@@ -163,6 +163,8 @@ class TestPlastexIdsRender(ContentrenderingLayerTest):
 
         Back ref to subsection \ntiidref{SubsectionA}.
 
+        We can also have \ntiidref{figure}<custom text for the ref>
+
         '''
 
         source_a_ntiid = "tag:nextthought.com,2011-10:testing-HTML-temp.A"
