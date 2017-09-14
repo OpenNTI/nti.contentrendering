@@ -4,7 +4,7 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -19,7 +19,7 @@ import urlparse
 import subprocess
 import contextlib
 
-import anyjson as json
+import simplejson as json
 
 
 def javascript_path(js_name):
@@ -31,6 +31,7 @@ def javascript_path(js_name):
     if not resource_exists(__name__, js_name):
         raise Exception("Resource %s not found" % js_name)
     return resource_filename(__name__, js_name)
+
 
 if not os.getenv('DATASERVER_DIR_IS_BUILDOUT'):
     # Buildout puts it first on the path
@@ -51,11 +52,14 @@ class _PhantomProducedUnexpectedOutputError(subprocess.CalledProcessError):
 
 
 class _closing(contextlib.closing):
-    "A None-safe closing contextmanager"
+    """
+    A None-safe closing contextmanager
+    """
 
-    def __exit__(self, *exc_info):
+    def __exit__(self, *unused_args, **unused_kwargs):
         if self.thing is not None:
             self.thing.close()
+
 
 _none_key = object()
 
@@ -122,7 +126,6 @@ def run_phantom_on_page(htmlFile, scriptName, args=(), key=_none_key,
     else:
         if not jsonStr:
             raise ValueError("Expected JSON output, but no stdout generated.")
-
         try:
             result = json.loads(jsonStr)
         except ValueError:
@@ -135,5 +138,4 @@ def run_phantom_on_page(htmlFile, scriptName, args=(), key=_none_key,
 
     if key is _none_key:
         return result
-
     return (key, result)
