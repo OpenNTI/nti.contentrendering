@@ -57,21 +57,11 @@ class ntiidref(Crossref.ref):
     """
     macroName = 'ntiidref'
     args = 'label:idref <title:str:source>'
+
     titleOverride = None
 
     def invoke(self, tex):
         token = super(ntiidref, self).invoke(tex)
-        if 'options' not in self.attributes or not self.attributes['options']:
-            self.attributes['options'] = {}
-        options = self.attributes.get('options')
+        options = self.attributes.get('options') or {}
         self.titleOverride = options.get('title', None)
         return token
-
-
-class ntiidnamedref(Crossref.ref):
-    """
-    Used for producing a cross-document link, like a normal
-    ref, but output as an NTIID.
-    """
-    args = 'label:idref name:str:source'
-    macroName = 'ntiidnamedref'
