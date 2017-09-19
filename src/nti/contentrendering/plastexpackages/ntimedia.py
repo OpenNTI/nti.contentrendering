@@ -4,10 +4,8 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
 
 import os
 import hashlib
@@ -24,7 +22,7 @@ from plasTeX.Renderers import render_children
 
 from nti.contentfragments.interfaces import HTMLContentFragment
 
-from nti.contentprocessing._compat import unicode_
+from nti.contentprocessing._compat import text_
 
 from nti.contentrendering.plastexids import NTIIDMixin
 
@@ -35,6 +33,8 @@ from nti.contentrendering.plastexpackages._util import OneText
 from nti.contentrendering.plastexpackages._util import LocalContentMixin
 from nti.contentrendering.plastexpackages._util import incoming_sources_as_plain_text
 
+logger = __import__('logging').getLogger(__name__)
+
 
 @interface.implementer(IRepresentableContentUnit,
                        IRepresentationPreferences)
@@ -44,7 +44,7 @@ class DeclareMediaResource(Command):
     """
 
     args = 'src:str label:id'
-    resourceTypes = ('jsonp', )
+    resourceTypes = ('jsonp',)
 
     def invoke(self, tex):
         result = super(DeclareMediaResource, self).invoke(tex)
@@ -58,7 +58,7 @@ class DeclareMediaResource(Command):
 class mediatranscript(Command):
 
     blockType = True
-    resourceTypes = ('jsonp', )
+    resourceTypes = ('jsonp',)
     args = 'src:str type:str lang:str purpose:str'
 
     transcript_mime_type = 'text/plain'
@@ -88,7 +88,7 @@ class ntimediaref(Base.Crossref.ref):
         tok = super(ntimediaref, self).digest(tokens)
         self._options = self.attributes.get('options', {}) or {}
         if 'to_render' in self._options:
-            if self._options['to_render'] in [u'true', u'True']:
+            if self._options['to_render'] in ['true', 'True']:
                 self.to_render = True
         return tok
 
@@ -138,7 +138,7 @@ class ntiaudio(ntimedia):
 
     counter = 'ntiaudio'
 
-    _ntiid_type = 'NTIAudio'
+    _ntiid_type = u'NTIAudio'
     _ntiid_suffix = 'ntiaudio.'
     _ntiid_allow_missing_title = True
     _ntiid_cache_map_name = '_ntiaudio_ntiid_map'
@@ -184,6 +184,7 @@ class ntiaudio(ntimedia):
         res = super(ntiaudio, self).digest(tokens)
         if self.macroMode == self.MODE_BEGIN:
             options = self.attributes.get('options', {}) or {}
+
             __traceback_info__ = options, self.attributes
 
             if 'show-card' in options:
@@ -206,7 +207,7 @@ class ntiaudio(ntimedia):
             # label...
             if      child.nodeType == self.TEXT_NODE \
                 and (child.parentNode == self or child.parentNode.nodeName == 'par'):
-                texts.append(unicode_(child))
+                texts.append(text_(child))
         return incoming_sources_as_plain_text(texts)
 
     @readproperty
@@ -237,7 +238,7 @@ class ntivideo(ntimedia):
 
     counter = 'ntivideo'
 
-    _ntiid_type = 'NTIVideo'
+    _ntiid_type = u'NTIVideo'
     _ntiid_suffix = 'ntivideo.'
     _ntiid_cache_map_name = '_ntivideo_ntiid_map'
 
@@ -349,7 +350,7 @@ class ntivideo(ntimedia):
             if 'creator' in options:
                 self.creator = options['creator']
 
-            self.visibility = u'everyone'
+            self.visibility = 'everyone'
             if 'visibility' in options:
                 self.visibility = options['visibility']
 
@@ -362,7 +363,7 @@ class ntivideo(ntimedia):
             # Try to extract the text children, ignoring the caption and label
             if      child.nodeType == self.TEXT_NODE \
                 and (child.parentNode == self or child.parentNode.nodeName == 'par'):
-                texts.append(unicode_(child))
+                texts.append(text_(child))
         return incoming_sources_as_plain_text(texts)
 
     @readproperty
@@ -421,8 +422,10 @@ class ntilocalvideo(Environment):
     def digest(self, tex):
         super(ntilocalvideo, self).digest(tex)
         video = self.getElementsByTagName('ntiincludelocalvideo')[0]
-        self.src = {'mp4': video.attributes['src'] + u'.mp4',
-                    'webm':  video.attributes['src'] + u'.webm'}
+        self.src = {
+            'mp4': video.attributes['src'] + '.mp4',
+            'webm':  video.attributes['src'] + '.webm'
+        }
         self.title = video.attributes['title']
         self.poster = video.attributes['poster']
         if 'width' in video.attributes['options']:
@@ -481,7 +484,7 @@ class ntivideorollname(Command):
 class ntivideoroll(ntimediacollection):
     counter = "ntivideoroll"
 
-    _ntiid_type = 'NTIVR'
+    _ntiid_type = u'NTIVR'
     _ntiid_suffix = 'ntivideoroll.'
     _ntiid_title_attr_name = 'ref'
     _ntiid_allow_missing_title = True
@@ -527,9 +530,9 @@ class ntiincludevideo(OneText):
         video_url = self.attributes['video_url']
         self.attributes['video_url'] = video_url.replace("/watch?v=", '/embed/')
         
-        self.width = options.get('width') or u'640px'
+        self.width = options.get('width') or '640px'
         self.height =  options.get('height') \
-                    or unicode_(str((int(self.width.replace('px', '')) / 640) * 360)) + 'px'
+                    or text_(str((int(self.width.replace('px', '')) / 640) * 360)) + 'px'
 
         video_url = self.attributes['video_url'].split('/')
         if 'youtube' in video_url[2]:
@@ -558,7 +561,7 @@ class ntiincludekalturavideo(Command):
         video = self.attributes.get('video_id').split(':')
 
         partner_id = video[0]
-        subpartner_id = video[0] + u'00'
+        subpartner_id = video[0] + '00'
 
         entry_id = video[1]
         uiconf_id = u'16401392'
@@ -566,6 +569,6 @@ class ntiincludekalturavideo(Command):
         self.video_source = \
                 "https://cdnapisec.kaltura.com/p/%s/sp/%s/embedIframeJs/uiconf_id/%s/partner_id/%s?iframeembed=true&playerId=%s&entry_id=%s&flashvars[streamerType]=auto" % \
                 (partner_id, subpartner_id, uiconf_id, partner_id, player_id, entry_id)
-        self.width = u'640'
-        self.height = u'390'
+        self.width = '640'
+        self.height = '390'
         return res
