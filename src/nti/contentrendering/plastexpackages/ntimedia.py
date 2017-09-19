@@ -26,12 +26,12 @@ from nti.contentprocessing._compat import text_
 
 from nti.contentrendering.plastexids import NTIIDMixin
 
-from nti.contentrendering.resources.interfaces import IRepresentableContentUnit
-from nti.contentrendering.resources.interfaces import IRepresentationPreferences
-
 from nti.contentrendering.plastexpackages._util import OneText
 from nti.contentrendering.plastexpackages._util import LocalContentMixin
 from nti.contentrendering.plastexpackages._util import incoming_sources_as_plain_text
+
+from nti.contentrendering.resources.interfaces import IRepresentableContentUnit
+from nti.contentrendering.resources.interfaces import IRepresentationPreferences
 
 logger = __import__('logging').getLogger(__name__)
 
