@@ -14,8 +14,6 @@ from plasTeX.Base import Crossref
 
 from plasTeX.Packages.hyperref import href as plastex_href
 
-from zope.cachedescriptors.property import readproperty
-
 logger = __import__('logging').getLogger(__name__)
 
 
@@ -61,9 +59,14 @@ class ntiidref(Crossref.ref):
     macroName = 'ntiidref'
     args = 'label:idref {title:str:source}'
 
-    @readproperty
-    def titleOverride(self):
-        return self.idref['label'].title
+    titleOverride = None
+
+    @property
+    def idref_title(self):
+        try:
+            return self.idref['label'].title
+        except (AttributeError, KeyError):
+            return None
 
     def invoke(self, tex):
         token = super(ntiidref, self).invoke(tex)

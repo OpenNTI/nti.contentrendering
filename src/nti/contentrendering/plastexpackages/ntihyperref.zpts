@@ -13,4 +13,4 @@ name: ntifancyhref
 <a tal:attributes="class self/attributes/class; href self/attributes/url" tal:content="self">Link Text</a>
 
 name: ntiidref
-<a tal:attributes="href self/idref/label/embedded_doc_cross_ref_url|self/idref/label/ntiid" tal:content="self/titleOverride">#.#.#</a>
+<a tal:attributes="href self/idref/label/embedded_doc_cross_ref_url|self/idref/label/ntiid" tal:content="python:(self.titleOverride or self.idref_title)">#.#.#</a>
