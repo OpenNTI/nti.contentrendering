@@ -4,16 +4,19 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from plasTeX import Command
 
 from plasTeX.Base import Crossref
 
 from plasTeX.Packages.hyperref import href as plastex_href
+
+from zope.cachedescriptors.property import readproperty
+
+logger = __import__('logging').getLogger(__name__)
 
 
 class simpleref(plastex_href):
@@ -56,12 +59,15 @@ class ntiidref(Crossref.ref):
     ref, but output as an NTIID.
     """
     macroName = 'ntiidref'
-    args = 'label:idref <title:str:source>'
+    args = 'label:idref {title:str:source}'
 
-    titleOverride = None
+    @readproperty
+    def titleOverride(self):
+        return self.idref['label'].title
 
     def invoke(self, tex):
         token = super(ntiidref, self).invoke(tex)
-        options = self.attributes.get('options') or {}
-        self.titleOverride = options.get('title', None)
+        title = self.attributes.get('title')
+        if title and title.strip():
+            self.titleOverride = title
         return token
