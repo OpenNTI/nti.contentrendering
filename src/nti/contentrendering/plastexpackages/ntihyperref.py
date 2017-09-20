@@ -61,6 +61,13 @@ class ntiidref(Crossref.ref):
 
     titleOverride = None
 
+    @property
+    def idref_title(self):
+        try:
+            return self.idref['label'].title
+        except (AttributeError, KeyError):
+            return None
+
     def invoke(self, tex):
         token = super(ntiidref, self).invoke(tex)
         title = self.attributes.get('title')
