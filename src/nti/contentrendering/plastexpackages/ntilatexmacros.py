@@ -475,7 +475,7 @@ class sidebarname(Command):
 
 
 class sidebar(Environment, plastexids.NTIIDMixin):
-    args = 'title'
+    args = '[options:dict] title'
     blockType = True
 
     counter = 'sidebar'
@@ -487,6 +487,18 @@ class sidebar(Environment, plastexids.NTIIDMixin):
     _ntiid_cache_map_name = '_sidebar_ntiid_map'
 
     embedded_doc_cross_ref_url = property(plastexids._embedded_node_cross_ref_url)
+
+    @property
+    def css_class(self):
+        try:
+            return ' '.join([ type(self).__name__, self._options.get('css-class') ])
+        except (AttributeError, KeyError):
+            return type(self).__name__
+
+    def invoke(self, tex):
+        result = super(sidebar, self).invoke(tex)
+        self._options = self.attributes.get('options', {})
+        return result
 
 
 class flatsidebar(sidebar):
