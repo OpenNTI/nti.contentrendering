@@ -4,10 +4,12 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
+import uuid
 import hashlib
 
 from zope import interface
@@ -95,6 +97,13 @@ class ntimediaref(Base.Crossref.ref):
     @readproperty
     def media(self):
         return self.idref['label']
+    
+    @readproperty
+    def uid(self):
+        uid = self._options.get('uid')
+        if uid is None:
+            uid = self._options['uid'] = str(uuid.uuid4())
+        return uid
 
     @readproperty
     def visibility(self):
