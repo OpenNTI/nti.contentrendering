@@ -25,12 +25,14 @@ name: ntiaudioref
 	<span tal:replace="self/idref/label/audio_sources" />
 	<span tal:replace="self/idref/label/transcripts" />
 </object>
-<object class="ntiaudioref" tal:condition="not:self/to_render" type="application/vnd.nextthought.ntiaudioref">
-	<param name="label" value="Audio Title" tal:attributes="value self/media/title" />
-	<param name="ntiid" value="Audio NTIID" tal:attributes="value self/media/ntiid" />
-	<param name="visibility" value="visibility" tal:attributes="value self/visibility" />
-	<param name="targetMimeType" value="Audio MIME Type" tal:attributes="value self/media/mimeType" />
-</object>
+<p tal:condition="not:self/to_render" tal:attributes="uid self/uid">
+	<object class="ntiaudioref" type="application/vnd.nextthought.ntiaudioref">
+		<param name="label" value="Audio Title" tal:attributes="value self/media/title" />
+		<param name="ntiid" value="Audio NTIID" tal:attributes="value self/media/ntiid" />
+		<param name="visibility" value="visibility" tal:attributes="value self/visibility" />
+		<param name="targetMimeType" value="Audio MIME Type" tal:attributes="value self/media/mimeType" />
+	</object>
+</p>
 
 name: ntiaudio
 <object class="ntiaudio" tal:attributes="type self/mimeType; itemprop self/itemprop; data-ntiid self/ntiid">
@@ -67,13 +69,15 @@ name: ntivideoref
 	<span tal:replace="self/idref/label/video_sources"></span>
 	<span tal:replace="self/idref/label/transcripts"></span>
 </object>
-<object class="ntivideoref" tal:condition="not:self/to_render" type="application/vnd.nextthought.ntivideoref">
-	<param name="label" value="Video Title" tal:attributes="value self/media/title" />
-	<param name="ntiid" value="Video NTIID" tal:attributes="value self/media/ntiid" />
-	<param name="visibility" value="visibility" tal:attributes="value self/visibility" />
-	<param name="poster" value="Video poster image URI" tal:attributes="value self/poster" />
-	<param name="targetMimeType" value="Video MIME Type" tal:attributes="value self/media/mimeType" />
-</object>
+<p tal:condition="not:self/to_render" tal:attributes="uid self/uid">
+	<object class="ntivideoref" tal:condition="not:self/to_render" type="application/vnd.nextthought.ntivideoref">
+		<param name="label" value="Video Title" tal:attributes="value self/media/title" />
+		<param name="ntiid" value="Video NTIID" tal:attributes="value self/media/ntiid" />
+		<param name="visibility" value="visibility" tal:attributes="value self/visibility" />
+		<param name="poster" value="Video poster image URI" tal:attributes="value self/poster" />
+		<param name="targetMimeType" value="Video MIME Type" tal:attributes="value self/media/mimeType" />
+	</object>
+</p>
 
 name: ntivideo
 <object class="ntivideo" tal:attributes="type self/mimeType; itemprop self/itemprop; data-ntiid self/ntiid">
