@@ -57,9 +57,9 @@ class ntiidref(Crossref.ref):
     ref, but output as an NTIID.
     """
     macroName = 'ntiidref'
-    args = 'label:idref {title:str:source}'
+    args = 'label:idref <title:str:source>'
 
-    titleOverride = None
+    link_display_name = None
 
     @property
     def idref_title(self):
@@ -72,5 +72,5 @@ class ntiidref(Crossref.ref):
         token = super(ntiidref, self).invoke(tex)
         title = self.attributes.get('title')
         if title and title.strip():
-            self.titleOverride = title
+            self.link_display_name = title.strip()
         return token
