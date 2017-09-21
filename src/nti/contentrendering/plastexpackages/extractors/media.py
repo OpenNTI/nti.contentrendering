@@ -232,6 +232,21 @@ class _NTIMediaExtractor(object):
 
 		dom.childNodes[0].appendChild(toc_el)
 
+	def _get_title(self, element, media_title):
+		renderer = None
+		try:
+			renderer = element.media.renderer
+		except AttributeError:
+			try:
+				renderer = element.renderer
+			except AttributeError:
+				pass
+		if renderer is not None:
+			title = _render_children(renderer, media_title)
+		else:
+			title = media_title
+		return title
+
 	def _process_references(self, dom, elements, topic_map):
 
 		def _set_attributes(source, target, *names):
@@ -249,15 +264,15 @@ class _NTIMediaExtractor(object):
 			ntiid = getattr(element.media, 'ntiid', None)
 			if not ntiid:
 				continue
-			
+
 			toc_el = dom.createElement('object')
 			media_title = getattr(element.media, 'title', u'')
-			title = _render_children(element.media.renderer, media_title)
+			title = self._get_title(element, media_title)
 			toc_el.setAttribute('label', title)
 
 			_set_attributes(element, toc_el, 'visibility')
 			_set_attributes(element.media, toc_el, 'poster', 'ntiid', 'mimeType')
-			
+
 			# add to course/section
 			parent.appendChild(toc_el)
 
