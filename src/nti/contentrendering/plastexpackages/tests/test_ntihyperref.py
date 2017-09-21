@@ -38,13 +38,13 @@ class TestNTIHyperRef(ContentrenderingLayerTest):
 
     def test_ntiidref_basic(self):
         ref_str = r"""
-        \ntiidref{SectionB}{NTI100}.
+        \ntiidref{SectionB}<NTI100>.
         """
         # Check that the DOM has the expected structure
         dom = _buildDomFromString(_simpleLatexDocument((ref_str,)))
         assert_that(dom.getElementsByTagName('ntiidref'), has_length(1))
         ref = dom.getElementsByTagName('ntiidref')[0]
-        assert_that(ref, has_property('titleOverride', 'NTI100'))
+        assert_that(ref, has_property('link_display_name', 'NTI100'))
         assert_that(ref,
                     has_property('attributes',
                                  has_entries('label', 'SectionB')))
@@ -71,7 +71,7 @@ class TestNTIHyperRef(ContentrenderingLayerTest):
         some text in chapter one
         
         \section{Two}
-        Section refs \ntiidref{SectionB}{NTI100}
+        Section refs \ntiidref{SectionB}<NTI100>
         """
 
         with RenderContext(_simpleLatexDocument((source_str,))) as source_context:
