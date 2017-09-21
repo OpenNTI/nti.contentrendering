@@ -28,7 +28,7 @@ name: ntiglossaryterm
 <b tal:content="self/attributes/term"></b>
 
 name: sidebar
-<div tal:condition="self" tal:attributes="class python: type(self).__name__; ntiid self/ntiid; data-ntiid self/ntiid">
+<div tal:condition="self" tal:attributes="class self/css_class; ntiid self/ntiid; data-ntiid self/ntiid">
 <div tal:condition="self/title" class="sidebar-title" tal:content="self/title">Sidebar Title</div>
 <div tal:replace="self">Sidebar Body</div>
 </div>

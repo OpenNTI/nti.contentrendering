@@ -310,6 +310,24 @@ class TestSidebars(unittest.TestCase):
 		assert_that( sidebar_el.attributes.get('title').source, contains_string( 'Title' ) )
 		assert_that( sidebar_el.childNodes[2].source, contains_string( 'Body Text' ) )
 
+		assert_that( sidebar_el.css_class, contains_string( 'sidebar' ) )
+
+	def test_sidebar_basic_styled(self):
+		example = br"""
+		\begin{sidebar}[css-class=warning]{Title}
+		\label{sidebar:Basic_Sidebar}
+		Body Text
+		\end{sidebar}
+		"""
+		dom = _buildDomFromString( _simpleLatexDocument( (example,) ) )
+
+		# Check that the DOM has the expected structure
+		assert_that( dom.getElementsByTagName('sidebar'), has_length( 1 ) )
+
+		sidebar_el = dom.getElementsByTagName('sidebar')[0]
+
+		assert_that( sidebar_el.css_class, contains_string( 'sidebar warning' ) )
+
 	def test_sidebar_basic_ntiid(self):
 		example = br"""
 		\begin{sidebar}{Title}
