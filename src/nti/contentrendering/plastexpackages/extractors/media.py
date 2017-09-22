@@ -22,6 +22,8 @@ from plasTeX.Base.LaTeX import Document as LaTexDocument
 
 from ordered_set import OrderedSet
 
+from nti.contentrendering.plastexpackages.ntimedia import ntimedia
+
 from ._utils import _render_children
 
 from ...interfaces import IRenderedBook
@@ -262,7 +264,8 @@ class _NTIMediaExtractor(object):
 				continue
 
 			ntiid = getattr(element.media, 'ntiid', None)
-			if not ntiid:
+			# If not a dom, skip.
+			if not ntiid or not isinstance(element.media, ntimedia):
 				continue
 
 			toc_el = dom.createElement('object')
