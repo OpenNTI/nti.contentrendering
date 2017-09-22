@@ -58,19 +58,3 @@ class ntiidref(Crossref.ref):
     """
     macroName = 'ntiidref'
     args = 'label:idref <title:str:source>'
-
-    link_display_name = None
-
-    @property
-    def idref_title(self):
-        try:
-            return self.idref['label'].title
-        except (AttributeError, KeyError):
-            return None
-
-    def invoke(self, tex):
-        token = super(ntiidref, self).invoke(tex)
-        title = self.attributes.get('title')
-        if title and title.strip():
-            self.link_display_name = title.strip()
-        return token

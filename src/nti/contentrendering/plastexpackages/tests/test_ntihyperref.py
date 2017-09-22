@@ -38,16 +38,30 @@ class TestNTIHyperRef(ContentrenderingLayerTest):
 
     def test_ntiidref_basic(self):
         ref_str = r"""
+        \section{SectionB}
+        \label{SectionB}
+        Some text in subsection.
+        \subsection{SubsectionB}
+        \label{SubsectionB}
+        \section{SectionC}
+        This is in the same HTML page as the section.
         \ntiidref{SectionB}<NTI100>.
+        \ntiidref{SubsectionB}.
         """
         # Check that the DOM has the expected structure
         dom = _buildDomFromString(_simpleLatexDocument((ref_str,)))
-        assert_that(dom.getElementsByTagName('ntiidref'), has_length(1))
-        ref = dom.getElementsByTagName('ntiidref')[0]
-        assert_that(ref, has_property('link_display_name', 'NTI100'))
-        assert_that(ref,
+        refs = dom.getElementsByTagName('ntiidref')
+        assert_that(refs, has_length(2))
+        assert_that(refs[0].attributes, has_entries('title', 'NTI100'))
+        assert_that(refs[0].idref['label'].title, has_property('source', 'SectionB'))
+        assert_that(refs[0],
                     has_property('attributes',
                                  has_entries('label', 'SectionB')))
+        assert_that(refs[1].attributes, has_entries('title', None))
+        assert_that(refs[1].idref['label'].title, has_property('source', 'SubsectionB'))
+        assert_that(refs[1],
+                    has_property('attributes',
+                                 has_entries('label', 'SubsectionB')))
 
     def test_ntiidref_links(self):
         source_str = r"""
@@ -63,6 +77,9 @@ class TestNTIHyperRef(ContentrenderingLayerTest):
         \section{SectionB}
         \label{SectionB}
         Some text in subsection.
+        \subsection{SubsectionB}
+        \label{SubsectionB}
+        This is in the same HTML page as the section.
         """
 
         ref_str = r"""
@@ -72,6 +89,7 @@ class TestNTIHyperRef(ContentrenderingLayerTest):
         
         \section{Two}
         Section refs \ntiidref{SectionB}<NTI100>
+        Section refs \ntiidref{SubsectionB}
         """
 
         with RenderContext(_simpleLatexDocument((source_str,))) as source_context:
@@ -93,3 +111,6 @@ class TestNTIHyperRef(ContentrenderingLayerTest):
 
             assert_that(section_two,
                         contains_string('<a href="tag:nextthought.com,2011-10:testing-HTML-temp.SectionB">NTI100</a>'))
+
+            assert_that(section_two,
+                        contains_string('<a href="tag:nextthought.com,2011-10:testing-HTML-temp.SectionB#SubsectionB">SubsectionB</a>'))
