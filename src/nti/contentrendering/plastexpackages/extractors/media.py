@@ -267,7 +267,7 @@ class _NTIMediaExtractor(object):
 			# If not a dom, skip.
 			if 	   not ntiid \
 				or not isinstance(element.media, ntimedia) \
-				or not getattr(element.media, 'to_render', True):
+				or not getattr(element, 'to_render', True):
 				continue
 
 			toc_el = dom.createElement('object')
