@@ -4,21 +4,20 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import six
 
 from plasTeX.Renderers import render_children
 
-from nti.contentprocessing._compat import unicode_
+logger = __import__('logging').getLogger(__name__)
 
 
 def _render_children(renderer, nodes, strip=False):
     if not isinstance(nodes, six.string_types):
-        result = unicode_(''.join(render_children(renderer, nodes)))
+        result = u''.join(render_children(renderer, nodes))
     else:
         result = nodes.decode("utf-8") if isinstance(nodes, bytes) else nodes
     result = result.strip() if strip and result else result

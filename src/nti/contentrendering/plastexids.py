@@ -9,10 +9,9 @@ to use them you must specifically request it.
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import hashlib
 import functools
@@ -20,14 +19,20 @@ import functools
 import zope.deprecation
 from zope.deprecation import deprecate
 
+import plasTeX
+
+from plasTeX.Base.LaTeX.Sectioning import SectionUtils
+
 from plasTeX.ConfigManager import NoOptionError
 from plasTeX.ConfigManager import NoSectionError
 
-from nti.contentprocessing._compat import unicode_
+from nti.contentprocessing._compat import text_
 
 from nti.ntiids.ntiids import make_ntiid
 from nti.ntiids.ntiids import make_specific_safe
 from nti.ntiids.ntiids import validate_ntiid_string
+
+logger = __import__('logging').getLogger(__name__)
 
 
 class hiding_warnings(object):
@@ -39,12 +44,12 @@ class hiding_warnings(object):
     def __enter__(self):
         zope.deprecation.__show__.off()
 
-    def __exit__(self, *args):
+    def __exit__(self, *unused_args):
         zope.deprecation.__show__.on()
 
 
-def _make_ntiid(document, local, local_prefix='', nttype='HTML'):
-    local = unicode_(local)
+def _make_ntiid(document, local, local_prefix=u'', nttype=u'HTML'):
+    local = text_(local)
     try:
         strict = document.config.get("NTI", "strict-ntiids")
     except (NoOptionError, NoSectionError):
@@ -59,7 +64,7 @@ def _make_ntiid(document, local, local_prefix='', nttype='HTML'):
 
     local = make_specific_safe(local, strict=strict)
     provider = document.config.get("NTI", "provider")
-    specific = '%s.%s%s' % (base, local_prefix, local)
+    specific = u'%s.%s%s' % (base, local_prefix, local)
 
     ntiid = make_ntiid(provider=provider, nttype=nttype, specific=specific)
     validate_ntiid_string(ntiid)  # Ensure valid, otherwise raise
@@ -73,11 +78,9 @@ def nextID(self, suffix=''):
     setattr(self, 'NTIID', ntiid)
     return _make_ntiid(self, ntiid, suffix)
 
+
 # SectionUtils is the (a) parent of chapter, section, ..., paragraph, as well as
 # document. Unfortunately, it is hard to mixin a base class to that object
-
-import plasTeX
-from plasTeX.Base.LaTeX.Sectioning import SectionUtils
 
 
 def _ntiid_get_local_part_title(self):
@@ -98,7 +101,7 @@ def _ntiid_get_local_part_title(self):
     if hasattr(self, attr) or not getattr(self, '_ntiid_allow_missing_title', False):
         title = getattr(self, attr)
         if      title \
-                and getattr(title, 'textContent', title) is not None:
+            and getattr(title, 'textContent', title) is not None:
             # Sometimes title is a string, sometimes its a TexFragment
             if hasattr(title, 'textContent'):
                 title = title.textContent
@@ -117,7 +120,7 @@ def _preferred_local_part(context):
     document = context.ownerDocument
     title = getattr(context, '_ntiid_get_local_part', None)
     if title:
-        # TODO: When we need to generate a number, if the object is associated
+        # XXX: When we need to generate a number, if the object is associated
         # with a counter, could/should we use the counter?
         map_name = getattr(context,
                            '_ntiid_cache_map_name',
@@ -127,9 +130,8 @@ def _preferred_local_part(context):
         if counter == 0:
             local = title
         else:
-            local = title + '.' + str(counter)
+            local = title + u'.' + str(counter)
         _section_ntiids_map[title] = counter + 1
-
     return local
 
 
@@ -289,7 +291,7 @@ def _par_id_get(self):
         _id = hashlib.md5(source.strip().encode('utf-8')).hexdigest()
     else:
         counter = document.userdata.setdefault(counter_name, 1)
-        _id = '%s%10d' % (counter_pfx, counter)
+        _id = u'%s%10d' % (counter_pfx, counter)
         document.userdata[counter_name] = counter + 1
 
     used_pars = document.userdata.setdefault(used_ids, set())
@@ -312,7 +314,7 @@ class StableIDMixin(object):
     Attempts to generate more stable IDs for elements. Can be used when elements
     have source text or may have a label child.
     """
-    # TODO: Different counters for this than _par_used_ids?
+    # XXX: Different counters for this than _par_used_ids?
     id = property(_catching(_par_id_get, 'id'), macro_id_fset)
 
 
@@ -338,6 +340,7 @@ def _embedded_node_cross_ref_url(self):
     if ntiid:
         return '%s#%s' % (ntiid, self.id)
 
+
 plasTeX_Base = getattr(plasTeX, 'Base')
 
 
@@ -347,7 +350,6 @@ def patch_all():
     In particular, this causes paragraph elements to generate better IDs
     and sections to generate more appropriate filenames.
     """
-
     from nti.contentrendering.plastexpackages.graphicx import includegraphics
     includegraphics_id_fset = getattr(includegraphics.id, 'fset')
 
@@ -360,7 +362,7 @@ def patch_all():
     plasTeX.Base.footnote.id = property(_catching(_par_id_get, 'id'),
                                         plasTeX_Base.footnote.id.fset)
 
-    # TODO: Different counters for this than _par_used_ids?
+    # XXX: Different counters for this than _par_used_ids?
     includegraphics.id = property(_catching(_par_id_get, 'id'),
                                   includegraphics_id_fset)
 
@@ -388,7 +390,7 @@ def patch_all():
         i.id = property(_catching(_par_id_get, 'id'), plasTeX_Base.par.id.fset)
         i._ntiid_cache_map_name = '_%s_ntiids_map' % name
         i._ntiid_suffix = name + '.'
-        i._ntiid_type = 'HTML' + name
+        i._ntiid_type = u'HTML' + name
         # Note that the ntiid here is not useful for cross-document referencing,
         # because it doesn't make it into the TOC; instead we need to produce
         # a (parent-page-ntiid)#fragment ntiid
@@ -398,6 +400,6 @@ def patch_all():
     # Ensure we persist these things, if we have them, for
     # better cross-document referencing
     plasTeX.Macro.refAttributes += ('ntiid',
-                                    'filenameoverride', 
+                                    'filenameoverride',
                                     'embedded_doc_cross_ref_url')
     plasTeX.TeXDocument.nextNTIID = nextID  # Non-destructive patch
