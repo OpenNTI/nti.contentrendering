@@ -120,7 +120,7 @@ def _preferred_local_part(context):
     document = context.ownerDocument
     title = getattr(context, '_ntiid_get_local_part', None)
     if title:
-        # TODO: When we need to generate a number, if the object is associated
+        # XXX: When we need to generate a number, if the object is associated
         # with a counter, could/should we use the counter?
         map_name = getattr(context,
                            '_ntiid_cache_map_name',
@@ -314,7 +314,7 @@ class StableIDMixin(object):
     Attempts to generate more stable IDs for elements. Can be used when elements
     have source text or may have a label child.
     """
-    # TODO: Different counters for this than _par_used_ids?
+    # XXX: Different counters for this than _par_used_ids?
     id = property(_catching(_par_id_get, 'id'), macro_id_fset)
 
 
@@ -369,10 +369,8 @@ def patch_all():
     SectionUtils.ntiid = property(_catching(_section_ntiid))
     SectionUtils.filenameoverride = property(_catching(_section_ntiid_filename),
                                              _catching(_set_section_ntiid_filename))
-    SectionUtils._ntiid_get_local_part = property(
-        _catching(_ntiid_get_local_part_title))
-    SectionUtils.embedded_doc_cross_ref_url = property(
-        _embedded_node_cross_ref_url)
+    SectionUtils._ntiid_get_local_part = property(_catching(_ntiid_get_local_part_title))
+    SectionUtils.embedded_doc_cross_ref_url = property(_embedded_node_cross_ref_url)
 
     from plasTeX.Base.LaTeX.Document import document
     document.ntiid = property(_catching(_document_ntiid))
