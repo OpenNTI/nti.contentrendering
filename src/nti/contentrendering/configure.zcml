@@ -54,6 +54,10 @@
 			 provides=".interfaces.ISlideDeckExtractor"
 			 name="060.SlideDeckExtractor" />
 
+	<utility component=".realpageextractor"
+			 provides=".interfaces.IRenderedBookExtractor"
+			 name="055.RealPageNumberExtractor" />
+
 	<!-- icon and image finders for testing book -->
 	<adapter factory=".tociconsetter.SimpleConventionIconFinder" name="testing" />
 	<adapter factory=".tociconsetter.SimpleConventionBackgroundImageFinder" name="testing" />
