@@ -1,23 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
-logger = __import__('logging').getLogger(__name__)
-
-import codecs
 import os
+import codecs
 import argparse
 import simplejson as json
 
 from zope import interface
 
-from .utils import EmptyMockDocument
-from .utils import NoConcurrentPhantomRenderedBook
+from nti.contentrendering.utils import EmptyMockDocument
+from nti.contentrendering.utils import NoConcurrentPhantomRenderedBook
 
-from .interfaces import IRenderedBookExtractor
+from nti.contentrendering.interfaces import IRenderedBookExtractor
 interface.moduleProvides(IRenderedBookExtractor)
+
+logger = __import__('logging').getLogger(__name__)
+
 
 def _update_parent_pages(element, index, pagenumber):
     try:
@@ -30,6 +32,7 @@ def _update_parent_pages(element, index, pagenumber):
         index['NTIIDs'][ntiid].append(pagenumber)
     _update_parent_pages(parent, index, pagenumber)
 
+
 def _build_index(element, index, container_ntiid=None):
     """
     Recurse through the element adding realpagenumber objects to the index,
@@ -37,9 +40,9 @@ def _build_index(element, index, container_ntiid=None):
 
     :param dict index: The containing index node.
     """
+    _last_page_seen = None
     ntiid = getattr(element, 'ntiid', None)
     _container_ntiid = ntiid or container_ntiid
-    _last_page_seen = None
     try:
         if index['NTIIDs'][container_ntiid]:
             _last_page_seen = index['NTIIDs'][container_ntiid][-1]
@@ -65,7 +68,9 @@ def _build_index(element, index, container_ntiid=None):
         if child.hasChildNodes():  # Recurse for children if needed
             _build_index(child, index, container_ntiid=_container_ntiid)
 
+
 def transform(book, savetoc=True, outpath=None):
+    __traceback_info__ = savetoc, outpath
     outpath = outpath or book.contentLocation
     outpath = os.path.expanduser(outpath)
     target = os.path.join(outpath, 'real_pages.json')
@@ -91,12 +96,14 @@ def transform(book, savetoc=True, outpath=None):
             fp.write('\n')
     return index
 
+
 def extract(contentpath, outpath=None, jobname=None):
     jobname = jobname or os.path.basename(contentpath)
     document = EmptyMockDocument()
     document.userdata['jobname'] = jobname
     book = NoConcurrentPhantomRenderedBook(document, contentpath)
     return transform(book, outpath)
+
 
 def main():
     def register():
@@ -110,16 +117,18 @@ def main():
         xmlconfig.file("configure.zcml", contentrendering, context=context)
     register()
 
-    arg_parser = argparse.ArgumentParser(description="Content indexer")
+    arg_parser = argparse.ArgumentParser(description="Content page extractor")
     arg_parser.add_argument('contentpath', help="Content book location")
-    arg_parser.add_argument('-v', '--verbose', help="Be verbose", 
+    arg_parser.add_argument('-v', '--verbose', help="Be verbose",
                             action='store_true', dest='verbose')
     args = arg_parser.parse_args()
 
     contentpath = os.path.expanduser(args.contentpath)
     jobname = os.path.basename(contentpath)
-    contentpath = contentpath[:-1] if contentpath.endswith(os.path.sep) else contentpath
+    if contentpath.endswith(os.path.sep):
+        contentpath = contentpath[:-1]
     extract(contentpath, jobname=jobname)
+
 
 if __name__ == '__main__':
     main()

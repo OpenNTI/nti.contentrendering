@@ -16,10 +16,6 @@
 	<!-- Content fragments and conversion, mime types -->
 	<include package="nti.contentfragments" />
 
-	<!--
-	Loading it (non-dev mode) slows script startup way down.
-	We should really break this dependency.
-	-->
 	<include package="nti.contentprocessing" />
 
 	<!--
