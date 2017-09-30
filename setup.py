@@ -7,6 +7,7 @@ entry_points = {
         "nti_jsonpbuilder = nti.contentrendering.jsonpbuilder:main",
         "nti_create_book_archive = nti.contentrendering.archive:main",
         "nti_gslopinionexport = nti.contentrendering.gslopinionexport:main",
+        "nti_real_page_extractor = nti.contentrendering.realpageextractor:main",
         "nti_default_root_sharing_setter = nti.contentrendering.default_root_sharing_setter:main",
     ],
     "z3c.autoinclude.plugin": [
