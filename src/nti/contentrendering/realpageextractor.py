@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+.. $Id$
+"""
 
 from __future__ import division
 from __future__ import print_function
@@ -7,10 +10,13 @@ from __future__ import absolute_import
 
 import os
 import codecs
+import logging
 import argparse
 import simplejson as json
 
 from zope import interface
+
+from zope.exceptions.log import Formatter as LogFormatter
 
 from nti.contentrendering.utils import EmptyMockDocument
 from nti.contentrendering.utils import NoConcurrentPhantomRenderedBook
@@ -19,6 +25,17 @@ from nti.contentrendering.interfaces import IRenderedBookExtractor
 interface.moduleProvides(IRenderedBookExtractor)
 
 logger = __import__('logging').getLogger(__name__)
+
+
+DEFAULT_LOG_FORMAT = '[%(asctime)-15s] [%(name)s] %(levelname)s: %(message)s'
+
+
+def configure_logging(level='INFO', fmt=DEFAULT_LOG_FORMAT):
+    level = getattr(logging, level.upper(), None)
+    level = logging.INFO if not isinstance(level, int) else level
+    logging.basicConfig(level=level)
+    logging.root.handlers[0].setFormatter(LogFormatter(fmt))
+_configure_logging = configure_logging
 
 
 def _update_parent_pages(element, index, pagenumber):
@@ -117,6 +134,7 @@ def main():
         xmlconfig.file("configure.zcml", contentrendering, context=context)
     register()
 
+    configure_logging()
     arg_parser = argparse.ArgumentParser(description="Content page extractor")
     arg_parser.add_argument('contentpath', help="Content book location")
     arg_parser.add_argument('-v', '--verbose', help="Be verbose",
