@@ -72,12 +72,13 @@ def _build_index(element, index, container_ntiid=None):
             realpagenumber = unicode(realpagenumber)
             index['real-pages'][realpagenumber] = _container_ntiid
             _update_parent_pages(element, index, realpagenumber)
-    else:
-        assert ntiid not in index['NTIIDs'], \
-               ("NTIIDs must be unique", ntiid, index['NTIIDs'].keys())
+    elif ntiid not in index['NTIIDs']:
         index['NTIIDs'][ntiid] = []
         if _last_page_seen:
             index['NTIIDs'][ntiid].append(_last_page_seen)
+    else:
+        logger.error("NTIID must be unique %s", ntiid)
+        return
 
     __traceback_info__ = index
 
