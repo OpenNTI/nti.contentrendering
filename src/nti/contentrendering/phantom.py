@@ -4,22 +4,29 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
-logger = __import__('logging').getLogger(__name__)
+import os
+import sys
+import subprocess
+import contextlib
+from six.moves import urllib_parse
+
+try:
+    import urllib
+    pathname2url = urllib.pathname2url
+except (AttributeError, ImportError):  # pragma: no cover
+    request = getattr(urllib, 'request')
+    pathname2url = request.pathname2url
+
+import simplejson as json
 
 resource_exists = __import__('pkg_resources').resource_exists
 resource_filename = __import__('pkg_resources').resource_filename
 
-import os
-import sys
-import urllib
-import urlparse
-import subprocess
-import contextlib
-
-import simplejson as json
+logger = __import__('logging').getLogger(__name__)
 
 
 def javascript_path(js_name):
@@ -88,12 +95,12 @@ def run_phantom_on_page(htmlFile, scriptName, args=(), key=_none_key,
     :raises TypeError: If JSON decoding fails.
     """
     # As of phantomjs 1.4, the html argument must be a URL
-    if urlparse.urlparse(htmlFile).scheme not in ('file', 'http', 'https'):
+    if urllib_parse.urlparse(htmlFile).scheme not in ('file', 'http', 'https'):
         # assume they gave a path. The explicit use of schemes is to
         # help with windows, where a path like "c:\foo\bar" gets a scheme of
         # 'c'
-        htmlFile = urllib.basejoin('file://',
-                                   urllib.pathname2url(os.path.abspath(htmlFile)))
+        htmlFile = urllib_parse.urljoin('file://',
+                                        pathname2url(os.path.abspath(htmlFile)))
 
     # TODO: Rewrite the scripts to use the built-in webserver and communicate
     # over a socket as opposed to stdout/stderr? As of 1.6, I think this is the
