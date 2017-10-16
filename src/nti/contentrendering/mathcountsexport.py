@@ -46,8 +46,7 @@ class _ElementPlainTextContentFragment(PlainTextContentFragment):
     def __init__(self, element=None):
         # XXX: __new__ does all the actual work, because these are immutable as
         # strings
-        super(_ElementPlainTextContentFragment,
-              self).__init__(_text_of(element))
+        super(_ElementPlainTextContentFragment, self).__init__(_text_of(element))
         self.element = element
 
 
@@ -71,8 +70,7 @@ class _WrappedElement(_Container):
     def __init__(self, text=None):
         # XXX: __new__ does all the actual work, because these are immutable as
         # strings
-        super(_WrappedElement, self).__init__(
-            self, '\\' + self.wrapper + '{' + text + '}')
+        super(_WrappedElement, self).__init__(self, '\\' + self.wrapper + '{' + text + '}')
 
 
 class _Footnote(_WrappedElement):
