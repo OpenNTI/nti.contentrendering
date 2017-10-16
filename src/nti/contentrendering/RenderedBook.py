@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 import os
 import codecs
-import urllib
+from six.moves import urllib_parse
 
 from xml.dom.minidom import parse
 
@@ -559,26 +559,26 @@ class _EclipseTOCMiniDomTopic(object):
 		return (self.topic.attributes and self.topic.attributes.get(b'icon'))
 
 	def set_icon(self, icon):
-		self.topic.attributes[b'icon'] = urllib.quote(icon)
+		self.topic.attributes[b'icon'] = urllib_parse.quote(icon)
 		self.modifiedTopic = True
 		return self.modifiedTopic
 
 	def get_icon(self):
 		if self.has_icon():
-			return urllib.unquote(self.topic.attributes.get(b'icon').value)
+			return urllib_parse.unquote(self.topic.attributes.get(b'icon').value)
 		else: return None
 
 	def has_background(self):
 		return (self.topic.attributes and self.topic.attributes.get(b'background'))
 
 	def set_background(self, background):
-		self.topic.attributes[b'background'] = urllib.quote(background)
+		self.topic.attributes[b'background'] = urllib_parse.quote(background)
 		self.modifiedTopic = True
 		return self.modifiedTopic
 
 	def get_background(self):
 		if self.has_icon():
-			return urllib.unquote(self.topic.attributes.get(b'background').value)
+			return urllib_parse.unquote(self.topic.attributes.get(b'background').value)
 		else: return None
 
 	def set_label(self, label):
