@@ -15,11 +15,10 @@ import contextlib
 from six.moves import urllib_parse
 
 try:
+    from urllib.request import pathname2url
+except ImportError:
     import urllib
     pathname2url = urllib.pathname2url
-except (AttributeError, ImportError):  # pragma: no cover
-    request = getattr(urllib, 'request')
-    pathname2url = request.pathname2url
 
 import simplejson as json
 
