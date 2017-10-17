@@ -4,8 +4,9 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import sys
@@ -85,7 +86,7 @@ def load_packages(source_dir=None, context=None, load_configs=True):
     # reasons, we support non-qualified imports (if the module does)
     # by adding that directory directly to the path
     packages_path = os.path.join(os.path.dirname(__file__),
-                                 str('plastexpackages'))
+                                 'plastexpackages')
     if packages_path not in sys.path:
         sys.path.append(packages_path)
 
@@ -98,12 +99,12 @@ def load_packages(source_dir=None, context=None, load_configs=True):
     # to register IPythonPackage adapters/utilities
     if source_dir is not None:
         local_packages_path = os.path.join(source_dir,
-                                           str('plastexpackages'))
+                                           'plastexpackages')
         if local_packages_path not in sys.path:
             sys.path.append(local_packages_path)
 
         zope_pre_conf_name = os.path.join(source_dir,
-                                          str('pre_configure.zcml'))
+                                          'pre_configure.zcml')
         if os.path.exists(zope_pre_conf_name):
             if context is None:
                 context = xmlconfig.file(os.path.abspath(zope_pre_conf_name),
@@ -125,9 +126,9 @@ def prepare_xml_context(source_file, context=None, load_configs=True):
 
 
 def prepare_document_settings(document,
-                              outFormat='xhtml',
+                              outFormat=u'xhtml',
                               perform_transforms=True,
-                              provider='AOPS',
+                              provider=u'NTI',
                               working_dir=None,
                               specific_ntiid=None):
     # setup default config options we want
@@ -219,8 +220,8 @@ def setup_environ(document, jobname, packages_path, source_dir=None):
 
 
 def parse_tex(sourceFile,
-              outFormat='xhtml',
-              provider='AOPS',
+              outFormat=u'xhtml',
+              provider=u'NTI',
               outdir=None,
               load_configs=True,
               perform_transforms=True,

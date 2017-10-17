@@ -4,163 +4,175 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
-import urlparse
+from six.moves import urllib_parse
 
 from zope import interface
 from zope import component
 
-from . import interfaces as cr_interfaces
+from nti.contentrendering.interfaces import IStaticVideoAdder
+from nti.contentrendering.interfaces import IStaticYouTubeEmbedVideoAdder
+
+logger = __import__('logging').getLogger(__name__)
+
 
 def performTransforms(book, context=None):
-	"""
-	Runs all static video adders on the book.
-	
-	:return: A list of tuples (transformer,transformerresult)
-	"""
-	result = []
-	utils = list(component.getUtilitiesFor(cr_interfaces.IStaticVideoAdder, context=context))
-	for name, util in utils:
-		logger.info("Running transform %s (%s)", name, util)
-		result.append( (util, util.transform( book )) )
-	return result
+    """
+    Runs all static video adders on the book.
+
+    :return: A list of tuples (transformer,transformerresult)
+    """
+    result = []
+    for name, util in component.getUtilitiesFor(IStaticVideoAdder, context=context):
+        logger.info("Running transform %s (%s)", name, util)
+        result.append((util, util.transform(book)))
+    return result
+
 
 class AbstractVideoAdder(object):
 
-	@classmethod
-	def transform(cls, book):
-		return cls(book)()
+    @classmethod
+    def transform(cls, book):
+        return cls(book)()
 
-	def __init__(self, book):
-		self.book = book
+    def __init__(self, book):
+        self.book = book
 
-	def __call__(self):
-		pass
+    def __call__(self):
+        pass
+
+
+ADDER_DIV = '<div class="externalvideo"><iframe src="%s" width="640" height="360" frameborder="0" allowfullscreen /></div>'
+
 
 class YouTubeRelatedVideoAdder(AbstractVideoAdder):
-	"""
-	Reads from a file called nti-youtube-embedded-section-videos.txt and adds information
-	the videos therein to the beginning of the section (additional videos go at the end).
+    """
+    Reads from a file called nti-youtube-embedded-section-videos.txt and adds information
+    the videos therein to the beginning of the section (additional videos go at the end).
 
-	The file format consists of lines with fields separated by a space. (Lines beginning with a `#`
-	are treated as comments.) The last field
-	is the YouTube URL. The preceding fields name the page of content to which the URL is related.
-	By default, this is a section number (CSS selector `dev.chapter.title .ref`), optionally preceded
-	by 'Section', like so::
+    The file format consists of lines with fields separated by a space. (Lines beginning with a `#`
+    are treated as comments.) The last field
+    is the YouTube URL. The preceding fields name the page of content to which the URL is related.
+    By default, this is a section number (CSS selector `dev.chapter.title .ref`), optionally preceded
+    by 'Section', like so::
 
-		[Section] X.Y http://youtube/...
+            [Section] X.Y http://youtube/...
 
 
-	The leading field can also be an NTIID::
+    The leading field can also be an NTIID::
 
-		tag:nextthought.com:2011-10:... http://youtube/...
+            tag:nextthought.com:2011-10:... http://youtube/...
 
-	If the first field is the literal `*Selector*`, then the rest of the line (after the next whitespace)
-	is taken as a CSS selector that will be evaluated to match the opening fields of the succeeding
-	lines::
+    If the first field is the literal `*Selector*`, then the rest of the line (after the next whitespace)
+    is taken as a CSS selector that will be evaluated to match the opening fields of the succeeding
+    lines::
 
-		*Section* .page-contents .worksheet-title
-		Warm-Up 1 http://youtube/...
+            *Section* .page-contents .worksheet-title
+            Warm-Up 1 http://youtube/...
 
-	"""
-	interface.classProvides(cr_interfaces.IStaticYouTubeEmbedVideoAdder)
+    """
+    interface.classProvides(IStaticYouTubeEmbedVideoAdder)
 
-	def __call__(self):
-		"""
-		:return: The number of videos added.
-		"""
-		youtube_file = os.path.join(self.book.contentLocation, '..', 'nti-youtube-embedded-section-videos.txt')
-		if not os.path.exists( youtube_file ):
-			logger.info("No youtube items at %s", youtube_file)
-			return 0
+    def __call__(self):
+        """
+        :return: The number of videos added.
+        """
+        youtube_file = os.path.join(self.book.contentLocation,
+                                    '..',
+                                    'nti-youtube-embedded-section-videos.txt')
+        if not os.path.exists(youtube_file):
+            logger.info("No youtube items at %s", youtube_file)
+            return 0
 
-		logger.info("Adding videos at %s", youtube_file)
-		# There can be many videos for a section.
-		# We maintain a map from CSS selector to [(matching text, video url)] and
-		# check each selector/matching text pair against each page
-		# The first level can also be an NTIID to [(<ignored>, video url)]
-		video_dbs = {}
-		# The default
-		video_db = []
-		video_dbs[b'div.chapter.title .ref'] = video_db
+        logger.info("Adding videos at %s", youtube_file)
+        # There can be many videos for a section.
+        # We maintain a map from CSS selector to [(matching text, video url)] and
+        # check each selector/matching text pair against each page
+        # The first level can also be an NTIID to [(<ignored>, video url)]
+        video_dbs = {}
+        # The default
+        video_db = []
+        video_dbs['div.chapter.title .ref'] = video_db
 
-		with open(youtube_file) as f:
-			lines = f.readlines()
-			for line in lines:
-				line = line.strip()
-				if not line or line.startswith( '#' ):
-					# Comment, blank line
-					continue
-				parts = line.split()
-				if len( parts ) < 2:
-					logger.debug("Ignoring invalid line %s in %s", line, youtube_file)
-					continue
-				if parts[0] == '*Section*':
-					# A CSS selector is the remainder of the line. Whitespace may sorta matter
-					# so we use the line as written
-					selector = line[len('*Section*'):].lstrip()
-					video_db = video_dbs.setdefault( selector, [] )
-					continue
+        with open(youtube_file) as f:
+            lines = f.readlines()
+            for line in lines:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    # Comment, blank line
+                    continue
+                parts = line.split()
+                if len(parts) < 2:
+                    logger.warn("Ignoring invalid line %s in %s",
+                                line, youtube_file)
+                    continue
+                if parts[0] == '*Section*':
+                    # A CSS selector is the remainder of the line. Whitespace may sorta matter
+                    # so we use the line as written
+                    selector = line[len('*Section*'):].lstrip()
+                    video_db = video_dbs.setdefault(selector, [])
+                    continue
 
-				# Validate the URL
-				url_part = parts[-1]
-				url_part = 'http://' + url_part if not url_part.startswith('http://') else url_part
-				url_host = urlparse.urlparse( url_part ).netloc
-				if url_host not in ('youtube.com', 'www.youtube.com'):
-					logger.debug("Ignoring unsupported URL host in %s in %s", line, youtube_file)
-					continue
+                # Validate the URL
+                url_part = parts[-1]
+                if not url_part.startswith('http://'):
+                    url_part = 'http://' + url_part
+                url_host = urllib_parse.urlparse(url_part).netloc
+                if url_host not in ('youtube.com', 'www.youtube.com'):
+                    logger.warn("Ignoring unsupported URL host in %s in %s",
+                                line, youtube_file)
+                    continue
 
-				if parts[0].startswith('tag:'):
-					append_to = video_dbs.setdefault( parts[0], [] )
-				else:
-					append_to = video_db
+                if parts[0].startswith('tag:'):
+                    append_to = video_dbs.setdefault(parts[0], [])
+                else:
+                    append_to = video_db
 
-				to_match = None
-				if parts[0] == 'Section':
-					# Legacy behaviour for exact match of section numbers
-					to_match = parts[1]
-				else:
-					# Match everything before the url
-					to_match = line.rsplit( ' ', 1 )[0]
-				append_to.append( ( to_match, url_part ) )
+                to_match = None
+                if parts[0] == 'Section':
+                    # Legacy behaviour for exact match of section numbers
+                    to_match = parts[1]
+                else:
+                    # Match everything before the url
+                    to_match = line.rsplit(' ', 1)[0]
+                append_to.append((to_match, url_part))
 
-		def add_videos_to_topic( topic ):
-			result = 0
+        def add_videos_to_topic(topic):
+            result = 0
+            dom = topic.dom
+            if dom:
+                for k, v in video_dbs.items():
+                    matches = ()
+                    if k.startswith('tag:'):
+                        if k == topic.ntiid:
+                            matches = [x[1] for x in v]
+                    else:
+                        text = dom(k).text()
+                        # If missing, we get None
+                        if text:
+                            matches = [x[1] for x in v if x[0] == text]
 
-			dom = topic.dom
-			if dom:
-				for k, v in video_dbs.items():
-					matches = ()
-					if k.startswith(b'tag:'):
-						if k == topic.ntiid:
-							matches = [x[1] for x in v]
-					else:
-						text = dom( k ).text()
-						# If missing, we get None
-						if text:
-							matches = [x[1] for x in v if x[0] == text]
+                    # If we have additions to make, we want to do so
+                    # at the first paragraph, if possible, and then at the end
+                    page_adder = dom('div.page-contents').append
+                    first_adder = dom('p:first').append if dom('p:first') else page_adder
+                    adders = (first_adder, page_adder)
+                    for vurl in matches:
+                        adder = adders[min(result, 1)]
+                        result += 1
+                        # Watch that this is consistent with
+                        # ntilatexmacros.zpts
+                        adder(ADDER_DIV % vurl)
 
-					# If we have additions to make, we want to do so
-					# at the first paragraph, if possible, and then at the end
-					page_adder = dom(b'div.page-contents').append
-					first_adder = dom(b'p:first').append if dom(b'p:first') else page_adder
-					adders = (first_adder, page_adder)
-					for vurl in matches:
-						adder = adders[min(result,1)]
-						result += 1
-						# Watch that this is consistent with ntilatexmacros.zpts
-						adder('<div class="externalvideo"><iframe src="%s" width="640" height="360" frameborder="0" allowfullscreen /></div>' % vurl)
+                if result:
+                    topic.write_dom()
+            # recurse
+            for t in topic.childTopics:
+                result += add_videos_to_topic(t)
+            return result
 
-				if result:
-					topic.write_dom()
-			# recurse
-			for t in topic.childTopics:
-				result += add_videos_to_topic( t )
-			return result
-
-		return add_videos_to_topic( self.book.toc.root_topic )
+        return add_videos_to_topic(self.book.toc.root_topic)
