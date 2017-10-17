@@ -4,8 +4,9 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -105,5 +106,11 @@ def setup_chameleon_cache(config=False, cache_dir=None):
                 temp_mod.BaseTemplate.loader = temp_mod._make_module_loader()
             # Creating these guys with debug or autoreload, as Pyramid does when its
             # debug flags are set, will override this setting
+
+    if cache_dir and not os.path.exists(cache_dir):
+        try:
+            os.makedirs(cache_dir)
+        except OSError:
+            logger.warn("Could not create %s", cache_dir)
     return cache_dir
 setupChameleonCache = setup_chameleon_cache
