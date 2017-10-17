@@ -49,7 +49,6 @@ class AbstractVideoAdder(object):
 ADDER_DIV = '<div class="externalvideo"><iframe src="%s" width="640" height="360" frameborder="0" allowfullscreen /></div>'
 
 
-@interface.implementer(IStaticYouTubeEmbedVideoAdder)
 class YouTubeRelatedVideoAdder(AbstractVideoAdder):
     """
     Reads from a file called nti-youtube-embedded-section-videos.txt and adds information
@@ -76,6 +75,7 @@ class YouTubeRelatedVideoAdder(AbstractVideoAdder):
             Warm-Up 1 http://youtube/...
 
     """
+    interface.classProvides(IStaticYouTubeEmbedVideoAdder)
 
     def __call__(self):
         """
