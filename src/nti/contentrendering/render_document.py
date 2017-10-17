@@ -127,7 +127,7 @@ def prepare_xml_context(source_file, context=None, load_configs=True):
 def prepare_document_settings(document,
                               outFormat='xhtml',
                               perform_transforms=True,
-                              provider='AOPS',
+                              provider=u'NTI',
                               working_dir=None,
                               specific_ntiid=None):
     # setup default config options we want
