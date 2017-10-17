@@ -4,10 +4,9 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import re
@@ -16,16 +15,16 @@ import shutil
 import thread
 import tempfile
 import subprocess
+from six.moves import urllib_parse
 
 import SocketServer
 import SimpleHTTPServer
 
-from urlparse import urljoin
-from urlparse import urlparse
-
 from pyquery import PyQuery as pq
 
 WGET_CMD = ['wget', '-q']
+
+logger = __import__('logging').getLogger(__name__)
 
 
 def get_open_port():
@@ -39,7 +38,7 @@ def get_open_port():
 
 
 def get_cut_dirs(url):
-    r = urlparse(url)
+    r = urllib_parse.urlparse(url)
     s = r.path.split('/')
     return len(s) - 1
 
@@ -69,7 +68,7 @@ def create_path(path):
 
 def is_valid_url(url_or_path):
     try:
-        pr = urlparse(url_or_path)
+        pr = urllib_parse.urlparse(url_or_path)
         return pr.scheme == 'http' and pr.netloc
     except Exception:
         return False
@@ -100,7 +99,7 @@ def get_file(url, out_dir, target, force_html=False):
     if cut_dirs > 0:
         args.append('--cut-dirs=%s' % cut_dirs)
 
-    url = urljoin(url + '/', target)
+    url = urllib_parse.urljoin(url + '/', target)
     args.append(url)
     execute_command(args)
 
@@ -117,9 +116,9 @@ def process_toc_file(url, resources, toc_file='eclipse-toc.xml'):
     try:
         if get_toc_file(url, tmp, toc_file):
             e = pq(filename=os.path.join(tmp, toc_file))
-            e('toc').map(lambda i, e: process_node(e, resources))
-            e('topic').map(lambda i, e: process_node(e, resources))
-            e('page').map(lambda i, e: process_node(e, resources))
+            e('toc').map(lambda unused, e: process_node(e, resources))
+            e('topic').map(lambda unused, e: process_node(e, resources))
+            e('page').map(lambda unused, e: process_node(e, resources))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
@@ -148,7 +147,7 @@ def launch_server(data_path, port=None):
     return httpd
 
 
-def get_url_resources(url, out_dir="/tmp", user_spider=False):
+def get_url_resources(url, unused_out_dir="/tmp", user_spider=False):
     tmp = None
     resources = {}
 
@@ -183,7 +182,7 @@ def get_url_resources(url, out_dir="/tmp", user_spider=False):
                                   stderr=subprocess.PIPE).communicate()
         source = result[1]  # stderr
         for line in source or ():
-            m = re.search('(^--.*--)  (http:\/\/.*[^\/]$)', line)
+            m = re.search(r'(^--.*--)  (http:\/\/.*[^\/]$)', line)
             if m:
                 rsr = valid_resource(m.group(2))
                 if rsr and rsr not in resources:
