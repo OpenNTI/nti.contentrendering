@@ -4,10 +4,9 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import re
@@ -27,18 +26,28 @@ from nti.contentrendering.interfaces import IStaticRelatedItemsAdder
 from nti.contentrendering.RenderedBook import EclipseTOC
 from nti.contentrendering.RenderedBook import RenderedBook
 
+logger = __import__('logging').getLogger(__name__)
 
-def main(args):
-    """
-    Main program routine
-    """
 
-    if not len(args) > 0:
-        print("Usage: contentsizesetter.py path/to/content")
-        sys.exit()
+def _is_relation_of_type_and_qual(page1, ntiid, type_, qualifier):
+    return  node_has_attribute_with_value(page1, 'type', type_) \
+        and node_has_attribute_with_value(page1, 'ntiid', ntiid) \
+        and node_has_attribute_with_value(page1, 'qualifier', qualifier)
 
-    contentLocation = args.pop(0)
-    performTransforms(RenderedBook(contentLocation))
+
+def _nodes_contain_relation_of_type_qual(alreadyrelatednodes, ntiid, type_, qualifier):
+    for node in alreadyrelatednodes or ():
+        if _is_relation_of_type_and_qual(node, ntiid, type_, qualifier):
+            return True
+    return False
+
+
+def _node_of_id_type_qual(document, ntiid, type_, qualifier="", nodename='page'):
+    pageNode = document.createElement(nodename)
+    pageNode.setAttribute('type', type_)
+    pageNode.setAttribute('ntiid', ntiid)
+    pageNode.setAttribute('qualifier', qualifier)
+    return pageNode
 
 
 def performTransforms(book, save_toc=True, context=None):
@@ -49,36 +58,13 @@ def performTransforms(book, save_toc=True, context=None):
     :param book: Instance of :class:`RenderedBook`.
     :return: A list of tuples whose length is the number of transforms applied
     """
-
-    utils = list(component.getUtilitiesFor(IStaticRelatedItemsAdder,
-                                           context=context))
-    for name, util in utils:
+    result = list(component.getUtilitiesFor(IStaticRelatedItemsAdder, context=context))
+    for name, util in result:
         logger.info("Running transform %s (%s)", name, util)
         util.transform(book)
     if save_toc:
         book.toc.save()
-    return utils
-
-
-def _is_relation_of_type_and_qual(page1, ntiid, tpe, qualifier):
-    return  node_has_attribute_with_value(page1, 'ntiid', ntiid) \
-        and node_has_attribute_with_value(page1, 'type', tpe) \
-        and node_has_attribute_with_value(page1, 'qualifier', qualifier)
-
-
-def _nodes_contain_relation_of_type_qual(alreadyrelatednodes, ntiid, tpe, qualifier):
-    for node in alreadyrelatednodes or ():
-        if _is_relation_of_type_and_qual(node, ntiid, tpe, qualifier):
-            return True
-    return False
-
-
-def _node_of_id_type_qual(document, ntiid, tpe, qualifier="", nodename='page'):
-    pageNode = document.createElement(nodename)
-    pageNode.setAttribute('ntiid', ntiid)
-    pageNode.setAttribute('type', tpe)
-    pageNode.setAttribute('qualifier', qualifier)
-    return pageNode
+    return result
 
 
 class AbstractRelatedAdder(object):
@@ -110,7 +96,6 @@ class AbstractRelatedAdder(object):
         """
         relatedPages = get_or_create_node_in_document_beneath_with_name(relatesToNode,
                                                                         'Related')
-
         if     not isinstance(relatedToIds, collections.Iterable) \
             or isinstance(relatedToIds, six.string_types):
             relatedToIds = [relatedToIds]
@@ -142,7 +127,9 @@ class TOCRelatedAdder(AbstractRelatedAdder):
             return
         theIndex = theIndexs[0]
         for group in theIndex.groups:
-            entries = [entry for column in group for entry in column]
+            entries = [
+                entry for column in group for entry in column
+            ]
             for entry in entries:
                 related = self._recursive_related_pages_for_index_entry(entry)
                 relatedTuples.append(related)
@@ -167,9 +154,13 @@ class TOCRelatedAdder(AbstractRelatedAdder):
             raise ValueError("No NTIID for entry %s doc node %s page %s attrs %s" %
                              (entry, node, page, attrs))
 
-        pages = [self.book.pages[(etoc_func(page).getAttribute('ntiid') or _error(page))]
-                 for page in entry.pages if etoc_func(page) is not None]
-        pageIds = [page.ntiid for page in pages if page is not None]
+        pages = [
+            self.book.pages[(etoc_func(page).getAttribute('ntiid') or _error(page))]
+            for page in entry.pages if etoc_func(page) is not None
+        ]
+        pageIds = [
+            page.ntiid for page in pages if page is not None
+        ]
 
         related = [
             x for x in itertools.permutations(pageIds, 2) if x[0] != x[1]
@@ -215,7 +206,7 @@ class ExistingTOCRelatedAdder(AbstractRelatedAdder):
                             related_container.appendChild(related)
 
 
-filere = re.compile('(?P<file>.*?\.html).*')
+filere = re.compile(r'(?P<file>.*?\.html).*')
 
 
 @interface.implementer(IStaticRelatedItemsAdder)
@@ -238,8 +229,9 @@ class LinkRelatedAdder(AbstractRelatedAdder):
                 results = match.group('file')
             return results
 
-        fileNameAndLinkList = [(file_part_of_link(link), link)
-                               for link in page.outgoing_links]
+        fileNameAndLinkList = [
+            (file_part_of_link(link), link) for link in page.outgoing_links
+        ]
 
         for fileNameAndLink in fileNameAndLinkList:
             fileName = fileNameAndLink[0]
@@ -254,3 +246,16 @@ class LinkRelatedAdder(AbstractRelatedAdder):
                                                    tocNode.getAttribute('ntiid'),
                                                    'link',
                                                    qualifier=link)
+
+
+def main(args):
+    """
+    Main program routine
+    """
+
+    if not len(args) > 0:
+        print("Usage: contentsizesetter.py path/to/content")
+        sys.exit()
+
+    contentLocation = args.pop(0)
+    performTransforms(RenderedBook(contentLocation))
