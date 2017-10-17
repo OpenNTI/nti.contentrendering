@@ -1,24 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, unicode_literals, absolute_import
-__docformat__ = "restructuredtext en"
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
-from hamcrest import assert_that
-from hamcrest import has_length
-from hamcrest import has_entry
 from hamcrest import has_key
-from nti.contentrendering.microdata import items, PROPERTIES_KEY
+from hamcrest import has_entry
+from hamcrest import has_length
+from hamcrest import assert_that
+
+from nti.contentrendering.microdata import PROPERTIES_KEY
+
+from nti.contentrendering.microdata import items
 
 from nti.contentrendering.tests import ContentrenderingLayerTest
 
+
 class TestMicrodata(ContentrenderingLayerTest):
 
-	def test_href(self):
-		html = """
+    def test_href(self):
+        html = """
 			<html>
 			<body>
 			<div itemscope itemref="taro" itemid="">
@@ -45,69 +50,70 @@ class TestMicrodata(ContentrenderingLayerTest):
 			</body>
 			</html>"""
 
-		ls = items(html)
-		assert_that(ls, has_length(1))
-		d = ls[0]
+        ls = items(html)
+        assert_that(ls, has_length(1))
+        d = ls[0]
 
-		assert_that(d, has_length(2))
-		assert_that(d, has_entry('id',''))
-		assert_that(d, has_key(PROPERTIES_KEY))
+        assert_that(d, has_length(2))
+        assert_that(d, has_entry('id', ''))
+        assert_that(d, has_key(PROPERTIES_KEY))
 
-		d = d[PROPERTIES_KEY]
-		assert_that(d, has_length(3))
-		assert_that(d, has_entry('age',['18']))
-		assert_that(d, has_entry('name',['Taro']))
-		assert_that(d, has_entry('friend', has_length(1)))
+        d = d[PROPERTIES_KEY]
+        assert_that(d, has_length(3))
+        assert_that(d, has_entry('age', ['18']))
+        assert_that(d, has_entry('name', ['Taro']))
+        assert_that(d, has_entry('friend', has_length(1)))
 
-		d = d['friend'][0]
-		assert_that(d, has_key(PROPERTIES_KEY))
-		d = d[PROPERTIES_KEY]
-		assert_that(d, has_entry('name',['Jiro']))
-		assert_that(d, has_entry('friend', has_length(1)))
+        d = d['friend'][0]
+        assert_that(d, has_key(PROPERTIES_KEY))
 
-		d = d['friend'][0]
-		assert_that(d, has_key(PROPERTIES_KEY))
-		d = d[PROPERTIES_KEY]
-		assert_that(d, has_entry('name',['Saburo']))
-		assert_that(d, has_entry('friend', has_length(1)))
+        d = d[PROPERTIES_KEY]
+        assert_that(d, has_entry('name', ['Jiro']))
+        assert_that(d, has_entry('friend', has_length(1)))
 
-		d = d['friend'][0]
-		assert_that(d, has_entry(PROPERTIES_KEY, has_length(0)))
+        d = d['friend'][0]
+        assert_that(d, has_key(PROPERTIES_KEY))
+        d = d[PROPERTIES_KEY]
+        assert_that(d, has_entry('name', ['Saburo']))
+        assert_that(d, has_entry('friend', has_length(1)))
 
-	def test_simple(self):
-		html = """<div itemscope>
+        d = d['friend'][0]
+        assert_that(d, has_entry(PROPERTIES_KEY, has_length(0)))
+
+    def test_simple(self):
+        html = """<div itemscope>
 					<p itemprop="a">1</p>
 					<p itemprop="a">2</p>
 					<p itemprop="b">test</p>
 				 </div>
 			   """
-		ls = items(html)
-		assert_that(ls, has_length(1))
+        ls = items(html)
+        assert_that(ls, has_length(1))
 
-		d = ls[0]
-		assert_that(d, has_entry(PROPERTIES_KEY, has_length(2)))
-		d = d[PROPERTIES_KEY]
-		assert_that(d, has_entry('a', ['1','2']))
-		assert_that(d, has_entry('b', ['test']))
+        d = ls[0]
+        assert_that(d, has_entry(PROPERTIES_KEY, has_length(2)))
+        d = d[PROPERTIES_KEY]
+        assert_that(d, has_entry('a', ['1', '2']))
+        assert_that(d, has_entry('b', ['test']))
 
-	def test_double(self):
-		html = """
+    def test_double(self):
+        html = """
 				<div itemscope>
  					<span itemprop="favorite-color favorite-fruit">orange</span>
 				</div>
 			   """
 
-		ls = items(html)
-		assert_that(ls, has_length(1))
-		d = ls[0]
-		assert_that(d, has_entry(PROPERTIES_KEY, has_length(2)))
+        ls = items(html)
+        assert_that(ls, has_length(1))
+        d = ls[0]
+        assert_that(d, has_entry(PROPERTIES_KEY, has_length(2)))
 
-		d = d[PROPERTIES_KEY]
-		assert_that(d, has_entry('favorite-color', ['orange']))
-		assert_that(d, has_entry('favorite-fruit', ['orange']))
+        d = d[PROPERTIES_KEY]
+        assert_that(d, has_entry('favorite-color', ['orange']))
+        assert_that(d, has_entry('favorite-fruit', ['orange']))
 
-	def test_type(self):
-		html = 	"""
+    def test_type(self):
+        html = """
 				<section itemscope itemtype="http://example.org/animals#cat">
  					<h1 itemprop="name">Hedral</h1>
  					<p itemprop="desc">Hedral is a male american domestic
@@ -116,20 +122,20 @@ class TestMicrodata(ContentrenderingLayerTest):
 				</section>
 				"""
 
-		ls = items(html)
-		assert_that(ls, has_length(1))
+        ls = items(html)
+        assert_that(ls, has_length(1))
 
-		d = ls[0]
-		assert_that(d, has_entry('type', 'http://example.org/animals#cat'))
-		assert_that(d, has_entry(PROPERTIES_KEY, has_length(3)))
+        d = ls[0]
+        assert_that(d, has_entry('type', 'http://example.org/animals#cat'))
+        assert_that(d, has_entry(PROPERTIES_KEY, has_length(3)))
 
-		d = d[PROPERTIES_KEY]
-		assert_that(d, has_entry('name', ['Hedral']))
-		assert_that(d, has_entry('img', ['hedral.jpeg']))
-		assert_that(d, has_entry('desc', has_length(1)))
+        d = d[PROPERTIES_KEY]
+        assert_that(d, has_entry('name', ['Hedral']))
+        assert_that(d, has_entry('img', ['hedral.jpeg']))
+        assert_that(d, has_entry('desc', has_length(1)))
 
-	def test_meta(self):
-		html=	"""
+    def test_meta(self):
+        html = """
 				<div itemscope itemtype="http://schema.org/Book">
 					<div itemprop="reviews" itemscope itemtype="http://schema.org/Review">
 						<span itemprop="reviewRating">4</span> stars -
@@ -149,29 +155,31 @@ class TestMicrodata(ContentrenderingLayerTest):
 				</div>
 				"""
 
-		ls = items(html)
-		assert_that(ls, has_length(1))
+        ls = items(html)
+        assert_that(ls, has_length(1))
 
-		d = ls[0]
-		assert_that(d, has_key(PROPERTIES_KEY))
-		assert_that(d, has_entry('type', 'http://schema.org/Book'))
+        d = ls[0]
+        assert_that(d, has_key(PROPERTIES_KEY))
+        assert_that(d, has_entry('type', 'http://schema.org/Book'))
 
-		d = d[PROPERTIES_KEY]
-		assert_that(d, has_entry('author', ['Bob Smith', 'John Doe']))
-		assert_that(d, has_entry('datePublished', ['2006-06-15', '2006-05-04']))
-		assert_that(d, has_entry('name', ['A good read.', 'A masterpiece of literature']))
-		assert_that(d, has_entry('reviewBody', has_length(2)))
-		assert_that(d, has_entry('reviewRating', ['4', '5']))
-		assert_that(d, has_entry('reviews', has_length(2)))
+        d = d[PROPERTIES_KEY]
+        assert_that(d, has_entry('author', ['Bob Smith', 'John Doe']))
+        assert_that(d, 
+					has_entry('datePublished',['2006-06-15', '2006-05-04']))
+        assert_that(d, 
+					has_entry('name', ['A good read.', 'A masterpiece of literature']))
+        assert_that(d, has_entry('reviewBody', has_length(2)))
+        assert_that(d, has_entry('reviewRating', ['4', '5']))
+        assert_that(d, has_entry('reviews', has_length(2)))
 
-		for d in d['reviews']:
-			self.assert_(isinstance(d, dict))
-			assert_that(d, has_key(PROPERTIES_KEY))
-			assert_that(d, has_entry('type', 'http://schema.org/Review'))
+        for d in d['reviews']:
+            self.assert_(isinstance(d, dict))
+            assert_that(d, has_key(PROPERTIES_KEY))
+            assert_that(d, has_entry('type', 'http://schema.org/Review'))
 
-			p = d[PROPERTIES_KEY]
-			assert_that(p, has_key('author'))
-			assert_that(p, has_key('name'))
-			assert_that(p, has_key('datePublished'))
-			assert_that(p, has_key('reviewBody'))
-			assert_that(p, has_key('reviewRating'))
+            p = d[PROPERTIES_KEY]
+            assert_that(p, has_key('author'))
+            assert_that(p, has_key('name'))
+            assert_that(p, has_key('datePublished'))
+            assert_that(p, has_key('reviewBody'))
+            assert_that(p, has_key('reviewRating'))

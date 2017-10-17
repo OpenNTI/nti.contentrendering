@@ -4,13 +4,12 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
-logger = __import__('logging').getLogger(__name__)
-
-import urlparse
 from hashlib import md5
+from six.moves import urllib_parse
 
 import requests
 
@@ -46,6 +45,8 @@ from nti.ntiids.ntiids import TYPE_UUID
 from nti.ntiids.ntiids import make_ntiid
 from nti.ntiids.ntiids import is_valid_ntiid_string
 
+logger = __import__('logging').getLogger(__name__)
+
 
 class _Image(object):
 
@@ -65,7 +66,7 @@ class _Dimen(object):
 
 def process_image_data(self, url, data):
     # get file info
-    filename = urlparse.urlparse(url).path.split('/')[-1]
+    filename = urllib_parse.urlparse(url).path.split('/')[-1]
     contentType, width, height = getImageInfo(data)
     named_image = File(contentType)
     named_image.data = data
@@ -227,9 +228,10 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
         else:
             # TODO: Hmm, what to use as the provider?
             # Look for a hostname in the URL?
+            href = self.href
             self.target_ntiid = make_ntiid(provider=u'NTI',
                                            nttype=TYPE_UUID,
-                                           specific=md5(self.href).hexdigest())
+                                           specific=md5(href).hexdigest())
 
     def process_digest(self):
         options = self.attributes.get('options', {}) or {}
