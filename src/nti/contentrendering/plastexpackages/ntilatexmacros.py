@@ -459,6 +459,12 @@ simpleref = simpleref
 ntifancyhref = ntifancyhref
 ntiimagehref = ntiimagehref
 
+# html
+
+from nti.contentrendering.plastexpackages.ntihtml import ntirawhtml
+
+ntirawhtml = ntirawhtml
+
 # side bars
 
 
