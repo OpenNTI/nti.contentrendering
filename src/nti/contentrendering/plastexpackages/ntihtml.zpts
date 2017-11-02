@@ -1,0 +1,4 @@
+# -*- mode: html -*-
+
+name: ntirawhtml
+<span tal:replace="structure self"></span>
