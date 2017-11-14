@@ -2,3 +2,6 @@
 
 name: ntirawhtml
 <span tal:replace="structure self"></span>
+
+name: ntiblockquote
+<blockquote class="ntiblockquote" tal:content="self"></blockquote>
