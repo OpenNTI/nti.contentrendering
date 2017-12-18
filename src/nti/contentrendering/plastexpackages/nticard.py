@@ -11,6 +11,8 @@ from __future__ import absolute_import
 from hashlib import md5
 from six.moves import urllib_parse
 
+from plone.namedfile.utils import getImageInfo
+
 import requests
 
 from zope import interface
@@ -38,8 +40,6 @@ from nti.contentrendering.plastexpackages._util import incoming_sources_as_plain
 from nti.contentrendering.plastexpackages.graphics import _locate_image_file
 
 from nti.contentrendering.plastexpackages.graphicx import includegraphics
-
-from nti.namedfile.utils import getImageInfo
 
 from nti.ntiids.ntiids import TYPE_UUID
 from nti.ntiids.ntiids import make_ntiid
@@ -226,7 +226,7 @@ class nticard(LocalContentMixin, Base.Float, NTIIDMixin):
         if is_valid_ntiid_string(self.href):
             self.target_ntiid = self.href
         else:
-            # TODO: Hmm, what to use as the provider?
+            # Hmm, what to use as the provider?
             # Look for a hostname in the URL?
             href = self.href
             self.target_ntiid = make_ntiid(provider=u'NTI',
