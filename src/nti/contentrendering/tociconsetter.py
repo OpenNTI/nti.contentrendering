@@ -151,18 +151,19 @@ def _handle_toc(toc, book, save_dom, context=None):
         if title:
             modified = index.set_label(title) or modified
             filename = _get_safe_icon_filename(title) or b'book'
-            path = "icons/chapters/" + filename + "-icon.png"
+            filename = b'%s-icon.png' % filename
+            path = os.path.join(b'icons', b'chapters', filename)
             if os.path.exists(os.path.join(contentLocation, path)):
                 modified = index.set_icon(path) or modified
             else:
-                path = "icons/chapters/generic_book.png"
+                path = os.path.join(b'icons', b'chapters', b'generic_book.png')
                 modified = index.set_icon(path) or modified
 
-            path = "images/backgrounds/default.png"
+            path = os.path.join(b'images', b'backgrounds', b'default.png')
             if os.path.exists(os.path.join(contentLocation, path)):
                 modified = index.set_background(path) or modified
 
-            path = "images/backgrounds/default.jpg"
+            path = os.path.join(b'images', b'backgrounds', b'default.jpg')
             if os.path.exists(os.path.join(contentLocation, path)):
                 modified = index.set_background(path) or modified
 
