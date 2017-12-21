@@ -10,6 +10,7 @@ from __future__ import absolute_import
 
 import os
 import sys
+import base64
 
 from zope import interface
 from zope import component
@@ -109,6 +110,29 @@ def _handle_topic(book, _topic, context=None):
     return modified
 
 
+def _get_safe_icon_filename(title):
+    """
+    Get the safe icon path from the (possibly user generated) title.
+    """
+    result = None
+    if isinstance(title, bytes):
+        result = title
+    else:
+        # encode for the filesystem. Not all systems (e.g., Unix)
+        # will have an encoding specified
+        encoding = sys.getfilesystemencoding() or 'utf-8'
+        try:
+            result = title.encode(encoding, 'surrogateescape')
+        except LookupError:
+            # Can't encode it, and the error handler doesn't
+            # exist. Probably on Python 2 with an astral character.
+            # Not sure how to handle this.
+            pass
+    if result is not None:
+        result = base64.b64encode(result)
+    return result
+
+
 def _handle_toc(toc, book, save_dom, context=None):
     contentLocation = book.contentLocation
     attributes = toc.attributes
@@ -126,7 +150,8 @@ def _handle_toc(toc, book, save_dom, context=None):
         title = index.get_title()
         if title:
             modified = index.set_label(title) or modified
-            path = "icons/chapters/" + title + "-icon.png"
+            filename = _get_safe_icon_filename(title) or ''
+            path = "icons/chapters/" + filename + "-icon.png"
             if os.path.exists(os.path.join(contentLocation, path)):
                 modified = index.set_icon(path) or modified
             else:
