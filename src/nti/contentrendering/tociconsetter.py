@@ -130,7 +130,9 @@ def _get_safe_icon_filename(title):
             pass
     if result is not None:
         result = base64.urlsafe_b64encode(result)
-    return result
+    else:
+        result = b'book'
+    return b'%s-icon.png' % result
 
 
 def _handle_toc(toc, book, save_dom, context=None):
@@ -150,8 +152,7 @@ def _handle_toc(toc, book, save_dom, context=None):
         title = index.get_title()
         if title:
             modified = index.set_label(title) or modified
-            filename = _get_safe_icon_filename(title) or b'book'
-            filename = b'%s-icon.png' % filename
+            filename = _get_safe_icon_filename(title)
             path = os.path.join(b'icons', b'chapters', filename)
             if os.path.exists(os.path.join(contentLocation, path)):
                 modified = index.set_icon(path) or modified
