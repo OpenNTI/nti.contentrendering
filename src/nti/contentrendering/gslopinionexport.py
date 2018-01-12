@@ -335,7 +335,7 @@ def main(_do_config=True):
 
 	buf = StringIO()
 	title = _opinion_to_tex(pq, output=buf, base_url=url)
-	title = title.replace(' ', '_').replace('.', '_')
+	title = re.sub(r'[\s\.]', '_', title)
 
 	# Make output directory
 	if not os.path.exists(title):
