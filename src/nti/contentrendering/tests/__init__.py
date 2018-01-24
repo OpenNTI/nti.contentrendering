@@ -50,11 +50,12 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def testSetUp(cls):
-		pass
+		cls.__cwd = os.getcwd()
 
 	@classmethod
 	def testTearDown(cls):
-		pass
+		os.chdir(cls.__cwd)
+
 
 
 class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
@@ -75,27 +76,27 @@ class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def testSetUp(cls):
-		pass
+		cls.__cwd = os.getcwd()
 
 	@classmethod
 	def testTearDown(cls):
-		pass
+		os.chdir(cls.__cwd)
 
 
 import unittest
 
 class ContentrenderingLayerTest(unittest.TestCase):
 	layer = SharedConfiguringTestLayer
-	
+
 class NonDevmodeContentrenderingLayerTest(unittest.TestCase):
 	layer = NonDevmodeSharedConfiguringTestLayer
 
 
-def buildDomFromString(docString, 
-                       mkdtemp=False, 
+def buildDomFromString(docString,
+                       mkdtemp=False,
                        output_encoding=None,
-                       input_encoding=None, 
-                       chdir=False, 
+                       input_encoding=None,
+                       chdir=False,
                        working_dir=None,
 					   config_hook=lambda doc: None):
 	document = plasTeX.TeXDocument()
@@ -126,7 +127,7 @@ def buildDomFromString(docString,
 	# Arbitrary number greater than the actual depth possible
 	document.config['document']['toc-depth'] = sys.maxint
 	document.config['document']['toc-non-files'] = True
-	
+
 	# By outputting in ASCII, we are still valid UTF-8, but we use
 	# XML entities for high characters. This is more likely to survive
 	# through various processing steps that may not be UTF-8 aware
@@ -152,9 +153,9 @@ def simpleLatexDocumentText(preludes=(), bodies=()):
 
 class RenderContext(object):
 
-	def __init__(self, latex_tex, dom=None, 
-				 output_encoding=None, 
-				 input_encoding=None, 
+	def __init__(self, latex_tex, dom=None,
+				 output_encoding=None,
+				 input_encoding=None,
 				 files=(),
 				 packages_on_texinputs=False,
 				 config_hook=None):
@@ -185,7 +186,7 @@ class RenderContext(object):
 		render.render( self.dom )
 
 	def read_rendered_file(self, filename):
-		with io.open(os.path.join(self.docdir, filename), 'rU', 
+		with io.open(os.path.join(self.docdir, filename), 'rU',
 					 encoding=self.output_encoding or 'utf-8' ) as f:
 			return f.read()
 
@@ -223,7 +224,7 @@ class RenderContext(object):
 
 		import nti.contentrendering.plastexids
 		nti.contentrendering.plastexids.patch_all()
-		
+
 		from nti.contentrendering.utils import setupChameleonCache
 		setupChameleonCache(config=True)
 
