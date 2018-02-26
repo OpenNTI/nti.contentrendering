@@ -43,6 +43,9 @@ Base.parbox.blockType = True
 Base.figure.forcePars = False
 Base.minipage.blockType = True
 Base.centerline.blockType = True
+# SAJ: Mark everything using Base.Float to have presentation preference
+# capabilities.
+Base.Float._presentation_prefs = True
 
 _incoming_sources_as_plain_text = incoming_sources_as_plain_text
 
@@ -626,6 +629,25 @@ class realpagenumber(Command):
     def pagenumber(self):
         return self._pagenumber
 
+class ntipresentationpref(Command):
+    args = 'pref:str'
+    blockType = False
+
+    def digest(self, tokens):
+        res = super(ntipresentationpref, self).digest(tokens)
+        pref = self.attributes.get('pref', None) or None
+        if pref:
+            pref = "presentation-" + pref
+            node = self
+            while node.parentNode != None:
+                node = node.parentNode
+                if hasattr(node, "_presentation_prefs"):
+                    if node._presentation_prefs:
+                        if hasattr(node, "itemprop"):
+                            node.itemprop = ' '.join([node.itemprop, pref])
+                        else:
+                            node.itemprop = pref
+                        break
 
 def ProcessOptions(options, document):
     document.context.newcounter('nticard')
