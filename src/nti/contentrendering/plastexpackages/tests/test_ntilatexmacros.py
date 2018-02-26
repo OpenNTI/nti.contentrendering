@@ -523,3 +523,29 @@ class TestNTIEmbedWidget(unittest.TestCase):
 		assert_that( widget.attributes['uid'], contains_string('mywidget') )
 		assert_that( widget.attributes['uidname'], contains_string('sourceName') )
 		assert_that( widget.attributes['defer'], contains_string('false') )
+
+class TestNTIPresentationPref(unittest.TestCase):
+
+	def test_presentationpref_basic(self):
+		example = br"""
+		\begin{figure}
+		\ntipresentationpref{card}
+		\end{figure}
+		"""
+		dom = _buildDomFromString( _simpleLatexDocument( (example,) ) )
+		
+		# Check that the DOM has the expected structure
+		assert_that( dom.getElementsByTagName('figure'), has_length( 1 ) )
+		assert_that( dom.getElementsByTagName('ntipresentationpref'), has_length( 1 ) )
+		figure = dom.getElementsByTagName('figure')[0]
+		assert_that( figure.itemprop, contains_string('presentation-card') )
+
+	def test_presentationpref_missing_capability(self):
+		example = br"""
+		\ntipresentationpref{card}
+		"""
+		dom = _buildDomFromString( _simpleLatexDocument( (example,) ) )
+		
+		# Check that the DOM has the expected structure
+		assert_that( dom.getElementsByTagName('ntipresentationpref'), has_length( 1 ) )
+

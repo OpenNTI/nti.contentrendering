@@ -128,3 +128,6 @@ name: ntiembedwidget
 name: realpagenumber
 <realpagenumber tal:attributes="value self/pagenumber"/>
 
+# ntintipresentationpref has an empty render template
+name: ntipresentationpref
+
