@@ -20,7 +20,6 @@ from zope.cachedescriptors.property import readproperty
 
 from plasTeX import Base
 from plasTeX import Command
-from plasTeX import Environment
 from plasTeX import TeXFragment
 
 from plasTeX.Base import TextCommand
@@ -475,51 +474,17 @@ class ntidirectionsblock(Base.Command):
     args = 'directions example lang_code:str:source'
     blockType = True
 
-# The sidebar environment is to be the base class for other side types
-# such as those from AoPS.
+from nti.contentrendering.plastexpackages.ntisidebar import sidebar
+from nti.contentrendering.plastexpackages.ntisidebar import flatsidebar
+from nti.contentrendering.plastexpackages.ntisidebar import sidebarname
+from nti.contentrendering.plastexpackages.ntisidebar import audiosidebar
+from nti.contentrendering.plastexpackages.ntisidebar import ntigraphicsidebar
 
-
-class sidebarname(Command):
-    unicode = ''
-
-
-class sidebar(Environment, plastexids.NTIIDMixin):
-    args = '[options:dict] title'
-    blockType = True
-
-    counter = 'sidebar'
-
-    _ntiid_suffix = u'sidebar.'
-    _ntiid_title_attr_name = 'title'
-    _ntiid_type = u'HTML:NTISidebar'
-    _ntiid_allow_missing_title = True
-    _ntiid_cache_map_name = '_sidebar_ntiid_map'
-
-    embedded_doc_cross_ref_url = property(plastexids._embedded_node_cross_ref_url)
-
-    @property
-    def css_class(self):
-        try:
-            return ' '.join([ type(self).__name__, self._options.get('css-class') ])
-        except (AttributeError, KeyError):
-            return type(self).__name__
-
-    def invoke(self, tex):
-        result = super(sidebar, self).invoke(tex)
-        self._options = self.attributes.get('options', {})
-        return result
-
-
-class flatsidebar(sidebar):
-    pass
-
-
-class audiosidebar(sidebar):
-    args = 'audioref'
-
-
-class ntigraphicsidebar(sidebar):
-    args = 'title graphic_class:str:source'
+sidebar = sidebar
+flatsidebar = flatsidebar
+sidebarname = sidebarname
+audiosidebar = audiosidebar
+ntigraphicsidebar = ntigraphicsidebar
 
 
 @interface.implementer(resource_interfaces.IRepresentableContentUnit,
