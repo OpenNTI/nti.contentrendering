@@ -27,33 +27,6 @@ name: nobreak
 name: ntiglossaryterm
 <b tal:content="self/attributes/term"></b>
 
-name: sidebar
-<div tal:condition="self" tal:attributes="class self/css_class; ntiid self/ntiid; data-ntiid self/ntiid">
-<div tal:condition="self/title" class="sidebar-title" tal:content="self/title">Sidebar Title</div>
-<div tal:replace="self">Sidebar Body</div>
-</div>
-
-name: flatsidebar
-<div tal:condition="self" class="sidebar flat border-top" tal:attributes="ntiid self/ntiid; data-ntiid self/ntiid">
-<div tal:condition="self/title" class="sidebar-title" tal:content="self/title">Sidebar Title</div>
-<div tal:replace="self">Sidebar Body</div>
-</div>
-
-name: audiosidebar
-<div class="sidebar-audio" tal:attributes="ntiid self/ntiid; data-ntiid self/ntiid">
-	<div class="sidebar-leader" tal:content="self/attributes/audioref">Audio file</div>
-	<div class="sidebar-body" tal:content="self">Sidebar body</div>
-</div>
-
-name: ntigraphicsidebar
-<div class="sidebar-graphic" tal:attributes="ntiid self/ntiid; data-ntiid self/ntiid">
-	<div tal:attributes="class python: ' '.join(['sidebar-leader',self.attributes.get('graphic_class')])"> </div>
-	<div class="sidebar-body">
-		<div class="sidebar-body-title" tal:content="self/title">Sidebar Title</div>
-		<div class="sidebar-body-content" tal:content="self">Sidebar body</div>
-	</div>
-</div>
-
 name: ntiincludeannotationgraphics
 <span tal:condition="python: not self.image.resizeable and not (self.attributes and self.attributes.get('options') and self.attributes.get('options').get('float'))" itemprop="nti-data-markupenabled">
 <img tal:condition="not:self/style" crossorigin="anonymous" tal:attributes="src self/image/url; id self/id; alt self/attributes/alttext; style string:width:${self/image/width/px};; height:${self/image/height/px}; data-nti-image-size self/image/current_size; data-nti-image-full self/image/full_size/url; data-nti-image-half self/image/half_size/url; data-nti-image-quarter self/image/quarter_size/url; data-caption self/caption | nothing" />
