@@ -45,6 +45,7 @@ def _update_parent_pages(element, index, pagenumber):
         return
 
     ntiid = getattr(parent, 'ntiid', None)
+    ntiid = getattr(parent, 'embedded_doc_cross_ref_url', ntiid)
     if ntiid:
         index['NTIIDs'][ntiid].append(pagenumber)
     _update_parent_pages(parent, index, pagenumber)
@@ -59,6 +60,7 @@ def _build_index(element, index, container_ntiid=None):
     """
     _last_page_seen = None
     ntiid = getattr(element, 'ntiid', None)
+    ntiid = getattr(element, 'embedded_doc_cross_ref_url', ntiid)
     _container_ntiid = ntiid or container_ntiid
     try:
         if index['NTIIDs'][container_ntiid]:
