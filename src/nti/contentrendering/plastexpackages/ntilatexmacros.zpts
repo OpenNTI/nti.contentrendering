@@ -99,6 +99,7 @@ name: ntiembedwidget
 </object>
 
 name: realpagenumber
+<a tal:attributes="id self/id"/>
 <realpagenumber tal:attributes="value self/pagenumber"/>
 
 # ntintipresentationpref has an empty render template
