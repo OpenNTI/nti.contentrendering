@@ -6,7 +6,7 @@
 
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
-
+ 
 logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
@@ -234,6 +234,11 @@ class INTIAudioExtractor(INTIMediaExtractor):
 class ICourseExtractor(IRenderedBookExtractor):
     """
     Looks through the rendered book and extracts course information.
+    """
+
+class IContentUnitStatistics(IRenderedBookExtractor):
+    """
+    Looks through the rendered book and extracts content unit statistics.
     """
 
 
