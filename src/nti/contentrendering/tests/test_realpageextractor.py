@@ -77,7 +77,9 @@ class TestRealPageExtractor(ContentrenderingLayerTest):
             ref_context.render()
             book = RenderedBook(ref_context.dom, ref_context.docdir)
             index = transform(book)
-            assert_that(index['real-pages']['11'],
+            assert_that(index['real-pages']['11']['NTIID'],
+                        is_('tag:nextthought.com,2011-10:testing-HTML-temp.bb'))
+            assert_that(index['real-pages']['11']['NavNTIID'],
                         is_('tag:nextthought.com,2011-10:testing-HTML-temp.bb'))
             assert_that(index['NTIIDs']['tag:nextthought.com,2011-10:testing-HTML-temp.bb'],
                         has_length(3))

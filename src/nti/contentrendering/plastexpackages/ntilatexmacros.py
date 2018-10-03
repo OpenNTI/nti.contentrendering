@@ -581,6 +581,8 @@ class realpagenumber(Command):
     counter = 'realpagenumber'
     _pagenumber = ''
 
+    embedded_doc_cross_ref_url = property(plastexids._embedded_node_cross_ref_url)
+
     def invoke(self, tex):
         result = super(Command, self).invoke(tex)
         if self.attributes['pagenumber']:
