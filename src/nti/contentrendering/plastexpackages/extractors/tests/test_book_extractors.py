@@ -29,15 +29,15 @@ from nti.contentrendering.plastexpackages.extractors import _RelatedWorkExtracto
 
 from nti.contentrendering.plastexpackages.tests import ExtractorTestLayer
 
-class TestCourseExtractor(unittest.TestCase):
+class TestBookExtractor(unittest.TestCase):
 
 	layer = ExtractorTestLayer
 
-	def test_course_and_related_extractor_works(self):
+	def test_book_extractor_works(self):
 		# Does very little verification. Mostly makes sure we don't crash
 		name = 'sample_book.tex'
 		with open(os.path.join( os.path.dirname(__file__), name)) as fp:
-			course_string = fp.read()
+			book_string = fp.read()
 		
 		class Book(object):
 			toc = None
@@ -46,8 +46,8 @@ class TestCourseExtractor(unittest.TestCase):
 		book = Book()
 
 		with RenderContext(simpleLatexDocumentText(
-								preludes=("\\usepackage{nticourse}", "\\usepackage{ntilatexmacros}"),
-								bodies=(course_string, )),
+								preludes=("\\usepackage{ntilatexmacros}",),
+								bodies=(book_string, )),
 						   	packages_on_texinputs=True) as ctx:
 			book.document = ctx.dom
 			book.contentLocation = ctx.docdir
