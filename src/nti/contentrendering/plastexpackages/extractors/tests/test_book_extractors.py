@@ -9,6 +9,7 @@ logger = __import__('logging').getLogger(__name__)
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
+from hamcrest import is_
 from hamcrest import has_entry
 from hamcrest import has_length
 from hamcrest import has_entries
@@ -63,4 +64,18 @@ class TestBookExtractor(unittest.TestCase):
 			__traceback_info__ = book.toc.dom.toprettyxml()
 
 			assert_that(book.toc.dom.documentElement.attributes, has_entry('isCourse', 'false'))
+			assert_that(book.toc.dom.documentElement.nodeName, is_('toc'))
+			assert_that(book.toc.dom.documentElement.getElementsByTagName('topic'), has_length(5))
+			assert_that(book.toc.dom.documentElement.attributes, has_entry('href', 'tag_nextthought_com_2011-10_testing-HTML-temp_0.html'))
+			assert_that(book.toc.dom.documentElement.getAttributeNode('href').value, is_('tag_nextthought_com_2011-10_testing-HTML-temp_0.html'))
 			
+			node = book.toc.dom.documentElement
+			
+			for i, child in enumerate(node.childNodes):
+				if child.nodeName == 'topic':
+					if i == 1 :
+						assert_that(child.getAttributeNode('href').value, is_('tag_nextthought_com_2011-10_testing-HTML-temp_chapter_FAQ.html'))
+						assert_that(child.getAttributeNode('ntiid').value, is_('tag:nextthought.com,2011-10:testing-HTML-temp.chapter:FAQ'))
+					if i == 3:
+						assert_that(child.getAttributeNode('href').value, is_('tag_nextthought_com_2011-10_testing-HTML-temp_chapter_Getting_Started.html'))
+						assert_that(child.getAttributeNode('ntiid').value, is_('tag:nextthought.com,2011-10:testing-HTML-temp.chapter:Getting_Started'))		
