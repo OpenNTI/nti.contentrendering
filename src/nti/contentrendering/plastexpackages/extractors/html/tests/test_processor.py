@@ -21,6 +21,7 @@ from nti.contentrendering.plastexpackages.extractors.html.processor import proce
 
 class HTMLSample(object):
 	number_paragraph = 0
+	number_sidebar = 0
 
 class HTMLProcessTest(HTMLExtractorTests):
 	def test_simple_paragraph(self):
@@ -51,9 +52,39 @@ class HTMLProcessTest(HTMLExtractorTests):
 		html_obj = HTMLSample()
 		text = process_element(text, element, html_obj)
 		assert_that(html_obj.number_paragraph, is_(2))
-		assert_that(text, is_(u'System Requirements\n \nWe recommend the following specifications to ensure the highest quality experience while using NextThought: \n1Mb/s+ broadband Internet connection for optimal video viewing A computer with at least 2GB memory and minimum screen resolution of 1024x768 Adobe Reader or similar PDF reading software \n'))
+		assert_that(text, is_(u'System Requirements\n\n \nWe recommend the following specifications to ensure the highest quality experience while using NextThought: \n1Mb/s+ broadband Internet connection for optimal video viewing A computer with at least 2GB memory and minimum screen resolution of 1024x768 Adobe Reader or similar PDF reading software \n'))
+
+	def test_sidebar_without_title(self):
+		script = """<body><div><div class="sidebar" data-ntiid="tag:nextthought.com,2011-10:IFSTA-HTML-sample_book.sidebar.0" ntiid="tag:nextthought.com,2011-10:IFSTA-HTML-sample_book.sidebar.0">
+			<a name="2c43df7a57062f9f59978bb1e129e8c9" id="2c43df7a57062f9f59978bb1e129e8c9"></a>
+			<p class="par" id="2c43df7a57062f9f59978bb1e129e8c9">
+				This is a sidebar without title.
+			</p><a name="2ac0c28581159b91251218e7eaf262aa" id="2ac0c28581159b91251218e7eaf262aa"></a>
+			<p class="par" id="2ac0c28581159b91251218e7eaf262aa">
+				New line here.
+			</p>
+		</div></div></body>"""
+		element = html.fromstring(script)
+		text = ""
+		html_obj = HTMLSample()
+		text = process_element(text, element, html_obj)
+		assert_that(html_obj.number_paragraph, is_(2))
+		assert_that(html_obj.number_sidebar, is_(1))
 
 
+	def test_sidebar_with_title(self):
+		script = """<body><div><div class="sidebar" data-ntiid="tag:nextthought.com,2011-10:IFSTA-HTML:NTISidebar-sample_book.sidebar.sidebar_title" ntiid="tag:nextthought.com,2011-10:IFSTA-HTML:NTISidebar-sample_book.sidebar.sidebar_title">
+			<div class="sidebar-title">
+				Sidebar Title
+			</div>This is a sidebar with title.<br />
+			Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		</div></div></body>"""
+		element = html.fromstring(script)
+		text = ""
+		html_obj = HTMLSample()
+		text = process_element(text, element, html_obj)
+		assert_that(html_obj.number_sidebar, is_(1))
+		assert_that(html_obj.number_paragraph, is_(1))
 
 
 
