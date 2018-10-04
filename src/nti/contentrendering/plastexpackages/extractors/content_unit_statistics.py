@@ -46,7 +46,7 @@ class _ContentUnitStatistics(object):
 			ntiid = node.getAttributeNode('ntiid').value
 			element_index = index[ntiid] = {}
 			element_index['NTIID'] = ntiid
-		
+			element_index['href'] = node.getAttributeNode('href').value
 		if node.hasChildNodes():	
 			for child in node.childNodes:
 				if child.nodeName == 'topic':
