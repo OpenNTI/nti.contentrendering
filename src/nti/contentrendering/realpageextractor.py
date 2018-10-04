@@ -50,7 +50,7 @@ def _update_parent_pages(element, index, pagenumber):
     _update_parent_pages(parent, index, pagenumber)
 
 
-def _build_index(element, index, container_ntiid=None):
+def _build_index(element, index, container_ntiid=None, nav_ntiid=None):
     """
     Recurse through the element adding realpagenumber objects to the index,
     keyed off of NTIIDs.
@@ -59,6 +59,7 @@ def _build_index(element, index, container_ntiid=None):
     """
     _last_page_seen = None
     ntiid = getattr(element, 'ntiid', None)
+    _nav_ntiid = getattr(element, 'embedded_doc_cross_ref_url', nav_ntiid)
     _container_ntiid = ntiid or container_ntiid
     try:
         if index['NTIIDs'][container_ntiid]:
@@ -70,7 +71,10 @@ def _build_index(element, index, container_ntiid=None):
         realpagenumber = getattr(element, 'pagenumber', None)
         if realpagenumber:
             realpagenumber = unicode(realpagenumber)
-            index['real-pages'][realpagenumber] = _container_ntiid
+            index['real-pages'][realpagenumber] = {
+                'NTIID': _container_ntiid,
+                'NavNTIID': _nav_ntiid or _container_ntiid
+            }
             _update_parent_pages(element, index, realpagenumber)
     elif ntiid not in index['NTIIDs']:
         index['NTIIDs'][ntiid] = []
@@ -84,7 +88,7 @@ def _build_index(element, index, container_ntiid=None):
 
     for child in element.childNodes:
         if child.hasChildNodes():  # Recurse for children if needed
-            _build_index(child, index, container_ntiid=_container_ntiid)
+            _build_index(child, index, container_ntiid=_container_ntiid, nav_ntiid=_nav_ntiid)
 
 
 def transform(book, savetoc=True, outpath=None):
