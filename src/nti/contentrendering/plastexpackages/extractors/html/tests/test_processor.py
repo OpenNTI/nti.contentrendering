@@ -104,4 +104,10 @@ class HTMLProcessTest(HTMLExtractorTests):
 		text = process_element(text, element, html_obj)
 		assert_that(text, is_(u'You control who is able to see your note.'))
 
-
+	def test_paragraph_with_image_only(self):
+		script = """<p class="par" id="c3d314f2ae99dbaaa5312df78e8f46b9"> <span itemprop="nti-data-markupdisabled nti-data-resizeable"> <img crossorigin="anonymous" data-nti-image-full="resources/sample_book/5d9a8fd7c6126e69eb942ed5113845735bbdb586/fd35e23767020999111e1f49239199b4c5eff23e.png" data-nti-image-half="resources/sample_book/5d9a8fd7c6126e69eb942ed5113845735bbdb586/2cff8dc544afd32305107ce559484cb4ce1730df.png" data-nti-image-quarter="resources/sample_book/5d9a8fd7c6126e69eb942ed5113845735bbdb586/06aefff9765154841fac3704b0e59674fae7a005.png" data-nti-image-size="full" id="c3d314f2ae99dbaaa5312df78e8f46b9.1" src="resources/sample_book/5d9a8fd7c6126e69eb942ed5113845735bbdb586/fd35e23767020999111e1f49239199b4c5eff23e.png" style="width:1398px; height:358px" /> </span> </p>"""
+		element = html.fromstring(script)
+		text = ""
+		html_obj = HTMLSample()
+		text = process_element(text, element, html_obj)
+		assert_that(text, is_(u'   '))
