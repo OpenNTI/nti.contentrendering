@@ -29,8 +29,7 @@ def check_child(text, element, html=None):
 
 def check_element_tail(text, element):
     if element.tail:
-        if not element.tail.isspace():
-            text = text + element.tail
+        text = text + element.tail
     return text
 
 def process_element(text, element, html=None):

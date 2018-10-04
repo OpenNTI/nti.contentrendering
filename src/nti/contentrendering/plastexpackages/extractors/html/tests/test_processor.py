@@ -52,7 +52,7 @@ class HTMLProcessTest(HTMLExtractorTests):
 		html_obj = HTMLSample()
 		text = process_element(text, element, html_obj)
 		assert_that(html_obj.number_paragraph, is_(2))
-		assert_that(text, is_(u'System Requirements\n\n \nWe recommend the following specifications to ensure the highest quality experience while using NextThought: \n1Mb/s+ broadband Internet connection for optimal video viewing A computer with at least 2GB memory and minimum screen resolution of 1024x768 Adobe Reader or similar PDF reading software \n'))
+		assert_that(text, is_(u'System Requirements \n \n   \n We recommend the following specifications to ensure the highest quality experience while using NextThought:  \n 1Mb/s+ broadband Internet connection for optimal video viewing A computer with at least 2GB memory and minimum screen resolution of 1024x768 Adobe Reader or similar PDF reading software  \n'))
 
 	def test_sidebar_without_title(self):
 		script = """<body><div><div class="sidebar" data-ntiid="tag:nextthought.com,2011-10:IFSTA-HTML-sample_book.sidebar.0" ntiid="tag:nextthought.com,2011-10:IFSTA-HTML-sample_book.sidebar.0">
@@ -86,7 +86,7 @@ class HTMLProcessTest(HTMLExtractorTests):
 		assert_that(html_obj.number_sidebar, is_(1))
 		assert_that(html_obj.number_paragraph, is_(1))
 
-	def test_section(self):
+	def test_section_with_no_id_paragraph(self):
 		script = """<body id="NTIContent"> <div class="page-contents"><div data-ntiid="tag:nextthought.com,2011-10:IFSTA-HTML-sample_book.section:General_Features" id="section:General_Features" ntiid="tag:nextthought.com,2011-10:IFSTA-HTML-sample_book.section:General_Features"> <div class="section title">General Features</div> <p class="placeholder"></p> <p class="par"> <a name="section:General_Features"></a> <b class="bfseries">You</b> <em>control</em> <span class="underline">who</span> <b class="bfseries"><em>is able to see your note</em></b>. To change who your note is shared with or add someone to the note, begin typing a contact, list, or group&#8217;s name in the sharing field and click on them to share. </p> <a name="04f2dacf2787d96d3531de8a3851a109"></a> <p class="par" id="04f2dacf2787d96d3531de8a3851a109">To remove a person, group, or list, hover over their name in the sharing field, and an &#8220;x&#8221; will appear. Click the x to remove. If no one is listed in the sharing field, the note will be private and only you can access it. </p> </div></div> </body>"""
 		element = html.fromstring(script)
 		text = ""
@@ -96,6 +96,12 @@ class HTMLProcessTest(HTMLExtractorTests):
 		assert_that(html_obj.number_paragraph, is_(2))
 
 
-
+	def test_bolded_italic_underlined_script(self):
+		script = """<body id="NTIContent"><div><b class="bfseries">You</b> <em>control</em> <span class="underline">who</span> <b class="bfseries"><em>is able to see your note</em></b>.</div></body>"""
+		element = html.fromstring(script)
+		text = ""
+		html_obj = HTMLSample()
+		text = process_element(text, element, html_obj)
+		assert_that(text, is_(u'You control who is able to see your note.'))
 
 
