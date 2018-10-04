@@ -40,11 +40,16 @@ def process_element(text, element, html=None):
     return text
 
 def process_paragraph(text, element, html=None):
-    if 'id' in element.attrib and 'class' in element.attrib:
+    new_text = ""
+    new_text = process_element(new_text, element, html)
+    if 'class' in element.attrib:
         if html and element.attrib['class'] == 'par':
-            html.number_paragraph = html.number_paragraph + 1
-    text = process_element(text, element, html)
-    text = text + '\n'
+            if 'id' in element.attrib:
+                html.number_paragraph = html.number_paragraph + 1
+            else:
+                if not new_text.isspace():
+                    html.number_paragraph = html.number_paragraph + 1   
+    text = text + new_text + '\n'
     return text
 
 def process_div(text, element, html=None):
