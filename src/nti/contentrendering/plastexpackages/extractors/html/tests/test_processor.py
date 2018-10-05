@@ -90,7 +90,7 @@ class HTMLProcessTest(HTMLExtractorTests):
 		script = """<body id="NTIContent"> <div class="page-contents"><div data-ntiid="tag:nextthought.com,2011-10:IFSTA-HTML-sample_book.section:General_Features" id="section:General_Features" ntiid="tag:nextthought.com,2011-10:IFSTA-HTML-sample_book.section:General_Features"> <div class="section title">General Features</div> <p class="placeholder"></p> <p class="par"> <a name="section:General_Features"></a> <b class="bfseries">You</b> <em>control</em> <span class="underline">who</span> <b class="bfseries"><em>is able to see your note</em></b>. To change who your note is shared with or add someone to the note, begin typing a contact, list, or group&#8217;s name in the sharing field and click on them to share. </p> <a name="04f2dacf2787d96d3531de8a3851a109"></a> <p class="par" id="04f2dacf2787d96d3531de8a3851a109">To remove a person, group, or list, hover over their name in the sharing field, and an &#8220;x&#8221; will appear. Click the x to remove. If no one is listed in the sharing field, the note will be private and only you can access it. </p> </div></div> </body>"""
 		element = html.fromstring(script)
 		text = ""
-		html_obj = HTMLSample()
+		html_obj = HTMLSample()a
 		text = process_element(text, element, html_obj)
 		assert_that(html_obj.number_sidebar, is_(0))
 		assert_that(html_obj.number_paragraph, is_(2))
@@ -111,3 +111,4 @@ class HTMLProcessTest(HTMLExtractorTests):
 		html_obj = HTMLSample()
 		text = process_element(text, element, html_obj)
 		assert_that(text, is_(u'   '))
+		assert_that(html_obj.number_paragraph, is_(0))
