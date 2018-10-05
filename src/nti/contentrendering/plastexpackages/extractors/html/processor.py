@@ -9,6 +9,11 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+def process_html_body(element, html=None):
+    body = element.find('body')
+    text = u''
+    text  = process_element(text, body, html)
+    return text
 
 def check_element_text(text, element):
     if element.text:
@@ -57,7 +62,7 @@ def process_div(text, element, html=None):
     if 'class' in element.attrib:
         if element.attrib['class'] == 'section title' or element.attrib['class'] == 'sidebar title':
             text = text + new_text + '\n'
-        if element.attrib['class'] == 'sidebar':
+        elif element.attrib['class'] == 'sidebar':
             if html:
                 html.number_sidebar += 1
                 ##need to discuss whether we want to count paragraph inside a sidebar
@@ -65,6 +70,10 @@ def process_div(text, element, html=None):
                     html.number_paragraph += 1
             text = text + new_text
         ##shall we ignore figure for word counts eventhough it has caption
-        if element.attrib['class'] == 'figure':
+        elif element.attrib['class'] == 'figure':
             pass
+        else:
+            text = text + new_text
+    else:
+        text = text + new_text
     return text

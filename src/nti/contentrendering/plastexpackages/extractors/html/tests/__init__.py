@@ -12,5 +12,9 @@ import unittest
 from nti.contentrendering.tests import SharedConfiguringTestLayer
 
 
+class HTMLSample(object):
+	number_paragraph = 0
+	number_sidebar = 0
+
 class HTMLExtractorTests(unittest.TestCase):
     layer = SharedConfiguringTestLayer
