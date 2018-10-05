@@ -18,3 +18,5 @@ from nti.contentrendering.plastexpackages.extractors.media import _NTIVideoExtra
 from nti.contentrendering.plastexpackages.extractors.discussion import _DiscussionExtractor
 
 from nti.contentrendering.plastexpackages.extractors.related_work import _RelatedWorkExtractor
+
+from nti.contentrendering.plastexpackages.extractors.statistics import _ContentUnitStatistics
