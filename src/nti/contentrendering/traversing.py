@@ -32,9 +32,9 @@ class PlastexTraverser(DefaultTraversable):
         try:
             return super(PlastexTraverser, self).traverse(name, furtherPath)
         except (LocationError, IndexError) as e:
-            # XXX: This can mask issues.
-            logger.warn('Traversal error while rendering (%s) (%s)',
-                        name, e)
+            # Warning !!! This can mask issues.
+            logger.warning('Traversal error while rendering (%s) (%s)',
+                           name, e)
             # IndexError can be raised because the plasTeX objects attempt
             # to use strings as child numbers
             return None
