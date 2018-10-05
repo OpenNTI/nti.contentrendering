@@ -9,7 +9,7 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from nti.contentrendering.plastexpackages.extractors.html import HTMLReader
+from nti.contentrendering.plastexpackages.extractors.html.reader import HTMLReader
 from nti.contentrendering.plastexpackages.extractors.html.processor import process_html_body
 
 from nti.contentprocessing import default_word_tokenizer_expression
@@ -23,11 +23,12 @@ class HTMLExtractor(object):
 		self.number_paragraph = 0
 		self.number_sidebar = 0
 		self.element = element
-		plain_text = process_html_body(element, self)
+		self.plain_text = process_html_body(element, self)
+		
 
-	def total_number_of_words(self, plain_text):
+	def total_number_of_words(self):
 		tokenizer = DefaultRegexpTokenizer(default_word_tokenizer_expression)
-		words = tokenizer.tokenize(plain_text)
+		words = tokenizer.tokenize(self.plain_text)
 		return len(words)
 
 	def total_number_of_sentences(self, plain_text):
