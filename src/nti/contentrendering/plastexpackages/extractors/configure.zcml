@@ -56,11 +56,11 @@
 			 provides="nti.contentrendering.interfaces.ITimelineExtractor"
 			 name="035.TimelineExtractor" />
 
-	<adapter factory=".content_unit_statistics._ContentUnitStatistics"
+	<adapter factory=".statistics._ContentUnitStatistics"
 			 for="nti.contentrendering.interfaces.IRenderedBook"
 			 provides="nti.contentrendering.interfaces.IContentUnitStatistics" />
 			 
-	<utility factory=".content_unit_statistics._ContentUnitStatistics"
+	<utility factory=".statistics._ContentUnitStatistics"
 			 provides="nti.contentrendering.interfaces.IContentUnitStatistics"
 			 name="060.ContentUnitStatistics" />
 			 
