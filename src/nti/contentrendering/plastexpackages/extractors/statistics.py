@@ -33,18 +33,18 @@ logger = __import__('logging').getLogger(__name__)
 @interface.implementer(IContentUnitStatistics)
 class _ContentUnitStatistics(object):
 
-    def __init__(self, book=None, lang='en'):
+    def __init__(self, unused_book=None, lang='en'):
         self.lang = lang
 
     def transform(self, book, outpath=None):
         outpath = outpath or book.contentLocation
+        # pylint: disable=attribute-defined-outside-init
         self.outpath = os.path.expanduser(outpath)
         target = os.path.join(outpath, 'content_index.json')
         dom = book.toc.dom
         root = dom.documentElement
         index = {'Items': {}}
         self._process_topic(root, index['Items'])
-        
 
         logger.info("Extracting content statistics to %s", target)
         with codecs.open(target, 'w', encoding='utf-8') as fp:
@@ -70,7 +70,7 @@ class _ContentUnitStatistics(object):
                 element_index['number_of_sentences'] = extractor.number_sentence
                 element_index['number_of_unique_words'] = extractor.number_unique_word
                 unique_words = extractor.unique_words
-        
+
         if node.hasChildNodes():
             for child in node.childNodes:
                 if child.nodeName == 'topic':
@@ -84,7 +84,7 @@ class _ContentUnitStatistics(object):
                         unique_words = unique_words.union(child_unique_words)
             element_index['number_of_unique_words'] = len(unique_words)
         return unique_words
-                    
+
     def _read_html(self, name):
         filename = os.path.join(os.path.dirname(__file__), self.outpath, name)
         reader = HTMLReader(filename)
