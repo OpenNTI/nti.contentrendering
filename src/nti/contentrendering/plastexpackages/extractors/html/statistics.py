@@ -26,10 +26,12 @@ class HTMLExtractor(object):
         self.element = element
         self.plain_text = process_html_body(element, self)
         self.number_sentence = self.total_number_of_sentences()
+        self.number_word, self.number_unique_word = self.total_number_of_words()
 
     def total_number_of_words(self):
         words = tokenize_content(self.plain_text, self.lang)
-        return len(words)
+        unique_words = set(words)
+        return len(words), len(unique_words)
 
     def total_number_of_sentences(self):
         sentences = sent_tokenize(self.plain_text, self.lang)

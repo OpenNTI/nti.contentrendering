@@ -52,8 +52,9 @@ class _ContentUnitStatistics(object):
                 html_element = self._read_html(element_index['href'])
                 extractor = HTMLExtractor(html_element, self.lang)
                 element_index['data']['number_of_paragraphs'] = extractor.number_paragraph
-                element_index['data']['number_of_words'] = extractor.total_number_of_words()
+                element_index['data']['number_of_words'] = extractor.number_word
                 element_index['data']['number_of_sentences'] = extractor.number_sentence
+                element_index['data']['number_of_unique_words'] = extractor.number_unique_word
         
         if node.hasChildNodes():
             for child in node.childNodes:
