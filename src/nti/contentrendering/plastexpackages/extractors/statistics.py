@@ -56,6 +56,7 @@ class _ContentUnitStatistics(object):
         return index
 
     def _process_topic(self, node, index):
+        unique_words = set()
         if node.hasAttribute('ntiid'):
             ntiid = node.getAttributeNode('ntiid').value
             element_index = index[ntiid] = {}
@@ -69,17 +70,21 @@ class _ContentUnitStatistics(object):
                 element_index['data']['number_of_words'] = extractor.number_word
                 element_index['data']['number_of_sentences'] = extractor.number_sentence
                 element_index['data']['number_of_unique_words'] = extractor.number_unique_word
+                unique_words = extractor.unique_words
         
         if node.hasChildNodes():
             for child in node.childNodes:
                 if child.nodeName == 'topic':
                     containing_index = element_index.setdefault('Items', {})
-                    self._process_topic(child, containing_index)
+                    child_unique_words = self._process_topic(child, containing_index)
                     child_ntiid = child.getAttributeNode('ntiid').value
                     if 'data' in containing_index[child_ntiid]:
                         element_index['data']['number_of_paragraphs'] += containing_index[child_ntiid]['data']['number_of_paragraphs']
                         element_index['data']['number_of_sentences'] += containing_index[child_ntiid]['data']['number_of_sentences']
                         element_index['data']['number_of_words'] += containing_index[child_ntiid]['data']['number_of_words']
+                        unique_words = unique_words.union(child_unique_words)
+            element_index['data']['number_of_unique_words'] = len(unique_words)
+        return unique_words
                     
     def _read_html(self, name):
         filename = os.path.join(os.path.dirname(__file__), self.outpath, name)

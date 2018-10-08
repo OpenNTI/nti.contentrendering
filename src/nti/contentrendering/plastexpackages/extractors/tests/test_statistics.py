@@ -91,7 +91,6 @@ class TestContentUnitStatistics(unittest.TestCase):
             assert_that(level_2_2['data']['number_of_words'], is_(86))
             assert_that(level_2_2['data']['number_of_sentences'], is_(5))
             assert_that(level_2_2['data']['number_of_paragraphs'], is_(2))
-
         
             check_number_of_words = level_2_1['data']['number_of_words'] + level_2_2['data']['number_of_words']
             assert_that(level_1['data']['number_of_words'], greater_than_or_equal_to(check_number_of_words))
@@ -101,6 +100,9 @@ class TestContentUnitStatistics(unittest.TestCase):
 
             check_number_of_paragraphs = level_2_1['data']['number_of_paragraphs'] + level_2_2['data']['number_of_paragraphs'] 
             assert_that(level_1['data']['number_of_paragraphs'], greater_than_or_equal_to(check_number_of_paragraphs))
+
+            assert_that(level_1['data']['number_of_unique_words'], greater_than_or_equal_to(level_2_1['data']['number_of_unique_words']))
+            assert_that(level_1['data']['number_of_unique_words'], greater_than_or_equal_to(level_2_2['data']['number_of_unique_words']))
             
     def test_book_3_levels(self):
 
