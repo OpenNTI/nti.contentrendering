@@ -45,14 +45,14 @@ class _ContentUnitStatistics(object):
         index = {'Items': {}}
         self._process_topic(root, index['Items'])
         
-        if index:  
-            logger.info("Extracting content statistics to %s", target)
-            with codecs.open(target, 'w', encoding='utf-8') as fp:
-                json.dump(index,
-                          fp,
-                          indent='\t',
-                          sort_keys=True,
-                          ensure_ascii=True)
+
+        logger.info("Extracting content statistics to %s", target)
+        with codecs.open(target, 'w', encoding='utf-8') as fp:
+            json.dump(index,
+                      fp,
+                      indent='\t',
+                      sort_keys=True,
+                      ensure_ascii=True)
         return index
 
     def _process_topic(self, node, index):
