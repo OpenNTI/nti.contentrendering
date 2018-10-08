@@ -33,10 +33,13 @@ class TestContentUnitStatistics(unittest.TestCase):
 
     layer = ExtractorTestLayer
 
+    def data_file(self, name):
+        return os.path.join(os.path.dirname(__file__), 'data', name)
+
     def test_book_content_unit_statistics(self):
 
         name = 'sample_book_1.tex'
-        with open(os.path.join( os.path.dirname(__file__), name)) as fp:
+        with open(self.data_file(name)) as fp:
             book_string = fp.read()
         
         class Book(object):
