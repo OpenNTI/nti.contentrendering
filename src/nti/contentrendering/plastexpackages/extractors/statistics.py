@@ -12,6 +12,10 @@ from __future__ import absolute_import
 
 import os
 
+import codecs
+
+import simplejson as json
+
 from zope import component
 from zope import interface
 
@@ -35,10 +39,20 @@ class _ContentUnitStatistics(object):
     def transform(self, book, outpath=None):
         outpath = outpath or book.contentLocation
         self.outpath = os.path.expanduser(outpath)
+        target = os.path.join(outpath, 'content_index.json')
         dom = book.toc.dom
         root = dom.documentElement
         index = {'Items': {}}
         self._process_topic(root, index['Items'])
+        
+        if index:  
+            logger.info("Extracting content statistics to %s", target)
+            with codecs.open(target, 'w', encoding='utf-8') as fp:
+                json.dump(index,
+                          fp,
+                          indent='\t',
+                          sort_keys=True,
+                          ensure_ascii=True)
         return index
 
     def _process_topic(self, node, index):
