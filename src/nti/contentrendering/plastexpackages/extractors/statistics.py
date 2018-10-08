@@ -54,12 +54,18 @@ class _ContentUnitStatistics(object):
                 element_index['data']['number_of_paragraphs'] = extractor.number_paragraph
                 element_index['data']['number_of_words'] = extractor.total_number_of_words()
                 element_index['data']['number_of_sentences'] = extractor.number_sentence
+        
         if node.hasChildNodes():
             for child in node.childNodes:
                 if child.nodeName == 'topic':
                     containing_index = element_index.setdefault('Items', {})
                     self._process_topic(child, containing_index)
-
+                    child_ntiid = child.getAttributeNode('ntiid').value
+                    if 'data' in containing_index[child_ntiid]:
+                        element_index['data']['number_of_paragraphs'] += containing_index[child_ntiid]['data']['number_of_paragraphs']
+                        element_index['data']['number_of_sentences'] += containing_index[child_ntiid]['data']['number_of_sentences']
+                        element_index['data']['number_of_words'] += containing_index[child_ntiid]['data']['number_of_words']
+                    
     def _read_html(self, name):
         filename = os.path.join(os.path.dirname(__file__), self.outpath, name)
         reader = HTMLReader(filename)

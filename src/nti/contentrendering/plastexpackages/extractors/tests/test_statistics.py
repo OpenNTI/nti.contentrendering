@@ -10,9 +10,7 @@ logger = __import__('logging').getLogger(__name__)
 # pylint: disable=W0212,R0904
 
 from hamcrest import is_
-from hamcrest import has_entry
-from hamcrest import has_length
-from hamcrest import has_entries
+from hamcrest import greater_than_or_equal_to
 from hamcrest import assert_that
 
 import os
@@ -36,8 +34,8 @@ class TestContentUnitStatistics(unittest.TestCase):
     layer = ExtractorTestLayer
 
     def test_book_content_unit_statistics(self):
-        # Does very little verification. Mostly makes sure we don't crash
-        name = 'sample_book.tex'
+
+        name = 'sample_book_1.tex'
         with open(os.path.join( os.path.dirname(__file__), name)) as fp:
             book_string = fp.read()
         
@@ -63,35 +61,40 @@ class TestContentUnitStatistics(unittest.TestCase):
             ext.transform(book)
 
             __traceback_info__ = book.toc.dom.toprettyxml()
-
-
-            assert_that(book.toc.dom.documentElement.attributes, has_entry('isCourse', 'false'))
-            assert_that(book.toc.dom.documentElement.nodeName, is_('toc'))
-            assert_that(book.toc.dom.documentElement.getElementsByTagName('topic'), has_length(5))
-            assert_that(book.toc.dom.documentElement.attributes, has_entry('href', 'tag_nextthought_com_2011-10_testing-HTML-temp_0.html'))
-            assert_that(book.toc.dom.documentElement.getAttributeNode('href').value, is_('tag_nextthought_com_2011-10_testing-HTML-temp_0.html'))
             
             node = book.toc.dom.documentElement
-            
-            for i, child in enumerate(node.childNodes):
-                if child.nodeName == 'topic':
-                    if i == 1 :
-                        assert_that(child.getAttributeNode('href').value, is_('tag_nextthought_com_2011-10_testing-HTML-temp_chapter_FAQ.html'))
-                        assert_that(child.getAttributeNode('ntiid').value, is_('tag:nextthought.com,2011-10:testing-HTML-temp.chapter:FAQ'))
-                    if i == 3:
-                        assert_that(child.getAttributeNode('href').value, is_('tag_nextthought_com_2011-10_testing-HTML-temp_chapter_Getting_Started.html'))
-                        assert_that(child.getAttributeNode('ntiid').value, is_('tag:nextthought.com,2011-10:testing-HTML-temp.chapter:Getting_Started'))
 
-            
             stat = _ContentUnitStatistics(book)
             result = stat.transform(book)
-            
+
+            assert_that(stat.lang, is_('en'))
+
             level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
-            assert_that(level_0, has_entry('NTIID', 'tag:nextthought.com,2011-10:testing-HTML-temp.0'))
-            assert_that(len(level_0['Items']), is_(2))
+            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
-            level_1_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:FAQ']
-            assert_that(len(level_1_1['Items']), is_(2))
+            assert_that(len(level_0['Items']), is_(1))
+            assert_that(len(level_1['Items']), is_(2))
+            
+            assert_that(level_2_1['NTIID'], is_(u'tag:nextthought.com,2011-10:testing-HTML-temp.section:1'))
+            assert_that(level_2_1['data']['number_of_words'], is_(42))
+            assert_that(level_2_1['data']['number_of_sentences'], is_(6))
+            assert_that(level_2_1['data']['number_of_paragraphs'], is_(1))
 
-            level_1_2 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:Getting_Started']
-            assert_that(len(level_1_2['Items']), is_(1))
+            assert_that(level_2_2['NTIID'], is_(u'tag:nextthought.com,2011-10:testing-HTML-temp.section:2'))
+            assert_that(level_2_2['data']['number_of_words'], is_(86))
+            assert_that(level_2_2['data']['number_of_sentences'], is_(5))
+            assert_that(level_2_2['data']['number_of_paragraphs'], is_(2))
+
+        
+            check_number_of_words = level_2_1['data']['number_of_words'] + level_2_2['data']['number_of_words']
+            assert_that(level_1['data']['number_of_words'], greater_than_or_equal_to(check_number_of_words))
+
+            check_number_of_sentences = level_2_1['data']['number_of_sentences'] + level_2_2['data']['number_of_sentences']
+            assert_that(level_1['data']['number_of_sentences'], greater_than_or_equal_to(check_number_of_sentences))
+
+            check_number_of_paragraphs = level_2_1['data']['number_of_paragraphs'] + level_2_2['data']['number_of_paragraphs'] 
+            assert_that(level_1['data']['number_of_paragraphs'], greater_than_or_equal_to(check_number_of_paragraphs))
+            
+            
