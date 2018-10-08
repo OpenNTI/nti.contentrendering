@@ -32,15 +32,18 @@ from nti.contentrendering.plastexpackages.tests import ExtractorTestLayer
 
 class TestCourseExtractor(unittest.TestCase):
 
-	layer = ExtractorTestLayer
+    layer = ExtractorTestLayer
 
-	def test_course_and_related_extractor_works(self):
+    def data_file(self, name):
+        return os.path.join(os.path.dirname(__file__), 'data', name)
+
+    def test_course_and_related_extractor_works(self):
 		# Does very little verification. Mostly makes sure we don't crash
 		name = 'sample_course.tex'
-		with open(os.path.join( os.path.dirname(__file__), name)) as fp:
+		with open(self.data_file(name)) as fp:
 			course_string = fp.read()
 		name = 'sample_relatedwork.tex'
-		with open(os.path.join( os.path.dirname(__file__), name)) as fp:
+		with open(self.data_file(name)) as fp:
 			works_string = fp.read()
 
 		class Book(object):

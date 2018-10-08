@@ -33,12 +33,15 @@ from nti.contentrendering.plastexpackages.tests import ExtractorTestLayer
 
 class TestBookExtractor(unittest.TestCase):
 
-	layer = ExtractorTestLayer
+    layer = ExtractorTestLayer
 
-	def test_book_extractor_works(self):
+    def data_file(self, name):
+        return os.path.join(os.path.dirname(__file__), 'data', name)
+
+    def test_book_extractor_works(self):
 		# Does very little verification. Mostly makes sure we don't crash
 		name = 'sample_book.tex'
-		with open(os.path.join( os.path.dirname(__file__), name)) as fp:
+		with open(self.data_file(name)) as fp:
 			book_string = fp.read()
 		
 		class Book(object):
@@ -85,15 +88,13 @@ class TestBookExtractor(unittest.TestCase):
 			
 			stat = _ContentUnitStatistics(book)
 			result = stat.transform(book)
-
-			from IPython.terminal.debugger import set_trace;set_trace()
 			
 			level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
 			assert_that(level_0, has_entry('NTIID', 'tag:nextthought.com,2011-10:testing-HTML-temp.0'))
 			assert_that(len(level_0['Items']), is_(2))
 
 			level_1_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:FAQ']
-			assert_that(len(level_1['Items']), is_(2))
+			assert_that(len(level_1_1['Items']), is_(2))
 
 			level_1_2 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:Getting_Started']
-			assert_that(len(level_1['Items']), is_(1))
+			assert_that(len(level_1_2['Items']), is_(1))

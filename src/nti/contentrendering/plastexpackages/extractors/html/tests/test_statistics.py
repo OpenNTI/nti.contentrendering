@@ -31,7 +31,8 @@ class HTMLExtractorTest(HTMLExtractorTests):
         element = reader.element
         extractor = HTMLExtractor(element)
         assert_that(extractor.number_paragraph, is_(0))
-        assert_that(extractor.total_number_of_words(), is_(2))
+        assert_that(extractor.number_word, is_(2))
+        assert_that(extractor.number_unique_word, is_(2))
 
     def test_section(self):
         filename = "tag_nextthought_com_2011-10_IFSTA-HTML-sample_book_section_General_Features.html"
@@ -39,6 +40,6 @@ class HTMLExtractorTest(HTMLExtractorTests):
         element = reader.element
         extractor = HTMLExtractor(element)
         assert_that(extractor.number_paragraph, is_(2))
-        number_of_words = extractor.total_number_of_words()
-        assert_that(number_of_words, greater_than(50))
+        assert_that(extractor.number_word, greater_than(80))
         assert_that(extractor.number_sentence, is_(5))
+        assert_that(extractor.number_unique_word, greater_than(50))
