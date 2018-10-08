@@ -85,15 +85,13 @@ class TestBookExtractor(unittest.TestCase):
 			
 			stat = _ContentUnitStatistics(book)
 			result = stat.transform(book)
-
-			from IPython.terminal.debugger import set_trace;set_trace()
 			
 			level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
 			assert_that(level_0, has_entry('NTIID', 'tag:nextthought.com,2011-10:testing-HTML-temp.0'))
 			assert_that(len(level_0['Items']), is_(2))
 
 			level_1_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:FAQ']
-			assert_that(len(level_1['Items']), is_(2))
+			assert_that(len(level_1_1['Items']), is_(2))
 
 			level_1_2 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:Getting_Started']
-			assert_that(len(level_1['Items']), is_(1))
+			assert_that(len(level_1_2['Items']), is_(1))
