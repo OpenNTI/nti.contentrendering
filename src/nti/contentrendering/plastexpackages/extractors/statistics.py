@@ -63,13 +63,12 @@ class _ContentUnitStatistics(object):
             element_index['NTIID'] = ntiid
             element_index['href'] = node.getAttributeNode('href').value
             if u'#' not in element_index['href']:
-                element_index['data']={}
                 html_element = self._read_html(element_index['href'])
                 extractor = HTMLExtractor(html_element, self.lang)
-                element_index['data']['number_of_paragraphs'] = extractor.number_paragraph
-                element_index['data']['number_of_words'] = extractor.number_word
-                element_index['data']['number_of_sentences'] = extractor.number_sentence
-                element_index['data']['number_of_unique_words'] = extractor.number_unique_word
+                element_index['number_of_paragraphs'] = extractor.number_paragraph
+                element_index['number_of_words'] = extractor.number_word
+                element_index['number_of_sentences'] = extractor.number_sentence
+                element_index['number_of_unique_words'] = extractor.number_unique_word
                 unique_words = extractor.unique_words
         
         if node.hasChildNodes():
@@ -78,12 +77,12 @@ class _ContentUnitStatistics(object):
                     containing_index = element_index.setdefault('Items', {})
                     child_unique_words = self._process_topic(child, containing_index)
                     child_ntiid = child.getAttributeNode('ntiid').value
-                    if 'data' in containing_index[child_ntiid]:
-                        element_index['data']['number_of_paragraphs'] += containing_index[child_ntiid]['data']['number_of_paragraphs']
-                        element_index['data']['number_of_sentences'] += containing_index[child_ntiid]['data']['number_of_sentences']
-                        element_index['data']['number_of_words'] += containing_index[child_ntiid]['data']['number_of_words']
+                    if u'#' not in containing_index[child_ntiid]['href']:
+                        element_index['number_of_paragraphs'] += containing_index[child_ntiid]['number_of_paragraphs']
+                        element_index['number_of_sentences'] += containing_index[child_ntiid]['number_of_sentences']
+                        element_index['number_of_words'] += containing_index[child_ntiid]['number_of_words']
                         unique_words = unique_words.union(child_unique_words)
-            element_index['data']['number_of_unique_words'] = len(unique_words)
+            element_index['number_of_unique_words'] = len(unique_words)
         return unique_words
                     
     def _read_html(self, name):
