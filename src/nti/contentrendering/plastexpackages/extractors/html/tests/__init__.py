@@ -7,7 +7,6 @@ from __future__ import absolute_import
 
 # pylint: disable=protected-access,too-many-public-methods
 
-
 import unittest
 
 from nti.contentrendering.tests import SharedConfiguringTestLayer
