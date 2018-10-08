@@ -12,6 +12,7 @@ logger = __import__('logging').getLogger(__name__)
 from hamcrest import is_
 from hamcrest import greater_than_or_equal_to
 from hamcrest import assert_that
+from hamcrest import has_entries
 
 import os
 import unittest
@@ -29,6 +30,11 @@ from nti.contentrendering.plastexpackages.extractors import _ContentUnitStatisti
 
 from nti.contentrendering.plastexpackages.tests import ExtractorTestLayer
 
+class Book(object):
+    toc = None
+    document = None
+    contentLocation = None
+
 class TestContentUnitStatistics(unittest.TestCase):
 
     layer = ExtractorTestLayer
@@ -42,10 +48,6 @@ class TestContentUnitStatistics(unittest.TestCase):
         with open(self.data_file(name)) as fp:
             book_string = fp.read()
         
-        class Book(object):
-            toc = None
-            document = None
-            contentLocation = None
         book = Book()
 
         with RenderContext(simpleLatexDocumentText(
@@ -100,4 +102,76 @@ class TestContentUnitStatistics(unittest.TestCase):
             check_number_of_paragraphs = level_2_1['data']['number_of_paragraphs'] + level_2_2['data']['number_of_paragraphs'] 
             assert_that(level_1['data']['number_of_paragraphs'], greater_than_or_equal_to(check_number_of_paragraphs))
             
+    def test_book_3_levels(self):
+
+        name = 'sample_book_2.tex'
+        with open(self.data_file(name)) as fp:
+            book_string = fp.read()
+
+        book = Book()
+
+        with RenderContext(simpleLatexDocumentText(
+                                preludes=("\\usepackage{ntilatexmacros}",),
+                                bodies=(book_string, )),
+                            packages_on_texinputs=True) as ctx:
+            book.document = ctx.dom
+            book.contentLocation = ctx.docdir
+
+            render = ResourceRenderer.createResourceRenderer('XHTML', None)
+            render.render( ctx.dom )
+            book.toc = EclipseTOC(os.path.join(ctx.docdir, 'eclipse-toc.xml'))
+            ctx.dom.renderer = render
+
+            ext = _CourseExtractor()
+            ext.transform(book)
+
+            __traceback_info__ = book.toc.dom.toprettyxml()
             
+            node = book.toc.dom.documentElement
+
+            stat = _ContentUnitStatistics(book)
+            result = stat.transform(book)
+
+            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            chapter_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            section_1_1 = chapter_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1_1']
+            section_1_2 = chapter_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1_2']
+            chapter_2 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:2']
+            section_2_1 = chapter_2['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2_1']
+            subsection_2_1_1 = section_2_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.subsection:2_2_1']
+            subsection_2_1_2 = section_2_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.subsection:2_2_2']
+            section_2_2 = chapter_2['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2_2']
+            
+            assert_that(chapter_1, has_entries('NTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1',
+                                               'Items',
+                                               has_entries('tag:nextthought.com,2011-10:testing-HTML-temp.section:1_1',
+                                                           has_entries('NTIID',u'tag:nextthought.com,2011-10:testing-HTML-temp.section:1_1',
+                                                                       'data', 
+                                                                       has_entries('number_of_paragraphs',2,
+                                                                                   'number_of_sentences',8)),
+                                                           'tag:nextthought.com,2011-10:testing-HTML-temp.section:1_2',
+                                                           has_entries('NTIID',u'tag:nextthought.com,2011-10:testing-HTML-temp.section:1_2',
+                                                                       'data', 
+                                                                       has_entries('number_of_paragraphs',1,
+                                                                                   'number_of_sentences',2)),
+                                                           )
+                                               )
+            )
+            #since this render split-level = 1, then subsection does not have its own html
+            assert_that(chapter_2, has_entries('NTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.chapter:2',
+                                               'Items',
+                                               has_entries('tag:nextthought.com,2011-10:testing-HTML-temp.section:2_1',
+                                                           has_entries('NTIID',u'tag:nextthought.com,2011-10:testing-HTML-temp.section:2_1',
+                                                                       'data', 
+                                                                       has_entries('number_of_paragraphs',3,
+                                                                                   'number_of_sentences',8)),
+                                                           'tag:nextthought.com,2011-10:testing-HTML-temp.section:2_2',
+                                                           has_entries('NTIID',u'tag:nextthought.com,2011-10:testing-HTML-temp.section:2_2',
+                                                                       'data', 
+                                                                       has_entries('number_of_paragraphs',1,
+                                                                                   'number_of_sentences',4)),
+                                                           )
+                                               )
+            )
+            
+            assert_that(stat.lang, is_('en'))
