@@ -33,6 +33,8 @@ class HTMLExtractorTest(HTMLExtractorTests):
         assert_that(extractor.number_paragraph, is_(0))
         assert_that(extractor.number_word, is_(2))
         assert_that(extractor.number_unique_word, is_(2))
+        assert_that(extractor.number_char, is_(25))
+        assert_that(extractor.number_non_whitespace_char, is_(14))
 
     def test_section(self):
         filename = "tag_nextthought_com_2011-10_IFSTA-HTML-sample_book_section_General_Features.html"

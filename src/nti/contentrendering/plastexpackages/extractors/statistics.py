@@ -69,6 +69,8 @@ class _ContentUnitStatistics(object):
                 element_index['number_of_words'] = extractor.number_word
                 element_index['number_of_sentences'] = extractor.number_sentence
                 element_index['number_of_unique_words'] = extractor.number_unique_word
+                element_index['number_of_chars'] = extractor.number_char
+                element_index['number_of_non_whitespace_chars'] = extractor.number_non_whitespace_char
                 unique_words = extractor.unique_words
 
         if node.hasChildNodes():
@@ -81,6 +83,8 @@ class _ContentUnitStatistics(object):
                         element_index['number_of_paragraphs'] += containing_index[child_ntiid]['number_of_paragraphs']
                         element_index['number_of_sentences'] += containing_index[child_ntiid]['number_of_sentences']
                         element_index['number_of_words'] += containing_index[child_ntiid]['number_of_words']
+                        element_index['number_of_chars'] += containing_index[child_ntiid]['number_of_chars']
+                        element_index['number_of_non_whitespace_chars'] += containing_index[child_ntiid]['number_of_non_whitespace_chars']
                         unique_words = unique_words.union(child_unique_words)
             element_index['number_of_unique_words'] = len(unique_words)
         return unique_words

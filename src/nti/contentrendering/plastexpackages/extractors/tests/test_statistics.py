@@ -105,6 +105,11 @@ class TestContentUnitStatistics(unittest.TestCase):
             assert_that(level_1['number_of_unique_words'], 
                         greater_than_or_equal_to(level_2_2['number_of_unique_words']))
 
+            assert_that(level_1['number_of_chars'], greater_than_or_equal_to(level_1['number_of_non_whitespace_chars']))
+            assert_that(level_1['number_of_non_whitespace_chars'], is_(605))
+            assert_that(level_2_1['number_of_chars'], greater_than_or_equal_to(level_2_1['number_of_non_whitespace_chars']))
+            assert_that(level_2_2['number_of_chars'], greater_than_or_equal_to(level_2_2['number_of_non_whitespace_chars']))
+
     def test_book_3_levels(self):
 
         name = 'sample_book_2.tex'
