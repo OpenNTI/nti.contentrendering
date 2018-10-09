@@ -110,6 +110,21 @@ class TestContentUnitStatistics(unittest.TestCase):
             assert_that(level_2_1['number_of_chars'], greater_than_or_equal_to(level_2_1['number_of_non_whitespace_chars']))
             assert_that(level_2_2['number_of_chars'], greater_than_or_equal_to(level_2_2['number_of_non_whitespace_chars']))
 
+            avg_word_per_sentence = level_1['number_of_words']/level_1['number_of_sentences']
+            assert_that(level_1['avg_word_per_sentence'], is_(avg_word_per_sentence))
+            avg_word_per_paragraph = level_1['number_of_words']/level_1['number_of_paragraphs']
+            assert_that(level_1['avg_word_per_paragraph'], is_(avg_word_per_paragraph))
+
+            avg_word_per_sentence = level_2_1['number_of_words']/level_2_1['number_of_sentences']
+            assert_that(level_2_1['avg_word_per_sentence'], is_(avg_word_per_sentence))
+            avg_word_per_paragraph = level_2_1['number_of_words']/level_2_1['number_of_paragraphs']
+            assert_that(level_2_1['avg_word_per_paragraph'], is_(avg_word_per_paragraph))
+
+            avg_word_per_sentence = level_2_2['number_of_words']/level_2_2['number_of_sentences']
+            assert_that(level_2_2['avg_word_per_sentence'], is_(avg_word_per_sentence))
+            avg_word_per_paragraph = level_2_2['number_of_words']/level_2_2['number_of_paragraphs']
+            assert_that(level_2_2['avg_word_per_paragraph'], is_(avg_word_per_paragraph))
+
     def test_book_3_levels(self):
 
         name = 'sample_book_2.tex'

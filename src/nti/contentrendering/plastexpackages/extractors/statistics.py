@@ -86,7 +86,12 @@ class _ContentUnitStatistics(object):
                         element_index['number_of_chars'] += containing_index[child_ntiid]['number_of_chars']
                         element_index['number_of_non_whitespace_chars'] += containing_index[child_ntiid]['number_of_non_whitespace_chars']
                         unique_words = unique_words.union(child_unique_words)
+        
+        if node.hasAttribute('ntiid') and u'#' not in element_index['href']:
             element_index['number_of_unique_words'] = len(unique_words)
+            element_index['avg_word_per_sentence'] = element_index['number_of_words']/element_index['number_of_sentences']
+            element_index['avg_word_per_paragraph']  = element_index['number_of_words']/element_index['number_of_paragraphs']
+        
         return unique_words
 
     def _read_html(self, name):
