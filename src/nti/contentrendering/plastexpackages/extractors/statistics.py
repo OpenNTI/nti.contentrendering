@@ -91,7 +91,7 @@ class _ContentUnitStatistics(object):
             element_index['number_of_unique_words'] = len(unique_words)
             element_index['avg_word_per_sentence'] = element_index['number_of_words']/element_index['number_of_sentences']
             element_index['avg_word_per_paragraph']  = element_index['number_of_words']/element_index['number_of_paragraphs']
-        
+            element_index['unique_percentage_of_words'] = element_index['number_of_unique_words']/element_index['number_of_words']        
         return unique_words
 
     def _read_html(self, name):

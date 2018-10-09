@@ -125,6 +125,15 @@ class TestContentUnitStatistics(unittest.TestCase):
             avg_word_per_paragraph = level_2_2['number_of_words']/level_2_2['number_of_paragraphs']
             assert_that(level_2_2['avg_word_per_paragraph'], is_(avg_word_per_paragraph))
 
+            unique_percentage_of_words = level_1['number_of_unique_words']/level_1['number_of_words']
+            assert_that(level_1['unique_percentage_of_words'], is_(unique_percentage_of_words))
+
+            unique_percentage_of_words = level_2_1['number_of_unique_words']/level_2_1['number_of_words']
+            assert_that(level_2_1['unique_percentage_of_words'], is_(unique_percentage_of_words))
+
+            unique_percentage_of_words = level_2_2['number_of_unique_words']/level_2_2['number_of_words']
+            assert_that(level_2_2['unique_percentage_of_words'], is_(unique_percentage_of_words))
+
     def test_book_3_levels(self):
 
         name = 'sample_book_2.tex'
