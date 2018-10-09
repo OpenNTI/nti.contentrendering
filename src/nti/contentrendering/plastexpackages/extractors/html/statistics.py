@@ -28,6 +28,8 @@ class HTMLExtractor(object):
         self.number_sentence = self.total_number_of_sentences()
         self.number_word, self.unique_words = self.total_number_of_words()
         self.number_unique_word = len(self.unique_words)
+        self.number_char = len(self.plain_text)
+        self.number_non_whitespace_char = self.get_non_whitespace_character_length()
 
     def total_number_of_words(self):
         words = tokenize_content(self.plain_text, self.lang)
@@ -40,3 +42,7 @@ class HTMLExtractor(object):
 
     def total_number_of_paragraph(self):
         return self.number_paragraph
+
+    def get_non_whitespace_character_length(self):
+        nws = u''.join(self.plain_text.split())
+        return len(nws)

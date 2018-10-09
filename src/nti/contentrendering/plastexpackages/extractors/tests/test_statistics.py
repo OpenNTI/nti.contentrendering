@@ -105,6 +105,40 @@ class TestContentUnitStatistics(unittest.TestCase):
             assert_that(level_1['number_of_unique_words'], 
                         greater_than_or_equal_to(level_2_2['number_of_unique_words']))
 
+            assert_that(level_1['number_of_chars'], greater_than_or_equal_to(level_1['number_of_non_whitespace_chars']))
+            assert_that(level_1['number_of_non_whitespace_chars'], is_(605))
+            assert_that(level_2_1['number_of_chars'], greater_than_or_equal_to(level_2_1['number_of_non_whitespace_chars']))
+            assert_that(level_2_2['number_of_chars'], greater_than_or_equal_to(level_2_2['number_of_non_whitespace_chars']))
+
+            avg_word_per_sentence = level_1['number_of_words']/level_1['number_of_sentences']
+            assert_that(level_1['avg_word_per_sentence'], is_(avg_word_per_sentence))
+            avg_word_per_paragraph = level_1['number_of_words']/level_1['number_of_paragraphs']
+            assert_that(level_1['avg_word_per_paragraph'], is_(avg_word_per_paragraph))
+
+            avg_word_per_sentence = level_2_1['number_of_words']/level_2_1['number_of_sentences']
+            assert_that(level_2_1['avg_word_per_sentence'], is_(avg_word_per_sentence))
+            avg_word_per_paragraph = level_2_1['number_of_words']/level_2_1['number_of_paragraphs']
+            assert_that(level_2_1['avg_word_per_paragraph'], is_(avg_word_per_paragraph))
+
+            avg_word_per_sentence = level_2_2['number_of_words']/level_2_2['number_of_sentences']
+            assert_that(level_2_2['avg_word_per_sentence'], is_(avg_word_per_sentence))
+            avg_word_per_paragraph = level_2_2['number_of_words']/level_2_2['number_of_paragraphs']
+            assert_that(level_2_2['avg_word_per_paragraph'], is_(avg_word_per_paragraph))
+
+            unique_percentage_of_words = level_1['number_of_unique_words']/level_1['number_of_words']
+            assert_that(level_1['unique_percentage_of_words'], is_(unique_percentage_of_words))
+
+            unique_percentage_of_words = level_2_1['number_of_unique_words']/level_2_1['number_of_words']
+            assert_that(level_2_1['unique_percentage_of_words'], is_(unique_percentage_of_words))
+
+            unique_percentage_of_words = level_2_2['number_of_unique_words']/level_2_2['number_of_words']
+            assert_that(level_2_2['unique_percentage_of_words'], is_(unique_percentage_of_words))
+
+            len_shortest_word = level_1['length_of_the_shortest_word']
+            len_longest_word = level_1['length_of_the_longest_word']
+            assert_that(len_shortest_word, is_(1))
+            assert_that(len_longest_word, is_(11))
+
     def test_book_3_levels(self):
 
         name = 'sample_book_2.tex'

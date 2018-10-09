@@ -69,6 +69,8 @@ class _ContentUnitStatistics(object):
                 element_index['number_of_words'] = extractor.number_word
                 element_index['number_of_sentences'] = extractor.number_sentence
                 element_index['number_of_unique_words'] = extractor.number_unique_word
+                element_index['number_of_chars'] = extractor.number_char
+                element_index['number_of_non_whitespace_chars'] = extractor.number_non_whitespace_char
                 unique_words = extractor.unique_words
 
         if node.hasChildNodes():
@@ -81,8 +83,18 @@ class _ContentUnitStatistics(object):
                         element_index['number_of_paragraphs'] += containing_index[child_ntiid]['number_of_paragraphs']
                         element_index['number_of_sentences'] += containing_index[child_ntiid]['number_of_sentences']
                         element_index['number_of_words'] += containing_index[child_ntiid]['number_of_words']
+                        element_index['number_of_chars'] += containing_index[child_ntiid]['number_of_chars']
+                        element_index['number_of_non_whitespace_chars'] += containing_index[child_ntiid]['number_of_non_whitespace_chars']
                         unique_words = unique_words.union(child_unique_words)
+        
+        if node.hasAttribute('ntiid') and u'#' not in element_index['href']:
             element_index['number_of_unique_words'] = len(unique_words)
+            element_index['avg_word_per_sentence'] = element_index['number_of_words']/element_index['number_of_sentences']
+            element_index['avg_word_per_paragraph']  = element_index['number_of_words']/element_index['number_of_paragraphs']
+            element_index['unique_percentage_of_words'] = element_index['number_of_unique_words']/element_index['number_of_words']   
+            sorted_words = sorted(unique_words, key=len)
+            element_index['length_of_the_shortest_word'] = len(sorted_words[0]) 
+            element_index['length_of_the_longest_word'] = len(sorted_words[-1]) 
         return unique_words
 
     def _read_html(self, name):
