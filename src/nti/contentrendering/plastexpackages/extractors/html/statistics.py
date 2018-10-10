@@ -39,7 +39,7 @@ class HTMLExtractor(object):
 
     def total_number_of_words(self):
         words = tokenize_content(self.plain_text, self.lang)
-        ##we may need to eliminate stopword and do stemming to find unique words
+        ##TODO : we may need to eliminate stopword and do stemming to find unique words
         unique_words = set(words)
         return len(words), unique_words
 
