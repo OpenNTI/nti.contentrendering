@@ -74,6 +74,8 @@ class _ContentUnitStatistics(object):
                 element_index['number_of_table'] = extractor.number_table 
                 element_index['number_of_sidebar'] = extractor.number_sidebar 
                 element_index['number_of_ntiglossary'] = extractor.number_ntiglossary 
+                element_index['number_of_ordered_list'] = extractor.number_ordered_list
+                element_index['number_of_unordered_list'] = extractor.number_unordered_list
                 unique_words = extractor.unique_words
 
         if node.hasChildNodes():
@@ -91,6 +93,8 @@ class _ContentUnitStatistics(object):
                         element_index['number_of_table'] += containing_index[child_ntiid]['number_of_table']
                         element_index['number_of_sidebar'] += containing_index[child_ntiid]['number_of_sidebar']
                         element_index['number_of_ntiglossary'] += containing_index[child_ntiid]['number_of_ntiglossary']
+                        element_index['number_of_unordered_list'] += containing_index[child_ntiid]['number_of_unordered_list']
+                        element_index['number_of_ordered_list'] += containing_index[child_ntiid]['number_of_ordered_list']
                         unique_words = unique_words.union(child_unique_words)
         
         if node.hasAttribute('ntiid') and u'#' not in element_index['href']:

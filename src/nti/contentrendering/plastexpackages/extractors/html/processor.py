@@ -35,6 +35,16 @@ def check_child(text, element, html=None):
             pass
         elif child.tag == 'a':
             text = process_anchor(text, child, html)
+        elif child.tag == 'ul':
+            text = process_element(text, child, html)
+            if html:
+                html.number_unordered_list += 1
+        elif child.tag == 'ol':
+            text = process_element(text, child, html)
+            if html:
+                html.number_ordered_list += 1
+        elif child.tag == 'li':
+            text = child.text_content().strip() + u'\n'
         else:
             text = process_element(text, child, html)
     return text
