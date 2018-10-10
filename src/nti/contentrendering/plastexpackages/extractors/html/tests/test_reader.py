@@ -53,4 +53,3 @@ class HTMLReaderTest(HTMLExtractorTests):
         text = process_html_body(reader.element, html)
         assert_that(html.number_ntiglossary, is_(2))
         assert_that(len(html.glossaries), is_(2))
-        assert_that(len(html.glossaries), is_(html.number_ntiglossary))
