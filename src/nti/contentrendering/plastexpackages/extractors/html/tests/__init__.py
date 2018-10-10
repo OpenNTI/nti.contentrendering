@@ -35,7 +35,6 @@ class HTMLSample(object):
             data['number_of_char'] += len(item)
         data['number_of_words'] = len(words)
         data['number_of_sentences'] = len(sentences)
-        from IPython.terminal.debugger import set_trace;set_trace()
         return data
 
 
