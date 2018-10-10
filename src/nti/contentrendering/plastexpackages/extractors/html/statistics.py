@@ -27,7 +27,8 @@ class HTMLExtractor(object):
         self.number_ntiglossary = 0
         self.number_unordered_list = 0
         self.number_ordered_list = 0
-        
+        self.glossaries = []
+
         self.element = element
         self.plain_text = process_html_body(element, self)
         self.number_sentence = self.total_number_of_sentences()
@@ -38,6 +39,7 @@ class HTMLExtractor(object):
 
     def total_number_of_words(self):
         words = tokenize_content(self.plain_text, self.lang)
+        ##we may need to eliminate stopword and do stemming to find unique words
         unique_words = set(words)
         return len(words), unique_words
 
@@ -51,3 +53,11 @@ class HTMLExtractor(object):
     def get_non_whitespace_character_length(self):
         nws = u''.join(self.plain_text.split())
         return len(nws)
+
+    def compute_glossary_statistics(self, glossaries):
+        data = {}
+        data['number_of_words'] = 
+        data['number_of_sentence'] = 
+        data['number_of_unique_words']
+
+
