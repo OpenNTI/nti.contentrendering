@@ -27,6 +27,7 @@ class HTMLExtractor(object):
         self.number_ntiglossary = 0
         self.number_unordered_list = 0
         self.number_ordered_list = 0
+        
         self.element = element
         self.plain_text = process_html_body(element, self)
         self.number_sentence = self.total_number_of_sentences()

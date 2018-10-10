@@ -241,7 +241,7 @@ class TestContentUnitStatistics(unittest.TestCase):
             level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
-
+            
             assert_that(level_1['number_of_table'], is_(1))
             assert_that(level_2_1['number_of_table'], is_(1))
             assert_that(level_2_2['number_of_table'], is_(0))
@@ -254,7 +254,7 @@ class TestContentUnitStatistics(unittest.TestCase):
             assert_that(level_2_1['number_of_ntiglossary'], is_(0))
             assert_that(level_2_2['number_of_ntiglossary'], is_(1))
 
-    def test_book_with_table_sidebar_ntiglossary(self):
+    def test_book_with_lists(self):
 
         name = 'sample_book_4.tex'
         with open(self.data_file(name)) as fp:

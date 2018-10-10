@@ -13,8 +13,15 @@ from nti.contentrendering.tests import SharedConfiguringTestLayer
 
 
 class HTMLSample(object):
-    number_paragraph = 0
-    number_sidebar = 0
+    def __init__(self):
+        self.number_paragraph = 0
+        self.number_sidebar = 0
+        self.number_figure = 0
+        self.number_table = 0
+        self.number_ntiglossary = 0
+        self.number_unordered_list = 0
+        self.number_ordered_list = 0
+        self.glossaries = list()
 
 
 class HTMLExtractorTests(unittest.TestCase):

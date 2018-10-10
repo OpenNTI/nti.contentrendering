@@ -87,16 +87,17 @@ def process_div(text, element, html=None):
                 if current_number_paragraph == html.number_paragraph:
                     html.number_paragraph += 1
             text = text + new_text
-        # shall we ignore figure for word counts eventhough it has caption
         elif element.attrib['class'] == 'figure':
             if html:
                 html.number_figure += 1
+        elif element.attrib['class'] == 'glossary':
+            ol = element.getchildren()[0]
+            if html and ol.tag == 'ol':
+                for li in ol:
+                    html.glossaries.append(li.text_content().strip())
         elif element.attrib['class'] == 'table':
             if html:
                 html.number_table += 1
-        elif element.attrib['class'] == 'glossary':
-            ## need to count the words separately
-            pass
         else:
             text = text + new_text
     else:

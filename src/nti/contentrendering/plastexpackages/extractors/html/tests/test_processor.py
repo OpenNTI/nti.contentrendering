@@ -84,7 +84,6 @@ class HTMLProcessTest(HTMLExtractorTests):
         text = process_element(u"", element, html_obj)
         assert_that(html_obj.number_sidebar, is_(0))
         assert_that(html_obj.number_paragraph, is_(2))
-        print(text)
 
     def test_bolded_italic_underlined_script(self):
         script = u"""<body id="NTIContent"><div><b class="bfseries">You</b> <em>control</em> <span class="underline">who</span> <b class="bfseries"><em>is able to see your note</em></b>.</div></body>"""
