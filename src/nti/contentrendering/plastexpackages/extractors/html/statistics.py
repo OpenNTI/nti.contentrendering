@@ -54,10 +54,4 @@ class HTMLExtractor(object):
         nws = u''.join(self.plain_text.split())
         return len(nws)
 
-    def compute_glossary_statistics(self, glossaries):
-        data = {}
-        data['number_of_words'] = 
-        data['number_of_sentence'] = 
-        data['number_of_unique_words']
-
 
