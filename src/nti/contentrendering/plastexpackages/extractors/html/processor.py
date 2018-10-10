@@ -94,7 +94,8 @@ def process_div(text, element, html=None):
             ol = element.getchildren()[0]
             if html and ol.tag == 'ol':
                 for li in ol:
-                    html.glossaries.append(li.text_content().strip())
+                    span = li.getchildren()[0]
+                    html.glossaries.append(span.text_content().strip())
         elif element.attrib['class'] == 'table':
             if html:
                 html.number_table += 1
