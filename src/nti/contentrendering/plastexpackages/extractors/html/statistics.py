@@ -22,7 +22,9 @@ class HTMLExtractor(object):
         self.lang = lang
         self.number_paragraph = 0
         self.number_sidebar = 0
-        self.number_of_figure = 0
+        self.number_figure = 0
+        self.number_table = 0
+        self.number_ntiglossary = 0
         self.element = element
         self.plain_text = process_html_body(element, self)
         self.number_sentence = self.total_number_of_sentences()
@@ -30,6 +32,7 @@ class HTMLExtractor(object):
         self.number_unique_word = len(self.unique_words)
         self.number_char = len(self.plain_text)
         self.number_non_whitespace_char = self.get_non_whitespace_character_length()
+
 
     def total_number_of_words(self):
         words = tokenize_content(self.plain_text, self.lang)

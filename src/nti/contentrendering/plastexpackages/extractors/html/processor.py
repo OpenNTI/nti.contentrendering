@@ -33,6 +33,8 @@ def check_child(text, element, html=None):
             text = process_div(text, child, html)
         elif child.tag == 'img':
             pass
+        elif child.tag == 'a':
+            text = process_anchor(text, child, html)
         else:
             text = process_element(text, child, html)
     return text
@@ -77,9 +79,23 @@ def process_div(text, element, html=None):
             text = text + new_text
         # shall we ignore figure for word counts eventhough it has caption
         elif element.attrib['class'] == 'figure':
+            if html:
+                html.number_figure += 1
+        elif element.attrib['class'] == 'table':
+            if html:
+                html.number_table += 1
+        elif element.attrib['class'] == 'glossary':
+            ## need to count the words separately
             pass
         else:
             text = text + new_text
     else:
         text = text + new_text
+    return text
+
+def process_anchor(text, element, html=None):
+    if 'class' in element.attrib:
+        if element.attrib['class'] == 'ntiglossaryentry':
+            html.number_ntiglossary += 1
+    text = process_element(text, element, html)
     return text
