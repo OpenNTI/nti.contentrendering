@@ -7,9 +7,8 @@ __docformat__ = "restructuredtext en"
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
-from hamcrest import has_length
 from hamcrest import assert_that
-from hamcrest import contains_string
+from hamcrest import is_
 
 import io
 import os
@@ -32,7 +31,6 @@ from nti.contentrendering.tests import buildDomFromString as _buildDomFromString
 
 from nti.contentrendering.plastexpackages.tests import ExtractorTestLayer
 
-from nti.contentrendering.plastexpackages.extractors import _CourseExtractor
 from nti.contentrendering.plastexpackages.extractors import _ContentUnitStatistics
 
 from nti.contentrendering.RenderedBook import EclipseTOC
@@ -92,8 +90,15 @@ class TestFigure(unittest.TestCase):
             render.render( dom )
             
             book.toc = EclipseTOC(os.path.join(ctx.docdir, 'eclipse-toc.xml'))
-            ext = _CourseExtractor()
-            ext.transform(book)
 
             stat = _ContentUnitStatistics(book)
             result = stat.transform(book) 
+
+            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+
+            assert_that(level_1['number_of_figures'], is_(2))
+            assert_that(level_2_1['number_of_figures'], is_(1))
+            assert_that(level_2_2['number_of_figures'], is_(1))
