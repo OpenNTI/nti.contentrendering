@@ -9,6 +9,7 @@ __docformat__ = "restructuredtext en"
 
 from hamcrest import assert_that
 from hamcrest import is_
+from hamcrest import has_entries
 
 import io
 import os
@@ -102,3 +103,29 @@ class TestFigure(unittest.TestCase):
             assert_that(level_1['number_of_figures'], is_(2))
             assert_that(level_2_1['number_of_figures'], is_(1))
             assert_that(level_2_2['number_of_figures'], is_(1))
+
+            assert_that(level_1, has_entries('figure_stats', 
+                                             has_entries('number_of_sentences', 3,
+                                                         'number_of_words', 24,
+                                                         'number_of_chars', 160,
+                                                         'number_of_non_whitespace_chars',138)
+                                             )
+            )
+
+            #'Figure 1.1: Post and beam framing is heavier than light-frame construction but lighter than timber construction. Courtesy of Ed Prendergast.'
+            assert_that(level_2_1, has_entries('figure_stats', 
+                                             has_entries('number_of_sentences', 2,
+                                                         'number_of_words', 20,
+                                                         'number_of_chars', 140,
+                                                         'number_of_non_whitespace_chars',121)
+                                             )
+            )
+
+            #'Figure 1.2: Figure 2'
+            assert_that(level_2_2, has_entries('figure_stats', 
+                                             has_entries('number_of_sentences', 1,
+                                                         'number_of_words', 4,
+                                                         'number_of_chars', 20,
+                                                         'number_of_non_whitespace_chars',17)
+                                             )
+            )
