@@ -90,6 +90,7 @@ def process_div(text, element, html=None):
         elif element.attrib['class'] == 'figure':
             if html:
                 html.number_figure += 1
+                html.figure_captions.append(element.text_content().strip())
         elif element.attrib['class'] == 'glossary':
             ol = element.getchildren()[0]
             if html and ol.tag == 'ol':

@@ -28,6 +28,7 @@ class HTMLExtractor(object):
         self.number_unordered_list = 0
         self.number_ordered_list = 0
         self.glossaries = []
+        self.figure_captions = []
 
         self.element = element
         self.plain_text = process_html_body(element, self)
@@ -36,6 +37,8 @@ class HTMLExtractor(object):
         self.number_unique_word = len(self.unique_words)
         self.number_char = len(self.plain_text)
         self.number_non_whitespace_char = self.get_non_whitespace_character_length(self.plain_text)
+        self.glossary_date = self.compute_list_statistic(self.glossaries)
+        self.figure_data = self.compute_list_statistic(self.figure_captions)
 
     def total_number_of_words(self):
         words = tokenize_content(self.plain_text, self.lang)
@@ -54,13 +57,13 @@ class HTMLExtractor(object):
         nws = u''.join(plain_text.split())
         return len(nws)
 
-    def compute_glossary_statistic(self):
+    def compute_list_statistic(self, content_list):
         data = {}
         data['number_of_char'] = 0
         data['number_of_non_whitespace_char'] = 0
         words = []
         sentences = [] 
-        for item in self.glossaries:
+        for item in content_list:
             sentences += sent_tokenize(item)
             words += tokenize_content(item)
             data['number_of_char'] += len(item)

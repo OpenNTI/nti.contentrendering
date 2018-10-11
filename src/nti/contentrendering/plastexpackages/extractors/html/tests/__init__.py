@@ -24,12 +24,12 @@ class HTMLSample(object):
         self.number_ordered_list = 0
         self.glossaries = list()
 
-    def compute_glossary_statistic(self):
+    def compute_list_statistic(self, content_list):
         data = {}
         data['number_of_char'] = 0
         words = []
         sentences = [] 
-        for item in self.glossaries:
+        for item in content_list:
             sentences += sent_tokenize(item)
             words += tokenize_content(item)
             data['number_of_char'] += len(item)
