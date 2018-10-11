@@ -71,6 +71,14 @@ class _ContentUnitStatistics(object):
                 element_index['number_of_unique_words'] = extractor.number_unique_word
                 element_index['number_of_chars'] = extractor.number_char
                 element_index['number_of_non_whitespace_chars'] = extractor.number_non_whitespace_char
+                element_index['number_of_table'] = extractor.number_table 
+                element_index['number_of_sidebar'] = extractor.number_sidebar 
+                element_index['number_of_ntiglossary'] = extractor.number_ntiglossary 
+                element_index['number_of_ordered_list'] = extractor.number_ordered_list
+                element_index['number_of_unordered_list'] = extractor.number_unordered_list
+                element_index['number_of_figures'] = extractor.number_figure
+                element_index['figure_stats'] = extractor.figure_data
+                element_index['glossary_stats'] = extractor.glossary_data
                 unique_words = extractor.unique_words
 
         if node.hasChildNodes():
@@ -85,6 +93,14 @@ class _ContentUnitStatistics(object):
                         element_index['number_of_words'] += containing_index[child_ntiid]['number_of_words']
                         element_index['number_of_chars'] += containing_index[child_ntiid]['number_of_chars']
                         element_index['number_of_non_whitespace_chars'] += containing_index[child_ntiid]['number_of_non_whitespace_chars']
+                        element_index['number_of_table'] += containing_index[child_ntiid]['number_of_table']
+                        element_index['number_of_sidebar'] += containing_index[child_ntiid]['number_of_sidebar']
+                        element_index['number_of_ntiglossary'] += containing_index[child_ntiid]['number_of_ntiglossary']
+                        element_index['number_of_unordered_list'] += containing_index[child_ntiid]['number_of_unordered_list']
+                        element_index['number_of_ordered_list'] += containing_index[child_ntiid]['number_of_ordered_list']
+                        element_index['number_of_figures'] += containing_index[child_ntiid]['number_of_figures']
+                        self.accumulate_stat(element_index['figure_stats'], containing_index[child_ntiid]['figure_stats'])
+                        self.accumulate_stat(element_index['glossary_stats'], containing_index[child_ntiid]['glossary_stats'])
                         unique_words = unique_words.union(child_unique_words)
         
         if node.hasAttribute('ntiid') and u'#' not in element_index['href']:
@@ -102,3 +118,9 @@ class _ContentUnitStatistics(object):
         reader = HTMLReader(filename)
         element = reader.element
         return element
+
+    def accumulate_stat(self, parent_dict, child_dict):
+        parent_dict['number_of_chars'] += child_dict['number_of_chars']
+        parent_dict['number_of_non_whitespace_chars'] += child_dict['number_of_non_whitespace_chars']
+        parent_dict['number_of_sentences'] += child_dict['number_of_sentences']
+        parent_dict['number_of_words'] += child_dict['number_of_words']

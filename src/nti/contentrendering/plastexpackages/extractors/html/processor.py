@@ -33,6 +33,18 @@ def check_child(text, element, html=None):
             text = process_div(text, child, html)
         elif child.tag == 'img':
             pass
+        elif child.tag == 'a':
+            text = process_anchor(text, child, html)
+        elif child.tag == 'ul':
+            text = process_element(text, child, html)
+            if html:
+                html.number_unordered_list += 1
+        elif child.tag == 'ol':
+            text = process_element(text, child, html)
+            if html:
+                html.number_ordered_list += 1
+        elif child.tag == 'li':
+            text = child.text_content().strip() + u'\n'
         else:
             text = process_element(text, child, html)
     return text
@@ -75,11 +87,28 @@ def process_div(text, element, html=None):
                 if current_number_paragraph == html.number_paragraph:
                     html.number_paragraph += 1
             text = text + new_text
-        # shall we ignore figure for word counts eventhough it has caption
         elif element.attrib['class'] == 'figure':
-            pass
+            if html:
+                html.number_figure += 1
+                html.figure_captions.append(element.text_content().strip())
+        elif element.attrib['class'] == 'glossary':
+            ol = element.getchildren()[0]
+            if html and ol.tag == 'ol':
+                for li in ol:
+                    span = li.getchildren()[0]
+                    html.glossaries.append(span.text_content().strip())
+        elif element.attrib['class'] == 'table':
+            if html:
+                html.number_table += 1
         else:
             text = text + new_text
     else:
         text = text + new_text
+    return text
+
+def process_anchor(text, element, html=None):
+    if 'class' in element.attrib:
+        if element.attrib['class'] == 'ntiglossaryentry':
+            html.number_ntiglossary += 1
+    text = process_element(text, element, html)
     return text

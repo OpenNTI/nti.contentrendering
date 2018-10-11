@@ -15,6 +15,8 @@ from hamcrest import greater_than_or_equal_to
 import os
 import unittest
 
+from shutil import copyfile
+
 from nti.contentrendering.plastexpackages.extractors import _CourseExtractor
 from nti.contentrendering.plastexpackages.extractors import _ContentUnitStatistics
 
@@ -208,3 +210,93 @@ class TestContentUnitStatistics(unittest.TestCase):
                         )
 
             assert_that(stat.lang, is_('en'))
+    
+    def test_book_with_table_sidebar_ntiglossary(self):
+
+        name = 'sample_book_3.tex'
+        with open(self.data_file(name)) as fp:
+            book_string = fp.read()
+
+        book = Book()
+
+        with RenderContext(simpleLatexDocumentText(
+                preludes=("\\usepackage{ntilatexmacros}",),
+                bodies=(book_string, )),
+                packages_on_texinputs=True) as ctx:
+            book.document = ctx.dom
+            book.contentLocation = ctx.docdir
+
+            render = ResourceRenderer.createResourceRenderer('XHTML', None)
+            render.render(ctx.dom)
+            book.toc = EclipseTOC(os.path.join(ctx.docdir, 'eclipse-toc.xml'))
+            ctx.dom.renderer = render
+
+            ext = _CourseExtractor()
+            ext.transform(book)
+
+            stat = _ContentUnitStatistics(book)
+            result = stat.transform(book)
+
+            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+            
+            assert_that(level_1['number_of_table'], is_(1))
+            assert_that(level_2_1['number_of_table'], is_(1))
+            assert_that(level_2_2['number_of_table'], is_(0))
+
+            assert_that(level_1['number_of_sidebar'], is_(1))
+            assert_that(level_2_1['number_of_sidebar'], is_(0))
+            assert_that(level_2_2['number_of_sidebar'], is_(1))
+
+            assert_that(level_1['number_of_ntiglossary'], is_(1))
+            assert_that(level_2_1['number_of_ntiglossary'], is_(0))
+            assert_that(level_2_2['number_of_ntiglossary'], is_(1))
+
+    def test_book_with_lists(self):
+
+        name = 'sample_book_4.tex'
+        with open(self.data_file(name)) as fp:
+            book_string = fp.read()
+
+        book = Book()
+
+        with RenderContext(simpleLatexDocumentText(
+                preludes=("\\usepackage{ntilatexmacros}",),
+                bodies=(book_string, )),
+                packages_on_texinputs=True) as ctx:
+            book.document = ctx.dom
+            book.contentLocation = ctx.docdir
+
+            render = ResourceRenderer.createResourceRenderer('XHTML', None)
+            render.render(ctx.dom)
+            book.toc = EclipseTOC(os.path.join(ctx.docdir, 'eclipse-toc.xml'))
+            ctx.dom.renderer = render
+
+            ext = _CourseExtractor()
+            ext.transform(book)
+
+            stat = _ContentUnitStatistics(book)
+            result = stat.transform(book) 
+
+            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+
+            assert_that(level_1['number_of_unordered_list'], is_(1))
+            assert_that(level_2_1['number_of_unordered_list'], is_(1))
+            assert_that(level_2_2['number_of_unordered_list'], is_(0))
+
+            assert_that(level_1['number_of_ordered_list'], is_(1))
+            assert_that(level_2_1['number_of_ordered_list'], is_(0))
+            assert_that(level_2_2['number_of_ordered_list'], is_(1))
+
+            assert_that(level_1['number_of_sentences'], is_(3))
+            assert_that(level_2_1['number_of_sentences'], is_(1))
+            assert_that(level_2_2['number_of_sentences'], is_(1))
+
+            assert_that(level_1['number_of_paragraphs'], is_(3))
+            assert_that(level_2_1['number_of_paragraphs'], is_(1))
+            assert_that(level_2_2['number_of_paragraphs'], is_(1))

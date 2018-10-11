@@ -22,17 +22,27 @@ class HTMLExtractor(object):
         self.lang = lang
         self.number_paragraph = 0
         self.number_sidebar = 0
-        self.number_of_figure = 0
+        self.number_figure = 0
+        self.number_table = 0
+        self.number_ntiglossary = 0
+        self.number_unordered_list = 0
+        self.number_ordered_list = 0
+        self.glossaries = []
+        self.figure_captions = []
+
         self.element = element
         self.plain_text = process_html_body(element, self)
         self.number_sentence = self.total_number_of_sentences()
         self.number_word, self.unique_words = self.total_number_of_words()
         self.number_unique_word = len(self.unique_words)
         self.number_char = len(self.plain_text)
-        self.number_non_whitespace_char = self.get_non_whitespace_character_length()
+        self.number_non_whitespace_char = self.get_non_whitespace_character_length(self.plain_text)
+        self.glossary_data = self.compute_list_statistic(self.glossaries)
+        self.figure_data = self.compute_list_statistic(self.figure_captions)
 
     def total_number_of_words(self):
         words = tokenize_content(self.plain_text, self.lang)
+        ##TODO : we may need to eliminate stopword and do stemming to find unique words
         unique_words = set(words)
         return len(words), unique_words
 
@@ -43,6 +53,23 @@ class HTMLExtractor(object):
     def total_number_of_paragraph(self):
         return self.number_paragraph
 
-    def get_non_whitespace_character_length(self):
-        nws = u''.join(self.plain_text.split())
+    def get_non_whitespace_character_length(self, plain_text):
+        nws = u''.join(plain_text.split())
         return len(nws)
+
+    def compute_list_statistic(self, content_list):
+        data = {}
+        data['number_of_chars'] = 0
+        data['number_of_non_whitespace_chars'] = 0
+        words = []
+        sentences = [] 
+        for item in content_list:
+            sentences += sent_tokenize(item)
+            words += tokenize_content(item)
+            data['number_of_chars'] += len(item)
+            data['number_of_non_whitespace_chars'] += self.get_non_whitespace_character_length(item)
+        data['number_of_words'] = len(words)
+        data['number_of_sentences'] = len(sentences)
+        return data
+
+
