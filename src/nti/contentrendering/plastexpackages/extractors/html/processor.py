@@ -75,11 +75,12 @@ def process_paragraph(text, element, html=None):
 
 def process_div(text, element, html=None):
     current_number_paragraph = html.number_paragraph
-    new_text = process_element(u"", element, html)
     if 'class' in element.attrib:
         if element.attrib['class'] == 'section title' or element.attrib['class'] == 'sidebar title':
+            new_text = process_element(u"", element, html)
             text = text + new_text + u'\n'
         elif element.attrib['class'] == 'sidebar':
+            new_text = process_element(u"", element, html)
             if html:
                 html.number_sidebar += 1
                 # need to discuss whether we want to count paragraph inside a
@@ -113,9 +114,9 @@ def process_div(text, element, html=None):
             if html:
                 html.number_table += 1
         else:
-            text = text + new_text
+            text = process_element(text, element, html)
     else:
-        text = text + new_text
+        text = process_element(text, element, html)
     return text
 
 def process_anchor(text, element, html=None):
