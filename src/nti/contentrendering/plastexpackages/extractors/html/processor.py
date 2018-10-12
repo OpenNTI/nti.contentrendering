@@ -87,6 +87,18 @@ def process_div(text, element, html=None):
                 if current_number_paragraph == html.number_paragraph:
                     html.number_paragraph += 1
             text = text + new_text
+        elif element.attrib['class'] == 'sidebar note':
+            if html:
+                html.number_sidebar_note += 1
+                html.sidebar_notes.append(element.text_content().strip())
+        elif element.attrib['class'] == 'sidebar warning':
+            if html:
+                html.number_sidebar_warning += 1
+                html.sidebar_warnings.append(element.text_content().strip())
+        elif element.attrib['class'] == 'sidebar caution':
+            if html:
+                html.number_sidebar_caution += 1
+                html.sidebar_cautions.append(element.text_content().strip())
         elif element.attrib['class'] == 'figure':
             if html:
                 html.number_figure += 1
