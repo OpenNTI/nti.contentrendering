@@ -343,3 +343,28 @@ class TestContentUnitStatistics(unittest.TestCase):
             assert_that(level_2_2['number_of_sidebar_notes'], is_(1))
             assert_that(level_2_2['number_of_sidebar_warnings'], is_(0))
             assert_that(level_2_2['number_of_sidebar_cautions'], is_(0))
+
+            # number of sentences = 5 because the title = 'WARNING!' if the title = 'WARNING' then the number_of_sentences = 4
+            assert_that(level_2_1, has_entries('sidebar_warning_stats', 
+                                             has_entries('number_of_sentences', 5,
+                                                         'number_of_words', 24,
+                                                         'number_of_chars', 175,
+                                                         'number_of_non_whitespace_chars',150)
+                                             )
+            )
+
+            assert_that(level_2_1, has_entries('sidebar_caution_stats', 
+                                             has_entries('number_of_sentences', 2,
+                                                         'number_of_words', 21,
+                                                         'number_of_chars', 137,
+                                                         'number_of_non_whitespace_chars',115)
+                                             )
+            )
+
+            assert_that(level_2_2, has_entries('sidebar_note_stats', 
+                                             has_entries('number_of_sentences', 1,
+                                                         'number_of_words', 10,
+                                                         'number_of_chars', 72,
+                                                         'number_of_non_whitespace_chars',61)
+                                             )
+            )
