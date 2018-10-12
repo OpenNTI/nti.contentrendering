@@ -117,9 +117,21 @@ class _ContentUnitStatistics(object):
         
         if node.hasAttribute('ntiid') and u'#' not in element_index['href']:
             element_index['number_of_unique_words'] = len(unique_words)
-            element_index['avg_word_per_sentence'] = element_index['number_of_words']/element_index['number_of_sentences']
-            element_index['avg_word_per_paragraph']  = element_index['number_of_words']/element_index['number_of_paragraphs']
-            element_index['unique_percentage_of_words'] = element_index['number_of_unique_words']/element_index['number_of_words']   
+            if element_index['number_of_sentences'] > 0 :
+                element_index['avg_word_per_sentence'] = element_index['number_of_words']/element_index['number_of_sentences']
+            else:
+                element_index['avg_word_per_sentence'] = 0
+            
+            if element_index['number_of_paragraphs'] > 0 :
+                element_index['avg_word_per_paragraph']  = element_index['number_of_words']/element_index['number_of_paragraphs']
+            else:
+                element_index['avg_word_per_paragraph'] = 0
+            
+            if element_index['number_of_words'] > 0 :
+                element_index['unique_percentage_of_words'] = element_index['number_of_unique_words']/element_index['number_of_words']  
+            else:
+                element_index['unique_percentage_of_words'] = 0
+                
             sorted_words = sorted(unique_words, key=len)
             element_index['length_of_the_shortest_word'] = len(sorted_words[0]) 
             element_index['length_of_the_longest_word'] = len(sorted_words[-1]) 
