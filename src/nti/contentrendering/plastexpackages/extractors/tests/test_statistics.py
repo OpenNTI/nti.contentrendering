@@ -242,13 +242,13 @@ class TestContentUnitStatistics(unittest.TestCase):
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
             
-            assert_that(level_1['number_of_table'], is_(1))
-            assert_that(level_2_1['number_of_table'], is_(1))
-            assert_that(level_2_2['number_of_table'], is_(0))
+            assert_that(level_1['number_of_tables'], is_(1))
+            assert_that(level_2_1['number_of_tables'], is_(1))
+            assert_that(level_2_2['number_of_tables'], is_(0))
 
-            assert_that(level_1['number_of_sidebar'], is_(1))
-            assert_that(level_2_1['number_of_sidebar'], is_(0))
-            assert_that(level_2_2['number_of_sidebar'], is_(1))
+            assert_that(level_1['number_of_sidebars'], is_(1))
+            assert_that(level_2_1['number_of_sidebars'], is_(0))
+            assert_that(level_2_2['number_of_sidebars'], is_(1))
 
             assert_that(level_1['number_of_ntiglossary'], is_(1))
             assert_that(level_2_1['number_of_ntiglossary'], is_(0))
