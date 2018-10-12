@@ -368,3 +368,34 @@ class TestContentUnitStatistics(unittest.TestCase):
                                                          'number_of_non_whitespace_chars',61)
                                              )
             )
+
+    def test_book_with_equation(self):
+
+        name = 'sample_book_8.tex'
+        with open(self.data_file(name)) as fp:
+            book_string = fp.read()
+
+        book = Book()
+
+        with RenderContext(simpleLatexDocumentText(
+                preludes=("\\usepackage{ntilatexmacros}",
+                          "\\usepackage{amsmath}"),
+                bodies=(book_string, )),
+                packages_on_texinputs=True) as ctx:
+            book.document = ctx.dom
+            book.contentLocation = ctx.docdir
+
+            ctx.render()
+            book.toc = EclipseTOC(os.path.join(ctx.docdir, 'eclipse-toc.xml'))
+
+            stat = _ContentUnitStatistics(book)
+            result = stat.transform(book) 
+
+            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+
+            assert_that(level_1['number_of_equations'], is_(1))
+            assert_that(level_2_1['number_of_equations'], is_(1))
+            assert_that(level_2_2['number_of_equations'], is_(0))

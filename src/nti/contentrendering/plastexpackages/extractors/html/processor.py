@@ -113,6 +113,9 @@ def process_div(text, element, html=None):
         elif element.attrib['class'] == 'table':
             if html:
                 html.number_table += 1
+        elif element.attrib['class'] == 'math equation':
+            if html:
+                html.number_equation +=1
         else:
             text = process_element(text, element, html)
     else:

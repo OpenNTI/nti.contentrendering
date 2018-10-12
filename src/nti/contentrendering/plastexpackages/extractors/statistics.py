@@ -80,6 +80,7 @@ class _ContentUnitStatistics(object):
                 element_index['number_of_sidebar_notes'] = extractor.number_sidebar_note 
                 element_index['number_of_sidebar_warnings'] = extractor.number_sidebar_warning 
                 element_index['number_of_sidebar_cautions'] = extractor.number_sidebar_caution 
+                element_index['number_of_equations'] = extractor.number_equation
                 element_index['figure_stats'] = extractor.figure_data
                 element_index['glossary_stats'] = extractor.glossary_data
                 element_index['sidebar_note_stats'] = extractor.sidebar_note_data
@@ -108,6 +109,7 @@ class _ContentUnitStatistics(object):
                         element_index['number_of_sidebar_notes'] += containing_index[child_ntiid]['number_of_sidebar_notes']
                         element_index['number_of_sidebar_warnings'] += containing_index[child_ntiid]['number_of_sidebar_warnings']
                         element_index['number_of_sidebar_cautions'] += containing_index[child_ntiid]['number_of_sidebar_cautions']
+                        element_index['number_of_equations'] += containing_index[child_ntiid]['number_of_equations']
                         self.accumulate_stat(element_index['figure_stats'], containing_index[child_ntiid]['figure_stats'])
                         self.accumulate_stat(element_index['glossary_stats'], containing_index[child_ntiid]['glossary_stats'])
                         self.accumulate_stat(element_index['sidebar_note_stats'], containing_index[child_ntiid]['sidebar_note_stats'])
