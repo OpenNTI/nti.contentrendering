@@ -75,11 +75,12 @@ def process_paragraph(text, element, html=None):
 
 def process_div(text, element, html=None):
     current_number_paragraph = html.number_paragraph
-    new_text = process_element(u"", element, html)
     if 'class' in element.attrib:
         if element.attrib['class'] == 'section title' or element.attrib['class'] == 'sidebar title':
+            new_text = process_element(u"", element, html)
             text = text + new_text + u'\n'
         elif element.attrib['class'] == 'sidebar':
+            new_text = process_element(u"", element, html)
             if html:
                 html.number_sidebar += 1
                 # need to discuss whether we want to count paragraph inside a
@@ -87,6 +88,18 @@ def process_div(text, element, html=None):
                 if current_number_paragraph == html.number_paragraph:
                     html.number_paragraph += 1
             text = text + new_text
+        elif element.attrib['class'] == 'sidebar note':
+            if html:
+                html.number_sidebar_note += 1
+                html.sidebar_notes.append(element.text_content().strip())
+        elif element.attrib['class'] == 'sidebar warning':
+            if html:
+                html.number_sidebar_warning += 1
+                html.sidebar_warnings.append(element.text_content().strip())
+        elif element.attrib['class'] == 'sidebar caution':
+            if html:
+                html.number_sidebar_caution += 1
+                html.sidebar_cautions.append(element.text_content().strip())
         elif element.attrib['class'] == 'figure':
             if html:
                 html.number_figure += 1
@@ -100,10 +113,13 @@ def process_div(text, element, html=None):
         elif element.attrib['class'] == 'table':
             if html:
                 html.number_table += 1
+        elif element.attrib['class'] == 'math equation':
+            if html:
+                html.number_equation +=1
         else:
-            text = text + new_text
+            text = process_element(text, element, html)
     else:
-        text = text + new_text
+        text = process_element(text, element, html)
     return text
 
 def process_anchor(text, element, html=None):

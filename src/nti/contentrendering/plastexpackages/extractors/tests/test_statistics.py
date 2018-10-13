@@ -242,13 +242,13 @@ class TestContentUnitStatistics(unittest.TestCase):
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
             
-            assert_that(level_1['number_of_table'], is_(1))
-            assert_that(level_2_1['number_of_table'], is_(1))
-            assert_that(level_2_2['number_of_table'], is_(0))
+            assert_that(level_1['number_of_tables'], is_(1))
+            assert_that(level_2_1['number_of_tables'], is_(1))
+            assert_that(level_2_2['number_of_tables'], is_(0))
 
-            assert_that(level_1['number_of_sidebar'], is_(1))
-            assert_that(level_2_1['number_of_sidebar'], is_(0))
-            assert_that(level_2_2['number_of_sidebar'], is_(1))
+            assert_that(level_1['number_of_sidebars'], is_(1))
+            assert_that(level_2_1['number_of_sidebars'], is_(0))
+            assert_that(level_2_2['number_of_sidebars'], is_(1))
 
             assert_that(level_1['number_of_ntiglossary'], is_(1))
             assert_that(level_2_1['number_of_ntiglossary'], is_(0))
@@ -300,3 +300,102 @@ class TestContentUnitStatistics(unittest.TestCase):
             assert_that(level_1['number_of_paragraphs'], is_(3))
             assert_that(level_2_1['number_of_paragraphs'], is_(1))
             assert_that(level_2_2['number_of_paragraphs'], is_(1))
+
+    def test_book_with_sidebar_option(self):
+
+        name = 'sample_book_7.tex'
+        with open(self.data_file(name)) as fp:
+            book_string = fp.read()
+
+        book = Book()
+
+        with RenderContext(simpleLatexDocumentText(
+                preludes=("\\usepackage{ntilatexmacros}",),
+                bodies=(book_string, )),
+                packages_on_texinputs=True) as ctx:
+            book.document = ctx.dom
+            book.contentLocation = ctx.docdir
+
+            render = ResourceRenderer.createResourceRenderer('XHTML', None)
+            render.render(ctx.dom)
+            book.toc = EclipseTOC(os.path.join(ctx.docdir, 'eclipse-toc.xml'))
+            ctx.dom.renderer = render
+
+            ext = _CourseExtractor()
+            ext.transform(book)
+
+            stat = _ContentUnitStatistics(book)
+            result = stat.transform(book) 
+
+            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+
+            assert_that(level_1['number_of_sidebar_notes'], is_(1))
+            assert_that(level_1['number_of_sidebar_warnings'], is_(1))
+            assert_that(level_1['number_of_sidebar_cautions'], is_(1))
+
+            assert_that(level_2_1['number_of_sidebar_notes'], is_(0))
+            assert_that(level_2_1['number_of_sidebar_warnings'], is_(1))
+            assert_that(level_2_1['number_of_sidebar_cautions'], is_(1))
+
+            assert_that(level_2_2['number_of_sidebar_notes'], is_(1))
+            assert_that(level_2_2['number_of_sidebar_warnings'], is_(0))
+            assert_that(level_2_2['number_of_sidebar_cautions'], is_(0))
+
+            # number of sentences = 5 because the title = 'WARNING!' if the title = 'WARNING' then the number_of_sentences = 4
+            assert_that(level_2_1, has_entries('sidebar_warning_stats', 
+                                             has_entries('number_of_sentences', 5,
+                                                         'number_of_words', 24,
+                                                         'number_of_chars', 175,
+                                                         'number_of_non_whitespace_chars',150)
+                                             )
+            )
+
+            assert_that(level_2_1, has_entries('sidebar_caution_stats', 
+                                             has_entries('number_of_sentences', 2,
+                                                         'number_of_words', 21,
+                                                         'number_of_chars', 137,
+                                                         'number_of_non_whitespace_chars',115)
+                                             )
+            )
+
+            assert_that(level_2_2, has_entries('sidebar_note_stats', 
+                                             has_entries('number_of_sentences', 1,
+                                                         'number_of_words', 10,
+                                                         'number_of_chars', 72,
+                                                         'number_of_non_whitespace_chars',61)
+                                             )
+            )
+
+    def test_book_with_equation(self):
+
+        name = 'sample_book_8.tex'
+        with open(self.data_file(name)) as fp:
+            book_string = fp.read()
+
+        book = Book()
+
+        with RenderContext(simpleLatexDocumentText(
+                preludes=("\\usepackage{ntilatexmacros}",
+                          "\\usepackage{amsmath}"),
+                bodies=(book_string, )),
+                packages_on_texinputs=True) as ctx:
+            book.document = ctx.dom
+            book.contentLocation = ctx.docdir
+
+            ctx.render()
+            book.toc = EclipseTOC(os.path.join(ctx.docdir, 'eclipse-toc.xml'))
+
+            stat = _ContentUnitStatistics(book)
+            result = stat.transform(book) 
+
+            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+
+            assert_that(level_1['number_of_equations'], is_(1))
+            assert_that(level_2_1['number_of_equations'], is_(1))
+            assert_that(level_2_2['number_of_equations'], is_(0))

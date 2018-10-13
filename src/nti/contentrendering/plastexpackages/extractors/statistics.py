@@ -71,14 +71,21 @@ class _ContentUnitStatistics(object):
                 element_index['number_of_unique_words'] = extractor.number_unique_word
                 element_index['number_of_chars'] = extractor.number_char
                 element_index['number_of_non_whitespace_chars'] = extractor.number_non_whitespace_char
-                element_index['number_of_table'] = extractor.number_table 
-                element_index['number_of_sidebar'] = extractor.number_sidebar 
+                element_index['number_of_tables'] = extractor.number_table 
+                element_index['number_of_sidebars'] = extractor.number_sidebar 
                 element_index['number_of_ntiglossary'] = extractor.number_ntiglossary 
                 element_index['number_of_ordered_list'] = extractor.number_ordered_list
                 element_index['number_of_unordered_list'] = extractor.number_unordered_list
                 element_index['number_of_figures'] = extractor.number_figure
+                element_index['number_of_sidebar_notes'] = extractor.number_sidebar_note 
+                element_index['number_of_sidebar_warnings'] = extractor.number_sidebar_warning 
+                element_index['number_of_sidebar_cautions'] = extractor.number_sidebar_caution 
+                element_index['number_of_equations'] = extractor.number_equation
                 element_index['figure_stats'] = extractor.figure_data
                 element_index['glossary_stats'] = extractor.glossary_data
+                element_index['sidebar_note_stats'] = extractor.sidebar_note_data
+                element_index['sidebar_warning_stats'] = extractor.sidebar_warning_data
+                element_index['sidebar_caution_stats'] = extractor.sidebar_caution_data
                 unique_words = extractor.unique_words
 
         if node.hasChildNodes():
@@ -93,21 +100,28 @@ class _ContentUnitStatistics(object):
                         element_index['number_of_words'] += containing_index[child_ntiid]['number_of_words']
                         element_index['number_of_chars'] += containing_index[child_ntiid]['number_of_chars']
                         element_index['number_of_non_whitespace_chars'] += containing_index[child_ntiid]['number_of_non_whitespace_chars']
-                        element_index['number_of_table'] += containing_index[child_ntiid]['number_of_table']
-                        element_index['number_of_sidebar'] += containing_index[child_ntiid]['number_of_sidebar']
+                        element_index['number_of_tables'] += containing_index[child_ntiid]['number_of_tables']
+                        element_index['number_of_sidebars'] += containing_index[child_ntiid]['number_of_sidebars']
                         element_index['number_of_ntiglossary'] += containing_index[child_ntiid]['number_of_ntiglossary']
                         element_index['number_of_unordered_list'] += containing_index[child_ntiid]['number_of_unordered_list']
                         element_index['number_of_ordered_list'] += containing_index[child_ntiid]['number_of_ordered_list']
                         element_index['number_of_figures'] += containing_index[child_ntiid]['number_of_figures']
+                        element_index['number_of_sidebar_notes'] += containing_index[child_ntiid]['number_of_sidebar_notes']
+                        element_index['number_of_sidebar_warnings'] += containing_index[child_ntiid]['number_of_sidebar_warnings']
+                        element_index['number_of_sidebar_cautions'] += containing_index[child_ntiid]['number_of_sidebar_cautions']
+                        element_index['number_of_equations'] += containing_index[child_ntiid]['number_of_equations']
                         self.accumulate_stat(element_index['figure_stats'], containing_index[child_ntiid]['figure_stats'])
                         self.accumulate_stat(element_index['glossary_stats'], containing_index[child_ntiid]['glossary_stats'])
+                        self.accumulate_stat(element_index['sidebar_note_stats'], containing_index[child_ntiid]['sidebar_note_stats'])
+                        self.accumulate_stat(element_index['sidebar_warning_stats'], containing_index[child_ntiid]['sidebar_warning_stats'])
+                        self.accumulate_stat(element_index['sidebar_caution_stats'], containing_index[child_ntiid]['sidebar_caution_stats'])
                         unique_words = unique_words.union(child_unique_words)
         
         if node.hasAttribute('ntiid') and u'#' not in element_index['href']:
             element_index['number_of_unique_words'] = len(unique_words)
-            element_index['avg_word_per_sentence'] = element_index['number_of_words']/element_index['number_of_sentences']
-            element_index['avg_word_per_paragraph']  = element_index['number_of_words']/element_index['number_of_paragraphs']
-            element_index['unique_percentage_of_words'] = element_index['number_of_unique_words']/element_index['number_of_words']   
+            element_index['avg_word_per_sentence'] = self.try_div(element_index['number_of_words'],element_index['number_of_sentences'])
+            element_index['avg_word_per_paragraph'] = self.try_div(element_index['number_of_words'],element_index['number_of_paragraphs'])
+            element_index['unique_percentage_of_words'] = self.try_div(element_index['number_of_unique_words'],element_index['number_of_words'])
             sorted_words = sorted(unique_words, key=len)
             element_index['length_of_the_shortest_word'] = len(sorted_words[0]) 
             element_index['length_of_the_longest_word'] = len(sorted_words[-1]) 
@@ -124,3 +138,7 @@ class _ContentUnitStatistics(object):
         parent_dict['number_of_non_whitespace_chars'] += child_dict['number_of_non_whitespace_chars']
         parent_dict['number_of_sentences'] += child_dict['number_of_sentences']
         parent_dict['number_of_words'] += child_dict['number_of_words']
+
+    def try_div(self, numerator, denominator):
+        try: return numerator/denominator
+        except ZeroDivisionError: return 0
