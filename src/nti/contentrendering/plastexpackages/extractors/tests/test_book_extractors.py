@@ -90,7 +90,7 @@ class TestBookExtractor(unittest.TestCase):
 			result = stat.transform(book)
 			
 			level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
-			assert_that(level_0, has_entry('NTIID', 'tag:nextthought.com,2011-10:testing-HTML-temp.0'))
+			assert_that(level_0, has_entry('ContentNTIID', 'tag:nextthought.com,2011-10:testing-HTML-temp.0'))
 			assert_that(len(level_0['Items']), is_(2))
 
 			level_1_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:FAQ']

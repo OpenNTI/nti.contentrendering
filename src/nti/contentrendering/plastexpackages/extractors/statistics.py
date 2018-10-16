@@ -40,7 +40,7 @@ class _ContentUnitStatistics(object):
         outpath = outpath or book.contentLocation
         # pylint: disable=attribute-defined-outside-init
         self.outpath = os.path.expanduser(outpath)
-        target = os.path.join(outpath, 'content_index.json')
+        target = os.path.join(outpath, 'content_statistics.json')
         dom = book.toc.dom
         root = dom.documentElement
         index = {'Items': {}}
@@ -60,10 +60,10 @@ class _ContentUnitStatistics(object):
         if node.hasAttribute('ntiid'):
             ntiid = node.getAttributeNode('ntiid').value
             element_index = index[ntiid] = {}
-            element_index['NTIID'] = ntiid
-            element_index['href'] = node.getAttributeNode('href').value
-            if u'#' not in element_index['href']:
-                html_element = self._read_html(element_index['href'])
+            element_index['ContentNTIID'] = ntiid
+            element_index['ContentHref'] = node.getAttributeNode('href').value
+            if u'#' not in element_index['ContentHref']:
+                html_element = self._read_html(element_index['ContentHref'])
                 extractor = HTMLExtractor(html_element, self.lang)
                 element_index['number_of_paragraphs'] = extractor.number_paragraph
                 element_index['number_of_words'] = extractor.number_word
@@ -94,7 +94,7 @@ class _ContentUnitStatistics(object):
                     containing_index = element_index.setdefault('Items', {})
                     child_unique_words = self._process_topic(child, containing_index)
                     child_ntiid = child.getAttributeNode('ntiid').value
-                    if u'#' not in containing_index[child_ntiid]['href']:
+                    if u'#' not in containing_index[child_ntiid]['ContentHref']:
                         element_index['number_of_paragraphs'] += containing_index[child_ntiid]['number_of_paragraphs']
                         element_index['number_of_sentences'] += containing_index[child_ntiid]['number_of_sentences']
                         element_index['number_of_words'] += containing_index[child_ntiid]['number_of_words']
@@ -117,7 +117,7 @@ class _ContentUnitStatistics(object):
                         self.accumulate_stat(element_index['sidebar_caution_stats'], containing_index[child_ntiid]['sidebar_caution_stats'])
                         unique_words = unique_words.union(child_unique_words)
         
-        if node.hasAttribute('ntiid') and u'#' not in element_index['href']:
+        if node.hasAttribute('ntiid') and u'#' not in element_index['ContentHref']:
             element_index['number_of_unique_words'] = len(unique_words)
             element_index['avg_word_per_sentence'] = self.try_div(element_index['number_of_words'],element_index['number_of_sentences'])
             element_index['avg_word_per_paragraph'] = self.try_div(element_index['number_of_words'],element_index['number_of_paragraphs'])

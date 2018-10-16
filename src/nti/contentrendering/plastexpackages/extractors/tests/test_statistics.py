@@ -78,13 +78,13 @@ class TestContentUnitStatistics(unittest.TestCase):
             assert_that(len(level_0['Items']), is_(1))
             assert_that(len(level_1['Items']), is_(2))
 
-            assert_that(level_2_1['NTIID'], 
+            assert_that(level_2_1['ContentNTIID'], 
                         is_(u'tag:nextthought.com,2011-10:testing-HTML-temp.section:1'))
             assert_that(level_2_1['number_of_words'], is_(42))
             assert_that(level_2_1['number_of_sentences'], is_(6))
             assert_that(level_2_1['number_of_paragraphs'], is_(1))
 
-            assert_that(level_2_2['NTIID'],
+            assert_that(level_2_2['ContentNTIID'],
                         is_(u'tag:nextthought.com,2011-10:testing-HTML-temp.section:2'))
             assert_that(level_2_2['number_of_words'], is_(86))
             assert_that(level_2_2['number_of_sentences'], is_(5))
@@ -177,14 +177,14 @@ class TestContentUnitStatistics(unittest.TestCase):
             # subsection_2_1_2 = section_2_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.subsection:2_2_2']
             # section_2_2 = chapter_2['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2_2']
 
-            assert_that(chapter_1, has_entries('NTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1',
+            assert_that(chapter_1, has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1',
                                                'Items',
                                                has_entries('tag:nextthought.com,2011-10:testing-HTML-temp.section:1_1',
-                                                           has_entries('NTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:1_1',
+                                                           has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:1_1',
                                                                        'number_of_paragraphs', 2,
                                                                        'number_of_sentences', 8),
                                                            'tag:nextthought.com,2011-10:testing-HTML-temp.section:1_2',
-                                                           has_entries('NTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:1_2',
+                                                           has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:1_2',
                                                                        'number_of_paragraphs', 1,
                                                                        'number_of_sentences', 2
                                                                        )
@@ -193,15 +193,15 @@ class TestContentUnitStatistics(unittest.TestCase):
                         )
             # since this render split-level = 1, then subsection does not have
             # its own html
-            assert_that(chapter_2, has_entries('NTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.chapter:2',
+            assert_that(chapter_2, has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.chapter:2',
                                                'Items',
                                                has_entries('tag:nextthought.com,2011-10:testing-HTML-temp.section:2_1',
-                                                           has_entries('NTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:2_1',
+                                                           has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:2_1',
                                                                        'number_of_paragraphs', 3,
                                                                        'number_of_sentences', 8
                                                                        ),
                                                            'tag:nextthought.com,2011-10:testing-HTML-temp.section:2_2',
-                                                           has_entries('NTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:2_2',
+                                                           has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:2_2',
                                                                        'number_of_paragraphs', 1,
                                                                        'number_of_sentences', 4
                                                                        )
