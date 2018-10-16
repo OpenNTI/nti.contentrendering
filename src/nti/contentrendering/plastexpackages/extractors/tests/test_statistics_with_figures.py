@@ -100,33 +100,33 @@ class TestFigure(unittest.TestCase):
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
-            assert_that(level_1['number_of_figures'], is_(2))
-            assert_that(level_2_1['number_of_figures'], is_(1))
-            assert_that(level_2_2['number_of_figures'], is_(1))
+            assert_that(level_1['figure_count'], is_(2))
+            assert_that(level_2_1['figure_count'], is_(1))
+            assert_that(level_2_2['figure_count'], is_(1))
 
-            assert_that(level_1, has_entries('figure_stats', 
-                                             has_entries('number_of_sentences', 3,
-                                                         'number_of_words', 24,
-                                                         'number_of_chars', 160,
-                                                         'number_of_non_whitespace_chars',138)
+            assert_that(level_1, has_entries('figure_stat', 
+                                             has_entries('sentence_count', 3,
+                                                         'word_count', 24,
+                                                         'char_count', 160,
+                                                         'non_whitespace_char_count',138)
                                              )
             )
 
             #'Figure 1.1: Post and beam framing is heavier than light-frame construction but lighter than timber construction. Courtesy of Ed Prendergast.'
-            assert_that(level_2_1, has_entries('figure_stats', 
-                                             has_entries('number_of_sentences', 2,
-                                                         'number_of_words', 20,
-                                                         'number_of_chars', 140,
-                                                         'number_of_non_whitespace_chars',121)
+            assert_that(level_2_1, has_entries('figure_stat', 
+                                             has_entries('sentence_count', 2,
+                                                         'word_count', 20,
+                                                         'char_count', 140,
+                                                         'non_whitespace_char_count',121)
                                              )
             )
 
             #'Figure 1.2: Figure 2'
-            assert_that(level_2_2, has_entries('figure_stats', 
-                                             has_entries('number_of_sentences', 1,
-                                                         'number_of_words', 4,
-                                                         'number_of_chars', 20,
-                                                         'number_of_non_whitespace_chars',17)
+            assert_that(level_2_2, has_entries('figure_stat', 
+                                             has_entries('sentence_count', 1,
+                                                         'word_count', 4,
+                                                         'char_count', 20,
+                                                         'non_whitespace_char_count',17)
                                              )
             )
     
@@ -168,10 +168,10 @@ class TestFigure(unittest.TestCase):
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
-            assert_that(level_1['number_of_figures'], is_(2))
-            assert_that(level_2_1['number_of_figures'], is_(1))
-            assert_that(level_2_2['number_of_figures'], is_(1))
+            assert_that(level_1['figure_count'], is_(2))
+            assert_that(level_2_1['figure_count'], is_(1))
+            assert_that(level_2_2['figure_count'], is_(1))
 
-            assert_that(level_1['number_of_sidebars'], is_(1))
-            assert_that(level_2_1['number_of_sidebars'], is_(1))
-            assert_that(level_2_2['number_of_sidebars'], is_(0))
+            assert_that(level_1['sidebar_count'], is_(1))
+            assert_that(level_2_1['sidebar_count'], is_(1))
+            assert_that(level_2_2['sidebar_count'], is_(0))

@@ -55,4 +55,4 @@ class HTMLReaderTest(HTMLExtractorTests):
         assert_that(len(html.glossaries), is_(2))
         assert_that(len(html.glossaries), is_(html.number_ntiglossary))
         glossary_stat = html.compute_list_statistic(html.glossaries)
-        assert_that(glossary_stat['number_of_sentences'], is_(2))
+        assert_that(glossary_stat['sentence_count'], is_(2))

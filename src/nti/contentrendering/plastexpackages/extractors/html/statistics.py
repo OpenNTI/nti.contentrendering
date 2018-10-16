@@ -70,17 +70,17 @@ class HTMLExtractor(object):
 
     def compute_list_statistic(self, content_list):
         data = {}
-        data['number_of_chars'] = 0
-        data['number_of_non_whitespace_chars'] = 0
+        data['char_count'] = 0
+        data['non_whitespace_char_count'] = 0
         words = []
         sentences = [] 
         for item in content_list:
             sentences += sent_tokenize(item)
             words += tokenize_content(item)
-            data['number_of_chars'] += len(item)
-            data['number_of_non_whitespace_chars'] += self.get_non_whitespace_character_length(item)
-        data['number_of_words'] = len(words)
-        data['number_of_sentences'] = len(sentences)
+            data['char_count'] += len(item)
+            data['non_whitespace_char_count'] += self.get_non_whitespace_character_length(item)
+        data['word_count'] = len(words)
+        data['sentence_count'] = len(sentences)
         return data
 
 

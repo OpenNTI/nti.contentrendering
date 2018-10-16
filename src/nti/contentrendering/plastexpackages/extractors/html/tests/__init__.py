@@ -26,15 +26,15 @@ class HTMLSample(object):
 
     def compute_list_statistic(self, content_list):
         data = {}
-        data['number_of_char'] = 0
+        data['char_count'] = 0
         words = []
         sentences = [] 
         for item in content_list:
             sentences += sent_tokenize(item)
             words += tokenize_content(item)
-            data['number_of_char'] += len(item)
-        data['number_of_words'] = len(words)
-        data['number_of_sentences'] = len(sentences)
+            data['char_count'] += len(item)
+        data['word_count'] = len(words)
+        data['sentence_count'] = len(sentences)
         return data
 
 
