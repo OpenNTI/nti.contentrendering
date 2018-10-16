@@ -80,61 +80,61 @@ class TestContentUnitStatistics(unittest.TestCase):
 
             assert_that(level_2_1['ContentNTIID'], 
                         is_(u'tag:nextthought.com,2011-10:testing-HTML-temp.section:1'))
-            assert_that(level_2_1['number_of_words'], is_(42))
-            assert_that(level_2_1['number_of_sentences'], is_(6))
-            assert_that(level_2_1['number_of_paragraphs'], is_(1))
+            assert_that(level_2_1['word_count'], is_(42))
+            assert_that(level_2_1['sentence_count'], is_(6))
+            assert_that(level_2_1['paragraph_count'], is_(1))
 
             assert_that(level_2_2['ContentNTIID'],
                         is_(u'tag:nextthought.com,2011-10:testing-HTML-temp.section:2'))
-            assert_that(level_2_2['number_of_words'], is_(86))
-            assert_that(level_2_2['number_of_sentences'], is_(5))
-            assert_that(level_2_2['number_of_paragraphs'], is_(2))
+            assert_that(level_2_2['word_count'], is_(86))
+            assert_that(level_2_2['sentence_count'], is_(5))
+            assert_that(level_2_2['paragraph_count'], is_(2))
 
-            check_number_of_words = level_2_1['number_of_words'] + level_2_2['number_of_words']
-            assert_that(level_1['number_of_words'],
+            check_number_of_words = level_2_1['word_count'] + level_2_2['word_count']
+            assert_that(level_1['word_count'],
                         greater_than_or_equal_to(check_number_of_words))
 
-            check_number_of_sentences = level_2_1['number_of_sentences'] + level_2_2['number_of_sentences']
-            assert_that(level_1['number_of_sentences'], 
+            check_number_of_sentences = level_2_1['sentence_count'] + level_2_2['sentence_count']
+            assert_that(level_1['sentence_count'], 
                         greater_than_or_equal_to(check_number_of_sentences))
 
-            check_number_of_paragraphs = level_2_1['number_of_paragraphs'] + level_2_2['number_of_paragraphs']
-            assert_that(level_1['number_of_paragraphs'], 
+            check_number_of_paragraphs = level_2_1['paragraph_count'] + level_2_2['paragraph_count']
+            assert_that(level_1['paragraph_count'], 
                         greater_than_or_equal_to(check_number_of_paragraphs))
 
-            assert_that(level_1['number_of_unique_words'], 
-                        greater_than_or_equal_to(level_2_1['number_of_unique_words']))
-            assert_that(level_1['number_of_unique_words'], 
-                        greater_than_or_equal_to(level_2_2['number_of_unique_words']))
+            assert_that(level_1['unique_word_count'], 
+                        greater_than_or_equal_to(level_2_1['unique_word_count']))
+            assert_that(level_1['unique_word_count'], 
+                        greater_than_or_equal_to(level_2_2['unique_word_count']))
 
-            assert_that(level_1['number_of_chars'], greater_than_or_equal_to(level_1['number_of_non_whitespace_chars']))
-            assert_that(level_1['number_of_non_whitespace_chars'], is_(605))
-            assert_that(level_2_1['number_of_chars'], greater_than_or_equal_to(level_2_1['number_of_non_whitespace_chars']))
-            assert_that(level_2_2['number_of_chars'], greater_than_or_equal_to(level_2_2['number_of_non_whitespace_chars']))
+            assert_that(level_1['char_count'], greater_than_or_equal_to(level_1['non_whitespace_char_count']))
+            assert_that(level_1['non_whitespace_char_count'], is_(605))
+            assert_that(level_2_1['char_count'], greater_than_or_equal_to(level_2_1['non_whitespace_char_count']))
+            assert_that(level_2_2['char_count'], greater_than_or_equal_to(level_2_2['non_whitespace_char_count']))
 
-            avg_word_per_sentence = level_1['number_of_words']/level_1['number_of_sentences']
+            avg_word_per_sentence = level_1['word_count']/level_1['sentence_count']
             assert_that(level_1['avg_word_per_sentence'], is_(avg_word_per_sentence))
-            avg_word_per_paragraph = level_1['number_of_words']/level_1['number_of_paragraphs']
+            avg_word_per_paragraph = level_1['word_count']/level_1['paragraph_count']
             assert_that(level_1['avg_word_per_paragraph'], is_(avg_word_per_paragraph))
 
-            avg_word_per_sentence = level_2_1['number_of_words']/level_2_1['number_of_sentences']
+            avg_word_per_sentence = level_2_1['word_count']/level_2_1['sentence_count']
             assert_that(level_2_1['avg_word_per_sentence'], is_(avg_word_per_sentence))
-            avg_word_per_paragraph = level_2_1['number_of_words']/level_2_1['number_of_paragraphs']
+            avg_word_per_paragraph = level_2_1['word_count']/level_2_1['paragraph_count']
             assert_that(level_2_1['avg_word_per_paragraph'], is_(avg_word_per_paragraph))
 
-            avg_word_per_sentence = level_2_2['number_of_words']/level_2_2['number_of_sentences']
+            avg_word_per_sentence = level_2_2['word_count']/level_2_2['sentence_count']
             assert_that(level_2_2['avg_word_per_sentence'], is_(avg_word_per_sentence))
-            avg_word_per_paragraph = level_2_2['number_of_words']/level_2_2['number_of_paragraphs']
+            avg_word_per_paragraph = level_2_2['word_count']/level_2_2['paragraph_count']
             assert_that(level_2_2['avg_word_per_paragraph'], is_(avg_word_per_paragraph))
 
-            unique_percentage_of_words = level_1['number_of_unique_words']/level_1['number_of_words']
-            assert_that(level_1['unique_percentage_of_words'], is_(unique_percentage_of_words))
+            unique_percentage_of_words = level_1['unique_word_count']/level_1['word_count']
+            assert_that(level_1['unique_percentage_of_word_count'], is_(unique_percentage_of_words))
 
-            unique_percentage_of_words = level_2_1['number_of_unique_words']/level_2_1['number_of_words']
-            assert_that(level_2_1['unique_percentage_of_words'], is_(unique_percentage_of_words))
+            unique_percentage_of_words = level_2_1['unique_word_count']/level_2_1['word_count']
+            assert_that(level_2_1['unique_percentage_of_word_count'], is_(unique_percentage_of_words))
 
-            unique_percentage_of_words = level_2_2['number_of_unique_words']/level_2_2['number_of_words']
-            assert_that(level_2_2['unique_percentage_of_words'], is_(unique_percentage_of_words))
+            unique_percentage_of_words = level_2_2['unique_word_count']/level_2_2['word_count']
+            assert_that(level_2_2['unique_percentage_of_word_count'], is_(unique_percentage_of_words))
 
             len_shortest_word = level_1['length_of_the_shortest_word']
             len_longest_word = level_1['length_of_the_longest_word']
@@ -181,12 +181,12 @@ class TestContentUnitStatistics(unittest.TestCase):
                                                'Items',
                                                has_entries('tag:nextthought.com,2011-10:testing-HTML-temp.section:1_1',
                                                            has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:1_1',
-                                                                       'number_of_paragraphs', 2,
-                                                                       'number_of_sentences', 8),
+                                                                       'paragraph_count', 2,
+                                                                       'sentence_count', 8),
                                                            'tag:nextthought.com,2011-10:testing-HTML-temp.section:1_2',
                                                            has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:1_2',
-                                                                       'number_of_paragraphs', 1,
-                                                                       'number_of_sentences', 2
+                                                                       'paragraph_count', 1,
+                                                                       'sentence_count', 2
                                                                        )
                                                            )
                                                )
@@ -197,13 +197,13 @@ class TestContentUnitStatistics(unittest.TestCase):
                                                'Items',
                                                has_entries('tag:nextthought.com,2011-10:testing-HTML-temp.section:2_1',
                                                            has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:2_1',
-                                                                       'number_of_paragraphs', 3,
-                                                                       'number_of_sentences', 8
+                                                                       'paragraph_count', 3,
+                                                                       'sentence_count', 8
                                                                        ),
                                                            'tag:nextthought.com,2011-10:testing-HTML-temp.section:2_2',
                                                            has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:2_2',
-                                                                       'number_of_paragraphs', 1,
-                                                                       'number_of_sentences', 4
+                                                                       'paragraph_count', 1,
+                                                                       'sentence_count', 4
                                                                        )
                                                            )
                                                )
@@ -242,17 +242,17 @@ class TestContentUnitStatistics(unittest.TestCase):
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
             
-            assert_that(level_1['number_of_tables'], is_(1))
-            assert_that(level_2_1['number_of_tables'], is_(1))
-            assert_that(level_2_2['number_of_tables'], is_(0))
+            assert_that(level_1['table_count'], is_(1))
+            assert_that(level_2_1['table_count'], is_(1))
+            assert_that(level_2_2['table_count'], is_(0))
 
-            assert_that(level_1['number_of_sidebars'], is_(1))
-            assert_that(level_2_1['number_of_sidebars'], is_(0))
-            assert_that(level_2_2['number_of_sidebars'], is_(1))
+            assert_that(level_1['sidebar_count'], is_(1))
+            assert_that(level_2_1['sidebar_count'], is_(0))
+            assert_that(level_2_2['sidebar_count'], is_(1))
 
-            assert_that(level_1['number_of_ntiglossary'], is_(1))
-            assert_that(level_2_1['number_of_ntiglossary'], is_(0))
-            assert_that(level_2_2['number_of_ntiglossary'], is_(1))
+            assert_that(level_1['ntiglossary_count'], is_(1))
+            assert_that(level_2_1['ntiglossary_count'], is_(0))
+            assert_that(level_2_2['ntiglossary_count'], is_(1))
 
     def test_book_with_lists(self):
 
@@ -285,21 +285,21 @@ class TestContentUnitStatistics(unittest.TestCase):
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
-            assert_that(level_1['number_of_unordered_list'], is_(1))
-            assert_that(level_2_1['number_of_unordered_list'], is_(1))
-            assert_that(level_2_2['number_of_unordered_list'], is_(0))
+            assert_that(level_1['unordered_list_count'], is_(1))
+            assert_that(level_2_1['unordered_list_count'], is_(1))
+            assert_that(level_2_2['unordered_list_count'], is_(0))
 
-            assert_that(level_1['number_of_ordered_list'], is_(1))
-            assert_that(level_2_1['number_of_ordered_list'], is_(0))
-            assert_that(level_2_2['number_of_ordered_list'], is_(1))
+            assert_that(level_1['ordered_list_count'], is_(1))
+            assert_that(level_2_1['ordered_list_count'], is_(0))
+            assert_that(level_2_2['ordered_list_count'], is_(1))
 
-            assert_that(level_1['number_of_sentences'], is_(3))
-            assert_that(level_2_1['number_of_sentences'], is_(1))
-            assert_that(level_2_2['number_of_sentences'], is_(1))
+            assert_that(level_1['sentence_count'], is_(3))
+            assert_that(level_2_1['sentence_count'], is_(1))
+            assert_that(level_2_2['sentence_count'], is_(1))
 
-            assert_that(level_1['number_of_paragraphs'], is_(3))
-            assert_that(level_2_1['number_of_paragraphs'], is_(1))
-            assert_that(level_2_2['number_of_paragraphs'], is_(1))
+            assert_that(level_1['paragraph_count'], is_(3))
+            assert_that(level_2_1['paragraph_count'], is_(1))
+            assert_that(level_2_2['paragraph_count'], is_(1))
 
     def test_book_with_sidebar_option(self):
 
@@ -332,40 +332,40 @@ class TestContentUnitStatistics(unittest.TestCase):
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
-            assert_that(level_1['number_of_sidebar_notes'], is_(1))
-            assert_that(level_1['number_of_sidebar_warnings'], is_(1))
-            assert_that(level_1['number_of_sidebar_cautions'], is_(1))
+            assert_that(level_1['sidebar_note_count'], is_(1))
+            assert_that(level_1['sidebar_warning_count'], is_(1))
+            assert_that(level_1['sidebar_caution_count'], is_(1))
 
-            assert_that(level_2_1['number_of_sidebar_notes'], is_(0))
-            assert_that(level_2_1['number_of_sidebar_warnings'], is_(1))
-            assert_that(level_2_1['number_of_sidebar_cautions'], is_(1))
+            assert_that(level_2_1['sidebar_note_count'], is_(0))
+            assert_that(level_2_1['sidebar_warning_count'], is_(1))
+            assert_that(level_2_1['sidebar_caution_count'], is_(1))
 
-            assert_that(level_2_2['number_of_sidebar_notes'], is_(1))
-            assert_that(level_2_2['number_of_sidebar_warnings'], is_(0))
-            assert_that(level_2_2['number_of_sidebar_cautions'], is_(0))
+            assert_that(level_2_2['sidebar_note_count'], is_(1))
+            assert_that(level_2_2['sidebar_warning_count'], is_(0))
+            assert_that(level_2_2['sidebar_caution_count'], is_(0))
 
             # number of sentences = 5 because the title = 'WARNING!' if the title = 'WARNING' then the number_of_sentences = 4
-            assert_that(level_2_1, has_entries('sidebar_warning_stats', 
-                                             has_entries('number_of_sentences', 5,
-                                                         'number_of_words', 24,
-                                                         'number_of_chars', 175,
-                                                         'number_of_non_whitespace_chars',150)
+            assert_that(level_2_1, has_entries('sidebar_warning_stat', 
+                                             has_entries('sentence_count', 5,
+                                                         'word_count', 24,
+                                                         'char_count', 175,
+                                                         'non_whitespace_char_count',150)
                                              )
             )
 
-            assert_that(level_2_1, has_entries('sidebar_caution_stats', 
-                                             has_entries('number_of_sentences', 2,
-                                                         'number_of_words', 21,
-                                                         'number_of_chars', 137,
-                                                         'number_of_non_whitespace_chars',115)
+            assert_that(level_2_1, has_entries('sidebar_caution_stat', 
+                                             has_entries('sentence_count', 2,
+                                                         'word_count', 21,
+                                                         'char_count', 137,
+                                                         'non_whitespace_char_count',115)
                                              )
             )
 
-            assert_that(level_2_2, has_entries('sidebar_note_stats', 
-                                             has_entries('number_of_sentences', 1,
-                                                         'number_of_words', 10,
-                                                         'number_of_chars', 72,
-                                                         'number_of_non_whitespace_chars',61)
+            assert_that(level_2_2, has_entries('sidebar_note_stat', 
+                                             has_entries('sentence_count', 1,
+                                                         'word_count', 10,
+                                                         'char_count', 72,
+                                                         'non_whitespace_char_count',61)
                                              )
             )
 
@@ -396,6 +396,6 @@ class TestContentUnitStatistics(unittest.TestCase):
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
-            assert_that(level_1['number_of_equations'], is_(1))
-            assert_that(level_2_1['number_of_equations'], is_(1))
-            assert_that(level_2_2['number_of_equations'], is_(0))
+            assert_that(level_1['equation_count'], is_(1))
+            assert_that(level_2_1['equation_count'], is_(1))
+            assert_that(level_2_2['equation_count'], is_(0))
