@@ -293,9 +293,11 @@ class TestContentUnitStatistics(unittest.TestCase):
             assert_that(level_2_1['ordered_list_count'], is_(0))
             assert_that(level_2_2['ordered_list_count'], is_(1))
 
-            assert_that(level_1['sentence_count'], is_(3))
-            assert_that(level_2_1['sentence_count'], is_(1))
-            assert_that(level_2_2['sentence_count'], is_(1))
+            ###the text in the list is counted as sentence
+            ###that's why the number of sentence in level_2_1 = 2 and level_2_2 = 2
+            assert_that(level_1['sentence_count'], is_(5))
+            assert_that(level_2_1['sentence_count'], is_(2))
+            assert_that(level_2_2['sentence_count'], is_(2))
 
             assert_that(level_1['paragraph_count'], is_(3))
             assert_that(level_2_1['paragraph_count'], is_(1))
