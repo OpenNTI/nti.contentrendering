@@ -40,7 +40,7 @@ class _ContentUnitStatistics(object):
         outpath = outpath or book.contentLocation
         # pylint: disable=attribute-defined-outside-init
         self.outpath = os.path.expanduser(outpath)
-        target = os.path.join(outpath, 'content_statistics.json')
+        target = os.path.join(outpath, 'content_metrics.json')
         dom = book.toc.dom
         root = dom.documentElement
         index = {'Items': {}}
