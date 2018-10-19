@@ -100,34 +100,43 @@ class TestFigure(unittest.TestCase):
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
-            assert_that(level_1['figure_count'], is_(2))
-            assert_that(level_2_1['figure_count'], is_(1))
-            assert_that(level_2_2['figure_count'], is_(1))
-
-            assert_that(level_1, has_entries('figure_stat', 
-                                             has_entries('sentence_count', 3,
-                                                         'word_count', 24,
-                                                         'char_count', 160,
-                                                         'non_whitespace_char_count',138)
-                                             )
+            
+            assert_that(level_1, has_entries('BlockElementDetails', 
+                                              has_entries('figure', 
+                                                           has_entries('count', is_(2),
+                                                                       'sentence_count', is_(3),
+                                                                       'word_count', is_(24),
+                                                                       'char_count', is_(160),
+                                                                       'non_whitespace_char_count',is_(138)
+                                                                       )
+                                                           )
+                                              )
             )
 
             #'Figure 1.1: Post and beam framing is heavier than light-frame construction but lighter than timber construction. Courtesy of Ed Prendergast.'
-            assert_that(level_2_1, has_entries('figure_stat', 
-                                             has_entries('sentence_count', 2,
-                                                         'word_count', 20,
-                                                         'char_count', 140,
-                                                         'non_whitespace_char_count',121)
-                                             )
+            assert_that(level_2_1, has_entries('BlockElementDetails', 
+                                              has_entries('figure', 
+                                                           has_entries('count', is_(1),
+                                                                       'sentence_count', is_(2),
+                                                                       'word_count', is_(20),
+                                                                       'char_count', is_(140),
+                                                                       'non_whitespace_char_count',is_(121)
+                                                                       )
+                                                           )
+                                              )
             )
 
             #'Figure 1.2: Figure 2'
-            assert_that(level_2_2, has_entries('figure_stat', 
-                                             has_entries('sentence_count', 1,
-                                                         'word_count', 4,
-                                                         'char_count', 20,
-                                                         'non_whitespace_char_count',17)
-                                             )
+            assert_that(level_2_2, has_entries('BlockElementDetails', 
+                                              has_entries('figure', 
+                                                           has_entries('count', is_(1),
+                                                                       'sentence_count', is_(1),
+                                                                       'word_count', is_(4),
+                                                                       'char_count', is_(20),
+                                                                       'non_whitespace_char_count',is_(17)
+                                                                       )
+                                                           )
+                                              )
             )
     
     def test_figure_in_sidebar(self, do_images=True):
@@ -168,10 +177,23 @@ class TestFigure(unittest.TestCase):
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
-            assert_that(level_1['figure_count'], is_(2))
-            assert_that(level_2_1['figure_count'], is_(1))
-            assert_that(level_2_2['figure_count'], is_(1))
+            assert_that(level_1, has_entries('BlockElementDetails', 
+                                              has_entries('figure', 
+                                                           has_entries('count', is_(2))
+                                                           )
+                                              )
+            )
 
-            assert_that(level_1['sidebar_count'], is_(1))
-            assert_that(level_2_1['sidebar_count'], is_(1))
-            assert_that(level_2_2['sidebar_count'], is_(0))
+            assert_that(level_2_1, has_entries('BlockElementDetails', 
+                                              has_entries('figure', 
+                                                           has_entries('count', is_(1))
+                                                           )
+                                              )
+            )
+
+            assert_that(level_2_2, has_entries('BlockElementDetails', 
+                                              has_entries('figure', 
+                                                           has_entries('count', is_(1))
+                                                           )
+                                              )
+            )

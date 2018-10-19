@@ -242,17 +242,43 @@ class TestContentUnitStatistics(unittest.TestCase):
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
             
-            assert_that(level_1['table_count'], is_(1))
-            assert_that(level_2_1['table_count'], is_(1))
-            assert_that(level_2_2['table_count'], is_(0))
+            assert_that(level_1, has_entries('BlockElementDetails', 
+                                              has_entries('table', 
+                                                           has_entries('count', is_(1))
+                                                           )
+                                              )
+            )
+            assert_that(level_2_1, has_entries('BlockElementDetails', 
+                                              has_entries('table', 
+                                                           has_entries('count', is_(1))
+                                                           )
+                                              )
+            )
+            assert_that(level_2_2, has_entries('BlockElementDetails', 
+                                              has_entries('table', 
+                                                           has_entries('count', is_(0))
+                                                           )
+                                              )
+            )
 
-            assert_that(level_1['sidebar_count'], is_(1))
-            assert_that(level_2_1['sidebar_count'], is_(0))
-            assert_that(level_2_2['sidebar_count'], is_(1))
-
-            assert_that(level_1['ntiglossary_count'], is_(1))
-            assert_that(level_2_1['ntiglossary_count'], is_(0))
-            assert_that(level_2_2['ntiglossary_count'], is_(1))
+            assert_that(level_1, has_entries('BlockElementDetails', 
+                                              has_entries('glossary', 
+                                                           has_entries('count', is_(1))
+                                                           )
+                                              )
+            )
+            assert_that(level_2_1, has_entries('BlockElementDetails', 
+                                              has_entries('glossary', 
+                                                           has_entries('count', is_(0))
+                                                           )
+                                              )
+            )
+            assert_that(level_2_2, has_entries('BlockElementDetails', 
+                                              has_entries('glossary', 
+                                                           has_entries('count', is_(1))
+                                                           )
+                                              )
+            )
 
     def test_book_with_lists(self):
 
@@ -285,19 +311,17 @@ class TestContentUnitStatistics(unittest.TestCase):
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
-            assert_that(level_1['unordered_list_count'], is_(1))
-            assert_that(level_2_1['unordered_list_count'], is_(1))
-            assert_that(level_2_2['unordered_list_count'], is_(0))
+            # assert_that(level_1['unordered_list_count'], is_(1))
+            # assert_that(level_2_1['unordered_list_count'], is_(1))
+            # assert_that(level_2_2['unordered_list_count'], is_(0))
 
-            assert_that(level_1['ordered_list_count'], is_(1))
-            assert_that(level_2_1['ordered_list_count'], is_(0))
-            assert_that(level_2_2['ordered_list_count'], is_(1))
+            # assert_that(level_1['ordered_list_count'], is_(1))
+            # assert_that(level_2_1['ordered_list_count'], is_(0))
+            # assert_that(level_2_2['ordered_list_count'], is_(1))
 
-            ###the text in the list is counted as sentence
-            ###that's why the number of sentence in level_2_1 = 2 and level_2_2 = 2
-            assert_that(level_1['sentence_count'], is_(5))
-            assert_that(level_2_1['sentence_count'], is_(2))
-            assert_that(level_2_2['sentence_count'], is_(2))
+            assert_that(level_1['sentence_count'], is_(3))
+            assert_that(level_2_1['sentence_count'], is_(1))
+            assert_that(level_2_2['sentence_count'], is_(1))
 
             assert_that(level_1['paragraph_count'], is_(3))
             assert_that(level_2_1['paragraph_count'], is_(1))
@@ -334,41 +358,35 @@ class TestContentUnitStatistics(unittest.TestCase):
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
-            assert_that(level_1['sidebar_note_count'], is_(1))
-            assert_that(level_1['sidebar_warning_count'], is_(1))
-            assert_that(level_1['sidebar_caution_count'], is_(1))
-
-            assert_that(level_2_1['sidebar_note_count'], is_(0))
-            assert_that(level_2_1['sidebar_warning_count'], is_(1))
-            assert_that(level_2_1['sidebar_caution_count'], is_(1))
-
-            assert_that(level_2_2['sidebar_note_count'], is_(1))
-            assert_that(level_2_2['sidebar_warning_count'], is_(0))
-            assert_that(level_2_2['sidebar_caution_count'], is_(0))
-
             # number of sentences = 5 because the title = 'WARNING!' if the title = 'WARNING' then the number_of_sentences = 4
-            assert_that(level_2_1, has_entries('sidebar_warning_stat', 
-                                             has_entries('sentence_count', 5,
-                                                         'word_count', 24,
-                                                         'char_count', 175,
-                                                         'non_whitespace_char_count',150)
-                                             )
+            assert_that(level_2_1, has_entries('BlockElementDetails', 
+                                                has_entries('sidebar_warning', 
+                                                             has_entries('sentence_count', 5,
+                                                                         'word_count', 24,
+                                                                         'char_count', 175,
+                                                                         'non_whitespace_char_count',150)
+                                                             )
+                                                )
             )
 
-            assert_that(level_2_1, has_entries('sidebar_caution_stat', 
-                                             has_entries('sentence_count', 2,
-                                                         'word_count', 21,
-                                                         'char_count', 137,
-                                                         'non_whitespace_char_count',115)
-                                             )
+            assert_that(level_2_1, has_entries('BlockElementDetails', 
+                                                has_entries('sidebar_caution', 
+                                                             has_entries('sentence_count', 2,
+                                                                         'word_count', 21,
+                                                                         'char_count', 137,
+                                                                         'non_whitespace_char_count',115)
+                                                             )
+                                                )
             )
 
-            assert_that(level_2_2, has_entries('sidebar_note_stat', 
-                                             has_entries('sentence_count', 1,
-                                                         'word_count', 10,
-                                                         'char_count', 72,
-                                                         'non_whitespace_char_count',61)
-                                             )
+            assert_that(level_2_2, has_entries('BlockElementDetails', 
+                                                has_entries('sidebar_note', 
+                                                             has_entries('sentence_count', 1,
+                                                                         'word_count', 10,
+                                                                         'char_count', 72,
+                                                                         'non_whitespace_char_count',61)
+                                                             )
+                                                )
             )
 
     def test_book_with_equation(self):
@@ -398,6 +416,6 @@ class TestContentUnitStatistics(unittest.TestCase):
             level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
             level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
-            assert_that(level_1['equation_count'], is_(1))
-            assert_that(level_2_1['equation_count'], is_(1))
-            assert_that(level_2_2['equation_count'], is_(0))
+            # assert_that(level_1['equation_count'], is_(1))
+            # assert_that(level_2_1['equation_count'], is_(1))
+            # assert_that(level_2_2['equation_count'], is_(0))
