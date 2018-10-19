@@ -36,6 +36,7 @@ class HTMLExtractor(object):
         self.sidebar_notes = []
         self.sidebar_warnings = []
         self.sidebar_cautions = []
+        self.tables = []
 
         self.element = element
         self.plain_text = process_html_body(element, self)
@@ -50,6 +51,7 @@ class HTMLExtractor(object):
         self.sidebar_note_data = self.compute_list_statistic(self.sidebar_notes)
         self.sidebar_warning_data = self.compute_list_statistic(self.sidebar_warnings)
         self.sidebar_caution_data = self.compute_list_statistic(self.sidebar_cautions)
+        self.table_data = self.compute_list_statistic(self.tables)
 
     def total_number_of_words(self):
         words = tokenize_content(self.plain_text, self.lang)

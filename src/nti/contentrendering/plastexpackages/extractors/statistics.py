@@ -33,6 +33,8 @@ logger = __import__('logging').getLogger(__name__)
 @interface.implementer(IContentUnitStatistics)
 class _ContentUnitStatistics(object):
 
+    element_details = ('table', 'sidebar_caution', 'sidebar_warning', 'sidebar_note', 'figure', 'glossary')
+
     def __init__(self, unused_book=None, lang='en'):
         self.lang = lang
 
@@ -40,7 +42,7 @@ class _ContentUnitStatistics(object):
         outpath = outpath or book.contentLocation
         # pylint: disable=attribute-defined-outside-init
         self.outpath = os.path.expanduser(outpath)
-        target = os.path.join(outpath, 'content_statistics.json')
+        target = os.path.join(outpath, 'content_metrics.json')
         dom = book.toc.dom
         root = dom.documentElement
         index = {'Items': {}}
@@ -71,21 +73,10 @@ class _ContentUnitStatistics(object):
                 element_index['unique_word_count'] = extractor.number_unique_word
                 element_index['char_count'] = extractor.number_char
                 element_index['non_whitespace_char_count'] = extractor.number_non_whitespace_char
-                element_index['table_count'] = extractor.number_table 
-                element_index['sidebar_count'] = extractor.number_sidebar 
-                element_index['ntiglossary_count'] = extractor.number_ntiglossary 
-                element_index['ordered_list_count'] = extractor.number_ordered_list
-                element_index['unordered_list_count'] = extractor.number_unordered_list
-                element_index['figure_count'] = extractor.number_figure
-                element_index['sidebar_note_count'] = extractor.number_sidebar_note 
-                element_index['sidebar_warning_count'] = extractor.number_sidebar_warning 
-                element_index['sidebar_caution_count'] = extractor.number_sidebar_caution 
-                element_index['equation_count'] = extractor.number_equation
-                element_index['figure_stat'] = extractor.figure_data
-                element_index['glossary_stat'] = extractor.glossary_data
-                element_index['sidebar_note_stat'] = extractor.sidebar_note_data
-                element_index['sidebar_warning_stat'] = extractor.sidebar_warning_data
-                element_index['sidebar_caution_stat'] = extractor.sidebar_caution_data
+     
+                element_index['BlockElementDetails'] = {}
+
+                self.create_block_element_details(element_index['BlockElementDetails'], extractor)
                 unique_words = extractor.unique_words
 
         if node.hasChildNodes():
@@ -100,21 +91,8 @@ class _ContentUnitStatistics(object):
                         element_index['word_count'] += containing_index[child_ntiid]['word_count']
                         element_index['char_count'] += containing_index[child_ntiid]['char_count']
                         element_index['non_whitespace_char_count'] += containing_index[child_ntiid]['non_whitespace_char_count']
-                        element_index['table_count'] += containing_index[child_ntiid]['table_count']
-                        element_index['sidebar_count'] += containing_index[child_ntiid]['sidebar_count']
-                        element_index['ntiglossary_count'] += containing_index[child_ntiid]['ntiglossary_count']
-                        element_index['unordered_list_count'] += containing_index[child_ntiid]['unordered_list_count']
-                        element_index['ordered_list_count'] += containing_index[child_ntiid]['ordered_list_count']
-                        element_index['figure_count'] += containing_index[child_ntiid]['figure_count']
-                        element_index['sidebar_note_count'] += containing_index[child_ntiid]['sidebar_note_count']
-                        element_index['sidebar_warning_count'] += containing_index[child_ntiid]['sidebar_warning_count']
-                        element_index['sidebar_caution_count'] += containing_index[child_ntiid]['sidebar_caution_count']
-                        element_index['equation_count'] += containing_index[child_ntiid]['equation_count']
-                        self.accumulate_stat(element_index['figure_stat'], containing_index[child_ntiid]['figure_stat'])
-                        self.accumulate_stat(element_index['glossary_stat'], containing_index[child_ntiid]['glossary_stat'])
-                        self.accumulate_stat(element_index['sidebar_note_stat'], containing_index[child_ntiid]['sidebar_note_stat'])
-                        self.accumulate_stat(element_index['sidebar_warning_stat'], containing_index[child_ntiid]['sidebar_warning_stat'])
-                        self.accumulate_stat(element_index['sidebar_caution_stat'], containing_index[child_ntiid]['sidebar_caution_stat'])
+                        
+                        self.roll_up_block_element_details_stat(element_index['BlockElementDetails'], containing_index[child_ntiid]['BlockElementDetails'])
                         unique_words = unique_words.union(child_unique_words)
         
         if node.hasAttribute('ntiid') and u'#' not in element_index['ContentHref']:
@@ -138,6 +116,32 @@ class _ContentUnitStatistics(object):
         parent_dict['non_whitespace_char_count'] += child_dict['non_whitespace_char_count']
         parent_dict['sentence_count'] += child_dict['sentence_count']
         parent_dict['word_count'] += child_dict['word_count']
+
+    def roll_up_block_element_details_stat(self, parent_dict, child_dict):
+        for el in self.element_details:
+            parent_dict[el]['count'] += child_dict[el]['count']
+            self.accumulate_stat(parent_dict[el], child_dict[el])
+
+    def create_block_element_details(self, index, extractor):
+        for el in self.element_details:
+            if el == 'table':
+                self.sub_element_data(index, el, extractor.number_table, extractor.table_data)
+            elif el == 'glossary':
+                self.sub_element_data(index, el, extractor.number_ntiglossary, extractor.glossary_data)
+            elif el == 'figure':
+                self.sub_element_data(index, el, extractor.number_figure, extractor.figure_data)
+            elif el == 'sidebar_caution':
+                self.sub_element_data(index, el, extractor.number_sidebar_caution, extractor.sidebar_caution_data)
+            elif el == 'sidebar_warning':
+                self.sub_element_data(index, el, extractor.number_sidebar_warning, extractor.sidebar_warning_data)
+            elif el == 'sidebar_note':
+                self.sub_element_data(index, el, extractor.number_sidebar_note, extractor.sidebar_note_data)
+            else:
+                logger.warning('Unhandled element detail')
+
+    def sub_element_data(self, index, el_name, count, data):
+        index[el_name] = data
+        index[el_name]['count'] = count
 
     def try_div(self, numerator, denominator):
         try: return numerator/denominator

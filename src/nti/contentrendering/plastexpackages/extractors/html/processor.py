@@ -33,6 +33,8 @@ def check_child(text, element, html=None):
             text = process_div(text, child, html)
         elif child.tag == 'img':
             pass
+        elif child.tag == 'realpagenumber':
+            pass
         elif child.tag == 'a':
             text = process_anchor(text, child, html)
         elif child.tag == 'ul':
@@ -44,7 +46,8 @@ def check_child(text, element, html=None):
             if html:
                 html.number_ordered_list += 1
         elif child.tag == 'li':
-            text = child.text_content().strip() + u'\n'
+            _ = process_element('', child, html)
+            text = child.text_content().strip() + '\n'
         else:
             text = process_element(text, child, html)
     return text
@@ -66,7 +69,7 @@ def process_element(text, element, html=None):
 def process_paragraph(text, element, html=None):
     new_text = process_element(u"", element, html)
     if 'class' in element.attrib:
-        if html and element.attrib['class'] == 'par':
+        if html and element.attrib['class'] == 'par' and element.getparent().tag != 'li':
             if not new_text.isspace():
                 html.number_paragraph = html.number_paragraph + 1
     text = text + new_text + u'\n'
@@ -113,6 +116,7 @@ def process_div(text, element, html=None):
         elif element.attrib['class'] == 'table':
             if html:
                 html.number_table += 1
+                html.tables.append(element.text_content().strip())
         elif element.attrib['class'] == 'math equation':
             if html:
                 html.number_equation +=1
