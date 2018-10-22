@@ -32,7 +32,8 @@ def check_child(text, element, html=None):
         elif child.tag == 'div':
             text = process_div(text, child, html)
         elif child.tag == 'img':
-            pass
+            if html:
+                html.number_non_figure_image += 1 #it does not include under <div class="figure">
         elif child.tag == 'realpagenumber':
             pass
         elif child.tag == 'a':
@@ -47,7 +48,7 @@ def check_child(text, element, html=None):
                 html.number_ordered_list += 1
         elif child.tag == 'li':
             _ = process_element('', child, html)
-            text = child.text_content().strip() + '\n'
+            text = text + child.text_content().strip() + '\n'
         else:
             text = process_element(text, child, html)
     return text
@@ -72,16 +73,19 @@ def process_paragraph(text, element, html=None):
         if html and element.attrib['class'] == 'par' and element.getparent().tag != 'li':
             if not new_text.isspace():
                 html.number_paragraph = html.number_paragraph + 1
-    text = text + new_text + u'\n'
+    if not new_text.isspace():
+        text = text + new_text.strip() + u'\n'
     return text
 
+
+DIV_CLASS_TITLE = ('chapter title', 'section title', 'subsection title')
 
 def process_div(text, element, html=None):
     current_number_paragraph = html.number_paragraph
     if 'class' in element.attrib:
-        if element.attrib['class'] == 'section title' or element.attrib['class'] == 'sidebar title':
+        if element.attrib['class'] in DIV_CLASS_TITLE or element.attrib['class'] == 'sidebar title':
             new_text = process_element(u"", element, html)
-            text = text + new_text + u'\n'
+            text = text + new_text.strip() + u'\n'
         elif element.attrib['class'] == 'sidebar':
             new_text = process_element(u"", element, html)
             if html:
@@ -131,4 +135,5 @@ def process_anchor(text, element, html=None):
         if element.attrib['class'] == 'ntiglossaryentry':
             html.number_ntiglossary += 1
     text = process_element(text, element, html)
+    logger.info(element.attrib)
     return text

@@ -70,12 +70,11 @@ class _ContentUnitStatistics(object):
                 element_index['paragraph_count'] = extractor.number_paragraph
                 element_index['word_count'] = extractor.number_word
                 element_index['sentence_count'] = extractor.number_sentence
-                element_index['unique_word_count'] = extractor.number_unique_word
                 element_index['char_count'] = extractor.number_char
                 element_index['non_whitespace_char_count'] = extractor.number_non_whitespace_char
-     
+                element_index['non_figure_image_count'] = extractor.number_non_figure_image
+                element_index['unique_word_count'] = extractor.number_unique_word
                 element_index['BlockElementDetails'] = {}
-
                 self.create_block_element_details(element_index['BlockElementDetails'], extractor)
                 unique_words = extractor.unique_words
 
@@ -87,11 +86,8 @@ class _ContentUnitStatistics(object):
                     child_ntiid = child.getAttributeNode('ntiid').value
                     if u'#' not in containing_index[child_ntiid]['ContentHref']:
                         element_index['paragraph_count'] += containing_index[child_ntiid]['paragraph_count']
-                        element_index['sentence_count'] += containing_index[child_ntiid]['sentence_count']
-                        element_index['word_count'] += containing_index[child_ntiid]['word_count']
-                        element_index['char_count'] += containing_index[child_ntiid]['char_count']
-                        element_index['non_whitespace_char_count'] += containing_index[child_ntiid]['non_whitespace_char_count']
-                        
+                        element_index['non_figure_image_count'] += containing_index[child_ntiid]['non_figure_image_count']
+                        self.accumulate_stat(element_index, containing_index[child_ntiid])
                         self.roll_up_block_element_details_stat(element_index['BlockElementDetails'], containing_index[child_ntiid]['BlockElementDetails'])
                         unique_words = unique_words.union(child_unique_words)
         
@@ -102,7 +98,8 @@ class _ContentUnitStatistics(object):
             element_index['unique_percentage_of_word_count'] = self.try_div(element_index['unique_word_count'],element_index['word_count'])
             sorted_words = sorted(unique_words, key=len)
             element_index['length_of_the_shortest_word'] = len(sorted_words[0]) 
-            element_index['length_of_the_longest_word'] = len(sorted_words[-1]) 
+            element_index['length_of_the_longest_word'] = len(sorted_words[-1])
+            self.compute_total_stat(element_index)
         return unique_words
 
     def _read_html(self, name):
@@ -110,6 +107,21 @@ class _ContentUnitStatistics(object):
         reader = HTMLReader(filename)
         element = reader.element
         return element
+
+    def compute_total_stat(self, index):
+        stats = ('char_count', 'non_whitespace_char_count', 'sentence_count', 'word_count')
+        sub_index = index['BlockElementDetails']
+
+        #intialize total_*
+        for field in stats:
+            tfield = 'total_%s' %field
+            index[tfield] = index[field]
+
+        for el in self.element_details:
+            for field in stats:
+                if field in sub_index[el]:
+                    tfield = 'total_%s' %field
+                    index[tfield] = index[tfield] + sub_index[el][field]
 
     def accumulate_stat(self, parent_dict, child_dict):
         parent_dict['char_count'] += child_dict['char_count']
