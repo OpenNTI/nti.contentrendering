@@ -70,10 +70,10 @@ class _ContentUnitStatistics(object):
                 element_index['paragraph_count'] = extractor.number_paragraph
                 element_index['word_count'] = extractor.number_word
                 element_index['sentence_count'] = extractor.number_sentence
-                element_index['unique_word_count'] = extractor.number_unique_word
                 element_index['char_count'] = extractor.number_char
                 element_index['non_whitespace_char_count'] = extractor.number_non_whitespace_char
                 element_index['non_figure_image_count'] = extractor.number_non_figure_image
+                element_index['unique_word_count'] = extractor.number_unique_word
                 element_index['BlockElementDetails'] = {}
                 self.create_block_element_details(element_index['BlockElementDetails'], extractor)
                 unique_words = extractor.unique_words
@@ -86,6 +86,7 @@ class _ContentUnitStatistics(object):
                     child_ntiid = child.getAttributeNode('ntiid').value
                     if u'#' not in containing_index[child_ntiid]['ContentHref']:
                         element_index['paragraph_count'] += containing_index[child_ntiid]['paragraph_count']
+                        element_index['non_figure_image_count'] += containing_index[child_ntiid]['non_figure_image_count']
                         self.accumulate_stat(element_index, containing_index[child_ntiid])
                         self.roll_up_block_element_details_stat(element_index['BlockElementDetails'], containing_index[child_ntiid]['BlockElementDetails'])
                         unique_words = unique_words.union(child_unique_words)
