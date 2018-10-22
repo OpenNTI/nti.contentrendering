@@ -73,9 +73,8 @@ class _ContentUnitStatistics(object):
                 element_index['unique_word_count'] = extractor.number_unique_word
                 element_index['char_count'] = extractor.number_char
                 element_index['non_whitespace_char_count'] = extractor.number_non_whitespace_char
-     
+                element_index['non_figure_image_count'] = extractor.number_non_figure_image
                 element_index['BlockElementDetails'] = {}
-
                 self.create_block_element_details(element_index['BlockElementDetails'], extractor)
                 unique_words = extractor.unique_words
 

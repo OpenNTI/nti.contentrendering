@@ -22,7 +22,9 @@ class HTMLSample(object):
         self.number_ntiglossary = 0
         self.number_unordered_list = 0
         self.number_ordered_list = 0
+        self.number_non_figure_image = 0
         self.glossaries = list()
+        self.figure_captions = list()
 
     def compute_list_statistic(self, content_list):
         data = {}

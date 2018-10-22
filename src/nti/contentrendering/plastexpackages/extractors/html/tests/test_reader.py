@@ -56,3 +56,10 @@ class HTMLReaderTest(HTMLExtractorTests):
         assert_that(len(html.glossaries), is_(html.number_ntiglossary))
         glossary_stat = html.compute_list_statistic(html.glossaries)
         assert_that(glossary_stat['sentence_count'], is_(2))
+
+    def test_html_with_images(self):
+        filename = "tag_nextthought_com_2011-10_IFSTA-HTML-sample_book_section_System_Requirements.html"
+        reader = HTMLReader(self.data_file(filename))
+        html = HTMLSample()
+        text = process_html_body(reader.element, html)
+        assert_that(html.number_non_figure_image, is_(1))

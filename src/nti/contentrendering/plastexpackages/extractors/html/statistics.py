@@ -31,6 +31,7 @@ class HTMLExtractor(object):
         self.number_unordered_list = 0
         self.number_ordered_list = 0
         self.number_equation = 0
+        self.number_non_figure_image = 0
         self.glossaries = []
         self.figure_captions = []
         self.sidebar_notes = []

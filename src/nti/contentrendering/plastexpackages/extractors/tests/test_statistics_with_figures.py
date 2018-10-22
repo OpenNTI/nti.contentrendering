@@ -197,3 +197,64 @@ class TestFigure(unittest.TestCase):
                                                            )
                                               )
             )
+
+    def test_non_figure_image(self, do_images=True):
+        name = 'sample_book_9.tex'
+        with open(self.data_file(name)) as fp:
+            book_string = fp.read()
+
+
+        book = Book()
+
+        with RenderContext(_simpleLatexDocument( (book_string,) ), 
+                           output_encoding='utf-8',
+                           files=(os.path.join( os.path.dirname(__file__ ), 'test.png' ),),
+                           packages_on_texinputs=True) as ctx:
+            book.document = ctx.dom
+            book.contentLocation = ctx.docdir
+            dom  = ctx.dom
+            dom.getElementsByTagName( 'document' )[0].filenameoverride = 'index'
+            res_db = None
+            if do_images:
+                from nti.contentrendering import nti_render
+                try:
+                    res_db = nti_render.generateImages( dom )
+                except ConverterUnusableError as e:
+                    raise unittest.SkipTest(e)
+
+            render = ResourceRenderer.createResourceRenderer('XHTML', res_db)
+            render.importDirectory( os.path.join( os.path.dirname(__file__), '..' ) )
+            render.render( dom )
+            
+            book.toc = EclipseTOC(os.path.join(ctx.docdir, 'eclipse-toc.xml'))
+
+            stat = _ContentUnitStatistics(book)
+            result = stat.transform(book) 
+
+            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+
+            assert_that(level_1, has_entries('BlockElementDetails', 
+                                              has_entries('figure', 
+                                                           has_entries('count', is_(2))
+                                                           )
+                                              )
+            )
+
+            assert_that(level_2_1, has_entries('BlockElementDetails', 
+                                              has_entries('figure', 
+                                                           has_entries('count', is_(1))
+                                                           )
+                                              )
+            )
+
+            assert_that(level_2_2, has_entries('BlockElementDetails', 
+                                              has_entries('figure', 
+                                                           has_entries('count', is_(1))
+                                                           )
+                                              )
+            )
+
+            assert_that(level_1, has_entries('non_figure_image_count', is_(1)))

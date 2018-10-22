@@ -32,7 +32,8 @@ def check_child(text, element, html=None):
         elif child.tag == 'div':
             text = process_div(text, child, html)
         elif child.tag == 'img':
-            pass
+            if html:
+                html.number_non_figure_image += 1 #it does not include under <div class="figure">
         elif child.tag == 'realpagenumber':
             pass
         elif child.tag == 'a':
