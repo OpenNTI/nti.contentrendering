@@ -87,11 +87,7 @@ class _ContentUnitStatistics(object):
                     child_ntiid = child.getAttributeNode('ntiid').value
                     if u'#' not in containing_index[child_ntiid]['ContentHref']:
                         element_index['paragraph_count'] += containing_index[child_ntiid]['paragraph_count']
-                        element_index['sentence_count'] += containing_index[child_ntiid]['sentence_count']
-                        element_index['word_count'] += containing_index[child_ntiid]['word_count']
-                        element_index['char_count'] += containing_index[child_ntiid]['char_count']
-                        element_index['non_whitespace_char_count'] += containing_index[child_ntiid]['non_whitespace_char_count']
-                        
+                        self.accumulate_stat(element_index, containing_index[child_ntiid])
                         self.roll_up_block_element_details_stat(element_index['BlockElementDetails'], containing_index[child_ntiid]['BlockElementDetails'])
                         unique_words = unique_words.union(child_unique_words)
         
