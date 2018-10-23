@@ -13,69 +13,69 @@ logger = __import__('logging').getLogger(__name__)
 
 def process_html_body(element, html=None):
     body = element.find('body')
-    text = process_element(u'', body, html)
-    return text
+    text = []
+    process_element(text, body, html)
+    return u''.join(text)
 
 
 def check_element_text(text, element):
     if element.text:
-        text = text + element.text
-    return text
+        text.append(element.text)
 
 
 def check_child(text, element, html=None):
     for child in element:
         if child.tag == 'br':
-            text = text + '\n'
+            text.append('\n')
         elif child.tag == 'p':
-            text = process_paragraph(text, child, html)
+            process_paragraph(text, child, html)
         elif child.tag == 'div':
-            text = process_div(text, child, html)
+            process_div(text, child, html)
         elif child.tag == 'img':
             if html:
                 html.number_non_figure_image += 1 #it does not include under <div class="figure">
         elif child.tag == 'realpagenumber':
             pass
         elif child.tag == 'a':
-            text = process_anchor(text, child, html)
+            process_anchor(text, child, html)
         elif child.tag == 'ul':
-            text = process_element(text, child, html)
+            process_element(text, child, html)
             if html:
                 html.number_unordered_list += 1
         elif child.tag == 'ol':
-            text = process_element(text, child, html)
+            process_element(text, child, html)
             if html:
                 html.number_ordered_list += 1
         elif child.tag == 'li':
-            _ = process_element('', child, html)
-            text = text + child.text_content().strip() + '\n'
+            temp = []
+            process_element(temp, child, html)
+            text.append(child.text_content().strip())
+            text.append('\n')
         else:
-            text = process_element(text, child, html)
-    return text
+            process_element(text, child, html)
 
 
 def check_element_tail(text, element):
     if element.tail:
-        text = text + element.tail
-    return text
+        text.append(element.tail)
 
 
 def process_element(text, element, html=None):
-    text = check_element_text(text, element)
-    text = check_child(text, element, html)
-    text = check_element_tail(text, element)
-    return text
-
+    check_element_text(text, element)
+    check_child(text, element, html)
+    check_element_tail(text, element)
 
 def process_paragraph(text, element, html=None):
-    new_text = process_element(u"", element, html)
+    new_text = []
+    process_element(new_text, element, html)
+    new_texts = u''.join(new_text)
     if 'class' in element.attrib:
         if html and element.attrib['class'] == 'par' and element.getparent().tag != 'li':
-            if not new_text.isspace():
+            if not new_texts.isspace():
                 html.number_paragraph = html.number_paragraph + 1
-    if not new_text.isspace():
-        text = text + new_text.strip() + u'\n'
-    return text
+    if not new_texts.isspace():
+        text.append(new_texts.strip())
+        text.append('\n')
 
 
 DIV_CLASS_TITLE = ('chapter title', 'section title', 'subsection title')
@@ -84,17 +84,19 @@ def process_div(text, element, html=None):
     current_number_paragraph = html.number_paragraph
     if 'class' in element.attrib:
         if element.attrib['class'] in DIV_CLASS_TITLE or element.attrib['class'] == 'sidebar title':
-            new_text = process_element(u"", element, html)
-            text = text + new_text.strip() + u'\n'
+            new_text = []
+            process_element(new_text, element, html)
+            new_texts = u''.join(new_text)
+            text.append(new_texts.strip())
+            text.append('\n')
         elif element.attrib['class'] == 'sidebar':
-            new_text = process_element(u"", element, html)
+            process_element(text, element, html)
             if html:
                 html.number_sidebar += 1
                 # need to discuss whether we want to count paragraph inside a
                 # sidebar
                 if current_number_paragraph == html.number_paragraph:
                     html.number_paragraph += 1
-            text = text + new_text
         elif element.attrib['class'] == 'sidebar note':
             if html:
                 html.number_sidebar_note += 1
@@ -125,15 +127,12 @@ def process_div(text, element, html=None):
             if html:
                 html.number_equation +=1
         else:
-            text = process_element(text, element, html)
+            process_element(text, element, html)
     else:
-        text = process_element(text, element, html)
-    return text
+        process_element(text, element, html)
 
 def process_anchor(text, element, html=None):
     if 'class' in element.attrib:
         if element.attrib['class'] == 'ntiglossaryentry':
             html.number_ntiglossary += 1
-    text = process_element(text, element, html)
-    logger.info(element.attrib)
-    return text
+    process_element(text, element, html)
