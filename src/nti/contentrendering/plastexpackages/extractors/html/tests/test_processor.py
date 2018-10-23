@@ -23,30 +23,33 @@ class HTMLProcessTest(HTMLExtractorTests):
     def test_simple_paragraph(self):
         script = u"""<body><div><p class="par" id="cea4cf4b4bfca0e0912c8b9308ae9c64">We recommend the following specifications to ensure the highest quality experience while using NextThought: </p></div></body>"""
         element = html.fromstring(script)
-        text = process_element(u"", element)
-        assert_that(text, 
+        text = []
+        process_element(text, element)
+        assert_that(u''.join(text), 
 					is_(u'We recommend the following specifications to ensure the highest quality experience while using NextThought:\n'))
 
     def test_bolded_paragraph(self):
         script = u"""<body><div><p class="par" id="ac446671f9623e95ea098e5d0777dc39"><b class="bfseries">Can everyone see the note I just made?</b><br /></p></div></body>"""
         element = html.fromstring(script)
-        text = process_element(u"", element)
-        assert_that(text, is_(u'Can everyone see the note I just made?\n'))
+        text = []
+        process_element(text, element)
+        assert_that(u''.join(text), is_(u'Can everyone see the note I just made?\n'))
 
     def test_bolded_paragraph_with_tail(self):
         script = u"""<body><div><p class="par" id="ac446671f9623e95ea098e5d0777dc39"><b class="bfseries">Can everyone see the note I just made?</b> This is a tail<br /></p></div></body>"""
         element = html.fromstring(script)
-        text = process_element(u"", element)
-        assert_that(
-            text, is_(u'Can everyone see the note I just made? This is a tail\n'))
+        text = []
+        process_element(text, element)
+        assert_that(u''.join(text), is_(u'Can everyone see the note I just made? This is a tail\n'))
 
     def test_paragraph(self):
         script = u"""<body><div class="section title">System Requirements</div> <p class="placeholder"></p> <p class="par"> <a name="section:System Requirements"></a> </p> <a name="cea4cf4b4bfca0e0912c8b9308ae9c64"></a> <p class="par" id="cea4cf4b4bfca0e0912c8b9308ae9c64">We recommend the following specifications to ensure the highest quality experience while using NextThought: </p> <a name="45bb5b2ce7b3402678006a7b9b89c5e8"></a> <p class="par" id="45bb5b2ce7b3402678006a7b9b89c5e8">1Mb/s+ broadband Internet connection for optimal video viewing A computer with at least 2GB memory and minimum screen resolution of 1024x768 <a href="http://get.adobe.com/reader/">Adobe Reader</a> or similar PDF reading software </p> </div></body>"""
         element = html.fromstring(script)
         html_obj = HTMLSample()
-        text = process_element(u"", element, html_obj)
+        text = []
+        process_element(text, element, html_obj)
         assert_that(html_obj.number_paragraph, is_(2))
-        assert_that(text, is_(u'System Requirements\n We recommend the following specifications to ensure the highest quality experience while using NextThought:\n 1Mb/s+ broadband Internet connection for optimal video viewing A computer with at least 2GB memory and minimum screen resolution of 1024x768 Adobe Reader or similar PDF reading software\n'))
+        assert_that(u''.join(text), is_(u'System Requirements\n We recommend the following specifications to ensure the highest quality experience while using NextThought:\n 1Mb/s+ broadband Internet connection for optimal video viewing A computer with at least 2GB memory and minimum screen resolution of 1024x768 Adobe Reader or similar PDF reading software\n'))
 
     def test_sidebar_without_title(self):
         script = u"""<body><div><div class="sidebar" data-ntiid="tag:nextthought.com,2011-10:IFSTA-HTML-sample_book.sidebar.0" ntiid="tag:nextthought.com,2011-10:IFSTA-HTML-sample_book.sidebar.0">
@@ -60,7 +63,7 @@ class HTMLProcessTest(HTMLExtractorTests):
         </div></div></body>"""
         element = html.fromstring(script)
         html_obj = HTMLSample()
-        _ = process_element(u"", element, html_obj)
+        process_element([], element, html_obj)
         assert_that(html_obj.number_paragraph, is_(2))
         assert_that(html_obj.number_sidebar, is_(1))
 
@@ -73,7 +76,7 @@ class HTMLProcessTest(HTMLExtractorTests):
         </div></div></body>"""
         element = html.fromstring(script)
         html_obj = HTMLSample()
-        _ = process_element(u"", element, html_obj)
+        process_element([], element, html_obj)
         assert_that(html_obj.number_sidebar, is_(1))
         assert_that(html_obj.number_paragraph, is_(1))
 
@@ -81,7 +84,7 @@ class HTMLProcessTest(HTMLExtractorTests):
         script = u"""<body id="NTIContent"> <div class="page-contents"><div data-ntiid="tag:nextthought.com,2011-10:IFSTA-HTML-sample_book.section:General_Features" id="section:General_Features" ntiid="tag:nextthought.com,2011-10:IFSTA-HTML-sample_book.section:General_Features"> <div class="section title">General Features</div> <p class="placeholder"></p> <p class="par"> <a name="section:General_Features"></a> <b class="bfseries">You</b> <em>control</em> <span class="underline">who</span> <b class="bfseries"><em>is able to see your note</em></b>. To change who your note is shared with or add someone to the note, begin typing a contact, list, or group&#8217;s name in the sharing field and click on them to share. </p> <a name="04f2dacf2787d96d3531de8a3851a109"></a> <p class="par" id="04f2dacf2787d96d3531de8a3851a109">To remove a person, group, or list, hover over their name in the sharing field, and an &#8220;x&#8221; will appear. Click the x to remove. If no one is listed in the sharing field, the note will be private and only you can access it. </p> </div></div> </body>"""
         element = html.fromstring(script)
         html_obj = HTMLSample()
-        text = process_element(u"", element, html_obj)
+        process_element([], element, html_obj)
         assert_that(html_obj.number_sidebar, is_(0))
         assert_that(html_obj.number_paragraph, is_(2))
 
@@ -89,22 +92,25 @@ class HTMLProcessTest(HTMLExtractorTests):
         script = u"""<body id="NTIContent"><div><b class="bfseries">You</b> <em>control</em> <span class="underline">who</span> <b class="bfseries"><em>is able to see your note</em></b>.</div></body>"""
         element = html.fromstring(script)
         html_obj = HTMLSample()
-        text = process_element(u"", element, html_obj)
-        assert_that(text, is_(u'You control who is able to see your note.'))
+        text = []
+        process_element(text, element, html_obj)
+        assert_that(u''.join(text), is_(u'You control who is able to see your note.'))
 
     def test_paragraph_with_image_only(self):
         script = u"""<p class="par" id="c3d314f2ae99dbaaa5312df78e8f46b9"> <span itemprop="nti-data-markupdisabled nti-data-resizeable"> <img crossorigin="anonymous" data-nti-image-full="resources/sample_book/5d9a8fd7c6126e69eb942ed5113845735bbdb586/fd35e23767020999111e1f49239199b4c5eff23e.png" data-nti-image-half="resources/sample_book/5d9a8fd7c6126e69eb942ed5113845735bbdb586/2cff8dc544afd32305107ce559484cb4ce1730df.png" data-nti-image-quarter="resources/sample_book/5d9a8fd7c6126e69eb942ed5113845735bbdb586/06aefff9765154841fac3704b0e59674fae7a005.png" data-nti-image-size="full" id="c3d314f2ae99dbaaa5312df78e8f46b9.1" src="resources/sample_book/5d9a8fd7c6126e69eb942ed5113845735bbdb586/fd35e23767020999111e1f49239199b4c5eff23e.png" style="width:1398px; height:358px" /> </span> </p>"""
         element = html.fromstring(script)
         html_obj = HTMLSample()
-        text = process_element(u"", element, html_obj)
-        assert_that(text, is_(u'   '))
+        text = []
+        process_element(text, element, html_obj)
+        assert_that(u''.join(text), is_(u'   '))
         assert_that(html_obj.number_paragraph, is_(0))
 
     def test_html(self):
         script = u"""<body id="NTIContent"> <div class="page-contents"><div data-ntiid="tag:nextthought.com,2011-10:IFSTA-HTML-sample_book.section:General_Features" id="section:General_Features" ntiid="tag:nextthought.com,2011-10:IFSTA-HTML-sample_book.section:General_Features"> <div class="section title">General Features</div> <p class="placeholder"></p> <p class="par"> <a name="section:General_Features"></a> <b class="bfseries">You</b> <em>control</em> <span class="underline">who</span> <b class="bfseries"><em>is able to see your note</em></b>. To change who your note is shared with or add someone to the note, begin typing a contact, list, or group&#8217;s name in the sharing field and click on them to share. </p> <a name="04f2dacf2787d96d3531de8a3851a109"></a> <p class="par" id="04f2dacf2787d96d3531de8a3851a109">To remove a person, group, or list, hover over their name in the sharing field, and an &#8220;x&#8221; will appear. Click the x to remove. If no one is listed in the sharing field, the note will be private and only you can access it. </p> </div></div> </body>"""
         element = html.fromstring(script)
         html_obj = HTMLSample()
-        text = process_element(u"", element, html_obj)
+        text = []
+        process_element(text, element, html_obj)
         assert_that(html_obj.number_paragraph, is_(2))
         assert_that(html_obj.number_sidebar, is_(0))
-        assert_that(text, is_(u' General Features\nYou control who is able to see your note. To change who your note is shared with or add someone to the note, begin typing a contact, list, or group\u2019s name in the sharing field and click on them to share.\n To remove a person, group, or list, hover over their name in the sharing field, and an \u201cx\u201d will appear. Click the x to remove. If no one is listed in the sharing field, the note will be private and only you can access it.\n '))
+        assert_that(u''.join(text), is_(u' General Features\nYou control who is able to see your note. To change who your note is shared with or add someone to the note, begin typing a contact, list, or group\u2019s name in the sharing field and click on them to share.\n To remove a person, group, or list, hover over their name in the sharing field, and an \u201cx\u201d will appear. Click the x to remove. If no one is listed in the sharing field, the note will be private and only you can access it.\n '))
