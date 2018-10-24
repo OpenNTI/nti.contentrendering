@@ -66,26 +66,22 @@ class TestContentUnitStatistics(unittest.TestCase):
             ext.transform(book)
 
             stat = _ContentUnitStatistics(book)
-            result = stat.transform(book)
+            stat.transform(book)
+            result= stat.index
 
             assert_that(stat.lang, is_('en'))
 
-            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
-            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
-            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
-            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+            level_0 = result['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
-            assert_that(len(level_0['Items']), is_(1))
-            assert_that(len(level_1['Items']), is_(2))
-
-            assert_that(level_2_1['ContentNTIID'], 
-                        is_(u'tag:nextthought.com,2011-10:testing-HTML-temp.section:1'))
+            
             assert_that(level_2_1['word_count'], is_(42))
             assert_that(level_2_1['sentence_count'], is_(6))
             assert_that(level_2_1['paragraph_count'], is_(1))
 
-            assert_that(level_2_2['ContentNTIID'],
-                        is_(u'tag:nextthought.com,2011-10:testing-HTML-temp.section:2'))
+            
             assert_that(level_2_2['word_count'], is_(86))
             assert_that(level_2_2['sentence_count'], is_(5))
             assert_that(level_2_2['paragraph_count'], is_(2))
@@ -165,49 +161,18 @@ class TestContentUnitStatistics(unittest.TestCase):
             ext.transform(book)
 
             stat = _ContentUnitStatistics(book)
-            result = stat.transform(book)
+            stat.transform(book)
+            result= stat.index
 
-            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
-            chapter_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
-            # section_1_1 = chapter_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1_1']
-            # section_1_2 = chapter_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1_2']
-            chapter_2 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:2']
-            # section_2_1 = chapter_2['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2_1']
-            # subsection_2_1_1 = section_2_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.subsection:2_2_1']
-            # subsection_2_1_2 = section_2_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.subsection:2_2_2']
-            # section_2_2 = chapter_2['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2_2']
+            level_0 = result['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            chapter_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            chapter_2 = result['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:2']
 
-            assert_that(chapter_1, has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1',
-                                               'Items',
-                                               has_entries('tag:nextthought.com,2011-10:testing-HTML-temp.section:1_1',
-                                                           has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:1_1',
-                                                                       'paragraph_count', 2,
-                                                                       'sentence_count', 8),
-                                                           'tag:nextthought.com,2011-10:testing-HTML-temp.section:1_2',
-                                                           has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:1_2',
-                                                                       'paragraph_count', 1,
-                                                                       'sentence_count', 2
-                                                                       )
-                                                           )
-                                               )
-                        )
-            # since this render split-level = 1, then subsection does not have
-            # its own html
-            assert_that(chapter_2, has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.chapter:2',
-                                               'Items',
-                                               has_entries('tag:nextthought.com,2011-10:testing-HTML-temp.section:2_1',
-                                                           has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:2_1',
-                                                                       'paragraph_count', 3,
-                                                                       'sentence_count', 8
-                                                                       ),
-                                                           'tag:nextthought.com,2011-10:testing-HTML-temp.section:2_2',
-                                                           has_entries('ContentNTIID', u'tag:nextthought.com,2011-10:testing-HTML-temp.section:2_2',
-                                                                       'paragraph_count', 1,
-                                                                       'sentence_count', 4
-                                                                       )
-                                                           )
-                                               )
-                        )
+            word_count = chapter_1['word_count'] + chapter_2['word_count']
+            assert_that(level_0['word_count'], is_(word_count))
+
+            total_word_count = chapter_1['total_word_count'] + chapter_2['total_word_count']
+            assert_that(level_0['total_word_count'], is_(word_count))
 
             assert_that(stat.lang, is_('en'))
     
@@ -235,12 +200,13 @@ class TestContentUnitStatistics(unittest.TestCase):
             ext.transform(book)
 
             stat = _ContentUnitStatistics(book)
-            result = stat.transform(book)
+            stat.transform(book)
+            result= stat.index
 
-            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
-            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
-            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
-            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+            level_0 = result['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
             
             assert_that(level_1, has_entries('BlockElementDetails', 
                                               has_entries('table', 
@@ -304,20 +270,13 @@ class TestContentUnitStatistics(unittest.TestCase):
             ext.transform(book)
 
             stat = _ContentUnitStatistics(book)
-            result = stat.transform(book) 
+            stat.transform(book)
+            result= stat.index 
 
-            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
-            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
-            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
-            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
-
-            # assert_that(level_1['unordered_list_count'], is_(1))
-            # assert_that(level_2_1['unordered_list_count'], is_(1))
-            # assert_that(level_2_2['unordered_list_count'], is_(0))
-
-            # assert_that(level_1['ordered_list_count'], is_(1))
-            # assert_that(level_2_1['ordered_list_count'], is_(0))
-            # assert_that(level_2_2['ordered_list_count'], is_(1))
+            level_0 = result['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
             assert_that(level_1['sentence_count'], is_(5))
             #it count the list as one sentence
@@ -353,12 +312,13 @@ class TestContentUnitStatistics(unittest.TestCase):
             ext.transform(book)
 
             stat = _ContentUnitStatistics(book)
-            result = stat.transform(book) 
+            stat.transform(book)
+            result= stat.index 
 
-            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
-            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
-            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
-            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+            level_0 = result['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
             # number of sentences = 5 because the title = 'WARNING!' if the title = 'WARNING' then the number_of_sentences = 4
             assert_that(level_2_1, has_entries('BlockElementDetails', 
@@ -411,12 +371,13 @@ class TestContentUnitStatistics(unittest.TestCase):
             book.toc = EclipseTOC(os.path.join(ctx.docdir, 'eclipse-toc.xml'))
 
             stat = _ContentUnitStatistics(book)
-            result = stat.transform(book) 
+            stat.transform(book)
+            result= stat.index 
 
-            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
-            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
-            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
-            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+            level_0 = result['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
             # assert_that(level_1['equation_count'], is_(1))
             # assert_that(level_2_1['equation_count'], is_(1))
