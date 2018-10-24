@@ -93,12 +93,13 @@ class TestFigure(unittest.TestCase):
             book.toc = EclipseTOC(os.path.join(ctx.docdir, 'eclipse-toc.xml'))
 
             stat = _ContentUnitStatistics(book)
-            result = stat.transform(book) 
+            stat.transform(book) 
+            result = stat.index
 
-            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
-            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
-            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
-            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+            level_0 = result['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
             
             assert_that(level_1, has_entries('BlockElementDetails', 
@@ -170,12 +171,13 @@ class TestFigure(unittest.TestCase):
             book.toc = EclipseTOC(os.path.join(ctx.docdir, 'eclipse-toc.xml'))
 
             stat = _ContentUnitStatistics(book)
-            result = stat.transform(book) 
+            stat.transform(book) 
+            result = stat.index
 
-            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
-            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
-            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
-            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+            level_0 = result['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
             assert_that(level_1, has_entries('BlockElementDetails', 
                                               has_entries('figure', 
@@ -229,12 +231,13 @@ class TestFigure(unittest.TestCase):
             book.toc = EclipseTOC(os.path.join(ctx.docdir, 'eclipse-toc.xml'))
 
             stat = _ContentUnitStatistics(book)
-            result = stat.transform(book) 
+            stat.transform(book) 
+            result = stat.index
 
-            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
-            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
-            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
-            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+            level_0 = result['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
             assert_that(level_1, has_entries('BlockElementDetails', 
                                               has_entries('figure', 
@@ -290,12 +293,13 @@ class TestFigure(unittest.TestCase):
             book.toc = EclipseTOC(os.path.join(ctx.docdir, 'eclipse-toc.xml'))
 
             stat = _ContentUnitStatistics(book)
-            result = stat.transform(book) 
+            stat.transform(book) 
+            result = stat.index
 
-            level_0 = result['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.0']
-            level_1 = level_0['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
-            level_2_1 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
-            level_2_2 = level_1['Items']['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
+            level_0 = result['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:1']
+            level_2_2 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:2']
 
             level_0_total_word_count = level_0['word_count'] + level_0['BlockElementDetails']['table']['word_count'] \
                                        + level_0['BlockElementDetails']['figure']['word_count'] \
