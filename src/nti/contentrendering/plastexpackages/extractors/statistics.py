@@ -37,6 +37,7 @@ class _ContentUnitStatistics(object):
 
     def __init__(self, unused_book=None, lang='en'):
         self.lang = lang
+        self.index = {}
 
     def transform(self, book, outpath=None):
         outpath = outpath or book.contentLocation
@@ -45,17 +46,72 @@ class _ContentUnitStatistics(object):
         target = os.path.join(outpath, 'content_metrics.json')
         dom = book.toc.dom
         root = dom.documentElement
-        index = {'Items': {}}
-        self._process_topic(root, index['Items'])
+        # index = {'Items': {}}
+        # self._process_topic(root, index['Items'])
+
+        _ = self.process_topic(root)
 
         logger.info("Extracting content statistics to %s", target)
         with codecs.open(target, 'w', encoding='utf-8') as fp:
-            json.dump(index,
+            json.dump(self.index,
                       fp,
                       indent='\t',
                       sort_keys=True,
                       ensure_ascii=True)
-        return index
+
+    def process_topic(self, node):
+        unique_words = set()
+        if node.hasAttribute('ntiid'):
+            ntiid = node.getAttributeNode('ntiid').value
+            href = node.getAttributeNode('href').value
+            if u'#' not in href:
+                html_element = self._read_html(href)
+                extractor = HTMLExtractor(html_element, self.lang)
+                unique_words = self._generate_metrics(ntiid, extractor)
+
+            if node.hasChildNodes():
+                for child in node.childNodes:
+                    if child.nodeName == 'topic':
+                        child_ntiid = child.getAttributeNode('ntiid').value
+                        child_href = child.getAttributeNode('href').value
+                        child_unique_words = self.process_topic(child)
+                        if u'#' not in child_href:
+                            self.roll_up_stats_to_parent(ntiid, child_ntiid)
+                            unique_words = unique_words.union(child_unique_words)
+            
+            if u'#' not in href:
+                self.compute_metrics(self.index[ntiid], unique_words)
+        return unique_words
+
+    def _generate_metrics(self, ntiid, extractor):
+        self.index[ntiid] = {}
+        self.index[ntiid]['paragraph_count'] = extractor.number_paragraph
+        self.index[ntiid]['word_count'] = extractor.number_word
+        self.index[ntiid]['sentence_count'] = extractor.number_sentence
+        self.index[ntiid]['char_count'] = extractor.number_char
+        self.index[ntiid]['non_whitespace_char_count'] = extractor.number_non_whitespace_char
+        self.index[ntiid]['non_figure_image_count'] = extractor.number_non_figure_image
+        self.index[ntiid]['unique_word_count'] = extractor.number_unique_word
+        self.index[ntiid]['BlockElementDetails'] = {}
+        self.create_block_element_details(self.index[ntiid]['BlockElementDetails'], extractor)
+        unique_words = extractor.unique_words
+        return unique_words
+
+    def roll_up_stats_to_parent(self, parent_ntiid, ntiid):
+        self.index[parent_ntiid]['paragraph_count'] += self.index[ntiid]['paragraph_count']
+        self.index[parent_ntiid]['non_figure_image_count'] += self.index[ntiid]['non_figure_image_count']
+        self.accumulate_stat(self.index[parent_ntiid], self.index[ntiid])
+        self.roll_up_block_element_details_stat(self.index[parent_ntiid]['BlockElementDetails'], self.index[ntiid]['BlockElementDetails'])
+
+    def compute_metrics(self, element_index, unique_words):
+        element_index['unique_word_count'] = len(unique_words)
+        element_index['avg_word_per_sentence'] = self.try_div(element_index['word_count'],element_index['sentence_count'])
+        element_index['avg_word_per_paragraph'] = self.try_div(element_index['word_count'],element_index['paragraph_count'])
+        element_index['unique_percentage_of_word_count'] = self.try_div(element_index['unique_word_count'],element_index['word_count'])
+        sorted_words = sorted(unique_words, key=len)
+        element_index['length_of_the_shortest_word'] = len(sorted_words[0]) 
+        element_index['length_of_the_longest_word'] = len(sorted_words[-1])
+        self.compute_total_stat(element_index)
 
     def _process_topic(self, node, index):
         unique_words = set()
