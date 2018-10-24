@@ -28,6 +28,7 @@ from nti.contentrendering.plastexpackages.extractors.html.statistics import HTML
 
 logger = __import__('logging').getLogger(__name__)
 
+from collections import OrderedDict
 
 @component.adapter(IRenderedBook)
 @interface.implementer(IContentUnitStatistics)
@@ -37,7 +38,7 @@ class _ContentUnitStatistics(object):
 
     def __init__(self, unused_book=None, lang='en'):
         self.lang = lang
-        self.index = {}
+        self.index = OrderedDict()
 
     def transform(self, book, outpath=None):
         outpath = outpath or book.contentLocation
@@ -56,7 +57,7 @@ class _ContentUnitStatistics(object):
             json.dump(self.index,
                       fp,
                       indent='\t',
-                      sort_keys=True,
+                      sort_keys=False,
                       ensure_ascii=True)
 
     def process_topic(self, node):
