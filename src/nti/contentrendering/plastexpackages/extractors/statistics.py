@@ -73,7 +73,7 @@ class _ContentUnitStatistics(object):
                 for child in node.childNodes:
                     if child.nodeName == 'topic':
                         child_ntiid = child.getAttributeNode('ntiid').value
-                        child_href = node.getAttributeNode('href').value
+                        child_href = child.getAttributeNode('href').value
                         child_unique_words = self.process_topic(child)
                         if u'#' not in child_href:
                             self.roll_up_stats_to_parent(ntiid, child_ntiid)
@@ -98,7 +98,6 @@ class _ContentUnitStatistics(object):
         return unique_words
 
     def roll_up_stats_to_parent(self, parent_ntiid, ntiid):
-        #rool up stats to parent
         self.index[parent_ntiid]['paragraph_count'] += self.index[ntiid]['paragraph_count']
         self.index[parent_ntiid]['non_figure_image_count'] += self.index[ntiid]['non_figure_image_count']
         self.accumulate_stat(self.index[parent_ntiid], self.index[ntiid])
