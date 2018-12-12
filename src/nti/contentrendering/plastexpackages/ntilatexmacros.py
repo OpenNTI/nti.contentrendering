@@ -502,7 +502,7 @@ class ntifileview(Command, plastexids.NTIIDMixin):
 
     def invoke(self, tex):
         result = super(ntifileview, self).invoke(tex)
-        self.attributes['src'] = os.path.join(self.ownerDocument.userdata.getPath('working-dir'), 
+        self.attributes['src'] = os.path.join(self.ownerDocument.userdata.getPath('working-dir'),
                                               self.attributes['src'])
         self.attributes['presentation'] = 'popup'
         return result
