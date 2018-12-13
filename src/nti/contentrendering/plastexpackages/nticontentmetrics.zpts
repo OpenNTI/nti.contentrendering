@@ -1,0 +1,4 @@
+# -*- mode: html -*-
+
+name: expectedconsumptiontime
+<expectedconsumptiontime tal:attributes="value self/attributes/time"></expectedconsumptiontime>
