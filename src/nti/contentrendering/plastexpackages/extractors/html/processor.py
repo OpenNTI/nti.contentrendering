@@ -33,7 +33,7 @@ def check_child(text, element, html=None):
             process_div(text, child, html)
         elif child.tag == 'img':
             if html:
-                html.number_non_figure_image += 1 #it does not include under <div class="figure">
+                html.number_non_figure_image += 1  # it does not include under <div class="figure">
         elif child.tag == 'realpagenumber':
             pass
         elif child.tag == 'a':
@@ -51,6 +51,9 @@ def check_child(text, element, html=None):
             process_element(temp, child, html)
             text.append(child.text_content().strip())
             text.append('\n')
+        elif child.tag == 'expectedconsumptiontime':
+            if 'value' in child.attrib:
+                html.expected_consumption_time = float(child.attrib['value'])
         else:
             process_element(text, child, html)
 
@@ -64,6 +67,7 @@ def process_element(text, element, html=None):
     check_element_text(text, element)
     check_child(text, element, html)
     check_element_tail(text, element)
+
 
 def process_paragraph(text, element, html=None):
     new_text = []
@@ -79,6 +83,7 @@ def process_paragraph(text, element, html=None):
 
 
 DIV_CLASS_TITLE = ('chapter title', 'section title', 'subsection title')
+
 
 def process_div(text, element, html=None):
     current_number_paragraph = html.number_paragraph
@@ -125,11 +130,12 @@ def process_div(text, element, html=None):
                 html.tables.append(element.text_content().strip())
         elif element.attrib['class'] == 'math equation':
             if html:
-                html.number_equation +=1
+                html.number_equation += 1
         else:
             process_element(text, element, html)
     else:
         process_element(text, element, html)
+
 
 def process_anchor(text, element, html=None):
     if 'class' in element.attrib:

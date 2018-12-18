@@ -48,8 +48,6 @@ class _ContentUnitStatistics(object):
         target = os.path.join(outpath, 'content_metrics.json')
         dom = book.toc.dom
         root = dom.documentElement
-        # index = {'Items': {}}
-        # self._process_topic(root, index['Items'])
 
         _ = self.process_topic(root)
 
@@ -70,7 +68,6 @@ class _ContentUnitStatistics(object):
                 html_element = self._read_html(href)
                 extractor = HTMLExtractor(html_element, self.lang)
                 unique_words = self._generate_metrics(ntiid, extractor)
-
             if node.hasChildNodes():
                 for child in node.childNodes:
                     if child.nodeName == 'topic':
@@ -97,6 +94,7 @@ class _ContentUnitStatistics(object):
         self.index[ntiid]['BlockElementDetails'] = {}
         self.create_block_element_details(self.index[ntiid]['BlockElementDetails'], extractor)
         unique_words = extractor.unique_words
+        self.index[ntiid]['expected_consumption_time'] = extractor.expected_consumption_time
         return unique_words
 
     def roll_up_stats_to_parent(self, parent_ntiid, ntiid):
