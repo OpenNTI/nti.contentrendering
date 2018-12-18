@@ -384,8 +384,7 @@ class TestContentUnitStatistics(unittest.TestCase):
         book = Book()
 
         with RenderContext(simpleLatexDocumentText(
-                preludes=("\\usepackage{ntilatexmacros}",
-                          "\\usepackage{amsmath}"),
+                preludes=("\\usepackage{ntilatexmacros}",),
                 bodies=(book_string, )),
                 packages_on_texinputs=True) as ctx:
             book.document = ctx.dom
@@ -401,6 +400,35 @@ class TestContentUnitStatistics(unittest.TestCase):
             level_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
             level_2_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:System_Requirements']
             level_2_2 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:General_Features']
+
             assert_that(level_1['expected_consumption_time'], is_(600.0))
             assert_that(level_2_1['expected_consumption_time'], is_(300.0))
             assert_that(level_2_2['expected_consumption_time'], is_(300.0))
+
+    def test_book_with_expected_consumption_time_2(self):
+        name = 'sample_book_11.tex'
+        with open(self.data_file(name)) as fp:
+            book_string = fp.read()
+
+        book = Book()
+
+        with RenderContext(simpleLatexDocumentText(
+                preludes=("\\usepackage{ntilatexmacros}",),
+                bodies=(book_string, )),
+                packages_on_texinputs=True) as ctx:
+            book.document = ctx.dom
+            book.contentLocation = ctx.docdir
+
+            ctx.render()
+            book.toc = EclipseTOC(os.path.join(ctx.docdir, 'eclipse-toc.xml'))
+
+            stat = _ContentUnitStatistics(book)
+            stat.transform(book)
+            result = stat.index
+            level_0 = result['tag:nextthought.com,2011-10:testing-HTML-temp.0']
+            level_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1']
+            level_2_1 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:System_Requirements']
+            level_2_2 = result['tag:nextthought.com,2011-10:testing-HTML-temp.section:General_Features']
+            assert_that(level_1['expected_consumption_time'], is_(100.0))
+            assert_that(level_2_1['expected_consumption_time'], is_(None))
+            assert_that(level_2_2['expected_consumption_time'], is_(None))
