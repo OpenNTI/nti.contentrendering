@@ -474,6 +474,7 @@ class ntidirectionsblock(Base.Command):
     args = 'directions example lang_code:str:source'
     blockType = True
 
+
 from nti.contentrendering.plastexpackages.ntisidebar import sidebar
 from nti.contentrendering.plastexpackages.ntisidebar import flatsidebar
 from nti.contentrendering.plastexpackages.ntisidebar import sidebarname
@@ -596,6 +597,7 @@ class realpagenumber(Command):
     def pagenumber(self):
         return self._pagenumber
 
+
 class ntipresentationpref(Command):
     args = 'pref:str'
     blockType = False
@@ -615,6 +617,12 @@ class ntipresentationpref(Command):
                         else:
                             node.itemprop = pref
                         break
+
+# Content metrics
+
+from nti.contentrendering.plastexpackages.nticontentmetrics import expectedconsumptiontime
+expectedconsumptiontime = expectedconsumptiontime
+
 
 def ProcessOptions(options, document):
     document.context.newcounter('nticard')

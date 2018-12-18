@@ -38,6 +38,7 @@ class HTMLExtractor(object):
         self.sidebar_warnings = []
         self.sidebar_cautions = []
         self.tables = []
+        self.expected_consumption_time = None
 
         self.element = element
         self.plain_text = process_html_body(element, self)
@@ -46,7 +47,7 @@ class HTMLExtractor(object):
         self.number_unique_word = len(self.unique_words)
         self.number_char = len(self.plain_text)
         self.number_non_whitespace_char = self.get_non_whitespace_character_length(self.plain_text)
-        
+
         self.glossary_data = self.compute_list_statistic(self.glossaries)
         self.figure_data = self.compute_list_statistic(self.figure_captions)
         self.sidebar_note_data = self.compute_list_statistic(self.sidebar_notes)
@@ -56,7 +57,7 @@ class HTMLExtractor(object):
 
     def total_number_of_words(self):
         words = tokenize_content(self.plain_text, self.lang)
-        ##TODO : we may need to eliminate stopword and do stemming to find unique words
+        # TODO : we may need to eliminate stopword and do stemming to find unique words
         unique_words = set(words)
         return len(words), unique_words
 
@@ -76,7 +77,7 @@ class HTMLExtractor(object):
         data['char_count'] = 0
         data['non_whitespace_char_count'] = 0
         words = []
-        sentences = [] 
+        sentences = []
         for item in content_list:
             sentences += sent_tokenize(item)
             words += tokenize_content(item)
@@ -85,5 +86,3 @@ class HTMLExtractor(object):
         data['word_count'] = len(words)
         data['sentence_count'] = len(sentences)
         return data
-
-
