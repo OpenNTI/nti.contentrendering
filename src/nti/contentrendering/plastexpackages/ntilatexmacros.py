@@ -620,8 +620,12 @@ class ntipresentationpref(Command):
 
 # Content metrics
 
+
 from nti.contentrendering.plastexpackages.nticontentmetrics import expectedconsumptiontime
 expectedconsumptiontime = expectedconsumptiontime
+
+from nti.contentrendering.plastexpackages.nticoncepts import concepthierarchy
+concepthierarchy = concepthierarchy
 
 
 def ProcessOptions(options, document):
