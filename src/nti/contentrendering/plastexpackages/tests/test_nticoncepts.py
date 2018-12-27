@@ -32,10 +32,10 @@ class TestNTIConcepts(unittest.TestCase):
             \chapter{Glossary}
             \label{glossaryid}
             \begin{concepthierarchy}
-            \begin{concept}<math>
-            \subconcept{algebra}
-            \subconcept{subtraction}
-            \end{concept}
+                \begin{concept}<math>
+                    \subconcept{algebra}
+                    \subconcept{subtraction}
+                \end{concept}
             \end{concepthierarchy}
         """
         dom = _buildDomFromString(_simpleLatexDocument((example,)))
@@ -57,14 +57,14 @@ class TestNTIConcepts(unittest.TestCase):
             \chapter{Chapter 1}
             \label{chapter:1}
             \begin{concepthierarchy}
-            \begin{concept}<Basic Math>
-            \subconcept{addition}
-            \subconcept{subtraction}
-            \end{concept}
-            \begin{concept}<Intermediate Math>
-            \subconcept{Multiplication}
-            \subconcept{Division}
-            \end{concept}
+                \begin{concept}<Basic Math>
+                    \subconcept{addition}
+                    \subconcept{subtraction}
+                \end{concept}
+                \begin{concept}<Intermediate Math>
+                    \subconcept{Multiplication}
+                    \subconcept{Division}
+                \end{concept}
             \end{concepthierarchy}
         """
         dom = _buildDomFromString(_simpleLatexDocument((example,)))
@@ -87,3 +87,50 @@ class TestNTIConcepts(unittest.TestCase):
         subconcepts = concept_2.getElementsByTagName('subconcept')
         assert_that(subconcepts[0].attributes['value'], is_('Multiplication'))
         assert_that(subconcepts[1].attributes['value'], is_('Division'))
+
+    def test_concept_hierarchy_3(self):
+        example = r"""
+            \chapter{Chapter 1}
+            \label{chapter:1}
+            \begin{concepthierarchy}
+                \begin{concept}<Algebra>
+                    \begin{concept}<Linear Programming>
+                        \subconcept{Feasible LP}
+                        \subconcept{Non Feasible LP}
+                    \end{concept}
+                    \subconcept{Quadratic Formulas}
+                \end{concept}
+            \end{concepthierarchy}
+        """
+        dom = _buildDomFromString(_simpleLatexDocument((example,)))
+        # Check that the DOM has the expected structure
+        elems = dom.getElementsByTagName('concepthierarchy')
+        ch = elems[0]
+        concepts_level_1 = []
+        for child in ch:
+            if hasattr(child, 'tagName'):
+                concepts_level_1.append(child)
+        assert_that(len(concepts_level_1), is_(1))
+        assert_that(concepts_level_1[0].tagName, is_('concept'))
+        assert_that(concepts_level_1[0].title, is_('Algebra'))
+
+        concept_1 = concepts_level_1[0]
+        concept_1_child_nodes = []
+        for child in concept_1:
+            if hasattr(child, 'tagName'):
+                concept_1_child_nodes.append(child)
+        assert_that(len(concept_1_child_nodes), is_(2))
+        assert_that(concept_1_child_nodes[0].tagName, is_('concept'))
+        assert_that(concept_1_child_nodes[0].title, is_('Linear Programming'))
+        assert_that(concept_1_child_nodes[1].tagName, is_('subconcept'))
+        assert_that(concept_1_child_nodes[1].attributes['value'], is_('Quadratic Formulas'))
+
+        concepts_level_2 = []
+        for child in concept_1_child_nodes[0]:
+            if hasattr(child, 'tagName'):
+                concepts_level_2.append(child)
+        assert_that(len(concepts_level_2), is_(2))
+        assert_that(concepts_level_2[0].tagName, is_('subconcept'))
+        assert_that(concepts_level_2[0].attributes['value'], is_('Feasible LP'))
+        assert_that(concepts_level_2[1].tagName, is_('subconcept'))
+        assert_that(concepts_level_2[1].attributes['value'], is_('Non Feasible LP'))
