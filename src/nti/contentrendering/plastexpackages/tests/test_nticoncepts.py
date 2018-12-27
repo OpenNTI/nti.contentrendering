@@ -51,3 +51,39 @@ class TestNTIConcepts(unittest.TestCase):
         subconcepts = concept.getElementsByTagName('subconcept')
         assert_that(subconcepts[0].attributes['value'], is_('algebra'))
         assert_that(subconcepts[1].attributes['value'], is_('subtraction'))
+
+    def test_concept_hierarchy_2(self):
+        example = r"""
+            \chapter{Chapter 1}
+            \label{chapter:1}
+            \begin{concepthierarchy}
+            \begin{concept}<Basic Math>
+            \subconcept{addition}
+            \subconcept{subtraction}
+            \end{concept}
+            \begin{concept}<Intermediate Math>
+            \subconcept{Multiplication}
+            \subconcept{Division}
+            \end{concept}
+            \end{concepthierarchy}
+        """
+        dom = _buildDomFromString(_simpleLatexDocument((example,)))
+        # Check that the DOM has the expected structure
+        elems = dom.getElementsByTagName('concepthierarchy')
+        assert_that(elems[0], is_(concepthierarchy))
+
+        ch = elems[0]
+        concepts = ch.getElementsByTagName('concept')
+        assert_that(len(concepts), is_(2))
+
+        concept_1 = concepts[0]
+        assert_that(concept_1.title, is_('Basic Math'))
+        subconcepts = concept_1.getElementsByTagName('subconcept')
+        assert_that(subconcepts[0].attributes['value'], is_('addition'))
+        assert_that(subconcepts[1].attributes['value'], is_('subtraction'))
+
+        concept_2 = concepts[1]
+        assert_that(concept_2.title, is_('Intermediate Math'))
+        subconcepts = concept_2.getElementsByTagName('subconcept')
+        assert_that(subconcepts[0].attributes['value'], is_('Multiplication'))
+        assert_that(subconcepts[1].attributes['value'], is_('Division'))
