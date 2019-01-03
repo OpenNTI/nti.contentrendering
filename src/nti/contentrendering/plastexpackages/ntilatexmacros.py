@@ -625,7 +625,11 @@ from nti.contentrendering.plastexpackages.nticontentmetrics import expectedconsu
 expectedconsumptiontime = expectedconsumptiontime
 
 from nti.contentrendering.plastexpackages.nticoncepts import concepthierarchy
+from nti.contentrendering.plastexpackages.nticoncepts import concept
+from nti.contentrendering.plastexpackages.nticoncepts import conceptref
 concepthierarchy = concepthierarchy
+concept = concept
+conceptref = conceptref
 
 
 def ProcessOptions(options, document):
