@@ -2,3 +2,11 @@
 
 #concepthierarchy has an empty render template
 name: concepthierarchy
+
+#concept has an emtpty render template
+name: concept
+
+
+name: conceptref
+<a tal:attributes="id self/id"></a>
+<conceptref tal:attributes="value self/idref/label/embedded_doc_cross_ref_url|self/idref/label/ntiid"></conceptref>

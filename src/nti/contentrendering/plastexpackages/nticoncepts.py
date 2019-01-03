@@ -13,17 +13,37 @@ logger = __import__('logging').getLogger(__name__)
 from plasTeX import Command
 from plasTeX import Environment
 
+from plasTeX.Base import Crossref
+
+from nti.contentrendering import plastexids
+
 
 class concepthierarchy(Environment):
     blockType = True
 
+
+class concept(Environment, plastexids.NTIIDMixin):
+    args = '<title>'
+    blockType = True
+
+    counter = 'concept'
+
+    _ntiid_suffix = u'concept.'
+    _ntiid_title_attr_name = 'title'
+    _ntiid_type = u'NTIConcept'
+    _ntiid_allow_missing_title = True
+    _ntiid_cache_map_name = '_concept_ntiid_map'
+
+    embedded_doc_cross_ref_url = property(plastexids._embedded_node_cross_ref_url)
+
     def invoke(self, tex):
-        result = super(concepthierarchy, self).invoke(tex)
+        result = super(concept, self).invoke(tex)
+        return result
 
-    class concept(Environment):
-        blockType = True
-        args = '<title:str:source>'
+    def __delitem__(self, i):
+        raise NotImplementedError
 
-        class subconcept(Command):
-            args = 'value:str'
-            blockType = False
+
+class conceptref(Crossref.ref):
+    macroName = 'conceptref'
+    args = 'label:idref'
