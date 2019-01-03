@@ -9,4 +9,4 @@ name: concept
 
 name: conceptref
 <a tal:attributes="id self/id"></a>
-<conceptref tal:attributes="value self/idref/label/embedded_doc_cross_ref_url|self/idref/label/ntiid"></conceptref>
+<conceptref tal:attributes="value self/idref/label/ntiid"></conceptref>

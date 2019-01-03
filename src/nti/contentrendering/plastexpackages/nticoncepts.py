@@ -34,8 +34,6 @@ class concept(Environment, plastexids.NTIIDMixin):
     _ntiid_allow_missing_title = True
     _ntiid_cache_map_name = '_concept_ntiid_map'
 
-    embedded_doc_cross_ref_url = property(plastexids._embedded_node_cross_ref_url)
-
     def invoke(self, tex):
         result = super(concept, self).invoke(tex)
         return result
