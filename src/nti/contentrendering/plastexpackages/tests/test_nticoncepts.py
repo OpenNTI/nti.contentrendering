@@ -149,3 +149,41 @@ class TestNTIConcepts(unittest.TestCase):
 
         assert_that(u''.join(concepts[0].title.childNodes), is_('Algebra'))
         assert_that(u''.join(concepts[1].title.childNodes), is_('Calculus'))
+
+    def test_concept_hierarchy_4(self):
+        example = r"""
+            \section{Section 1}
+            \label{section:1}
+            \conceptref{concept:Calculus}
+
+            \section{Section 2}
+            \label{section:2}
+            \conceptref{linear_programming}
+
+            \begin{concepthierarchy}
+                \begin{concept}<Algebra>
+                    \begin{concept}<Linear Programming>
+                    \label{linear_programming}
+                    \end{concept}
+                    \begin{concept}<Quadratic Formulas>
+                    \end{concept}
+                \end{concept}
+                \begin{concept}<Calculus>
+                \label{concept:Calculus}
+                \end{concept}
+            \end{concepthierarchy}
+        """
+        dom = _buildDomFromString(_simpleLatexDocument((example,)))
+        concepts = dom.getElementsByTagName('concept')
+        crefs = dom.getElementsByTagName('conceptref')
+        cref1 = crefs[0]
+        cref2 = crefs[1]
+
+        assert_that(cref1.idref['label'], is_(concepts[3]))
+        assert_that(cref2.idref['label'], is_(concepts[1]))
+
+        assert_that(concepts[3].ntiid, is_(u'tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.calculus'))
+        assert_that(cref1.idref['label'].ntiid, is_(u'tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.calculus'))
+
+        assert_that(concepts[1].ntiid, is_(u'tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.linear_programming'))
+        assert_that(cref2.idref['label'].ntiid, is_(u'tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.linear_programming'))

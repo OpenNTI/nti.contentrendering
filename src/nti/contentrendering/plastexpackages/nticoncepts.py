@@ -31,11 +31,23 @@ class concept(Environment, plastexids.NTIIDMixin):
     _ntiid_suffix = u'concept.'
     _ntiid_title_attr_name = 'title'
     _ntiid_type = u'NTIConcept'
-    _ntiid_allow_missing_title = True
+    _ntiid_allow_missing_title = False
     _ntiid_cache_map_name = '_concept_ntiid_map'
 
     def invoke(self, tex):
         result = super(concept, self).invoke(tex)
+        # generate id from ntiid if \label is not specified under the concept environment
+        _id = getattr(self, "@id", self)
+        if _id is self:
+            label = getattr(self, "ntiid", self)
+            idx = label.rfind(self._ntiid_suffix)
+            idx = idx + len(self._ntiid_suffix)
+            label = label[idx:]
+            setattr(self, "@id", label)
+        return result
+
+    def digest(self, tokens):
+        result = super(concept, self).digest(tokens)
         return result
 
     def __delitem__(self, i):
