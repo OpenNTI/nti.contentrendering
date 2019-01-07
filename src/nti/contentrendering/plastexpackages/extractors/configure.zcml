@@ -7,7 +7,7 @@
 	<include package="zope.security" file="meta.zcml" />
 	<include package="zope.component" />
 	<include package="zope.security" />
-	
+
 	<adapter factory=".course._CourseExtractor"
 			 for="nti.contentrendering.interfaces.IRenderedBook"
 			 provides="nti.contentrendering.interfaces.ICourseExtractor" />
@@ -43,15 +43,15 @@
 	<adapter factory=".media._NTIAudioExtractor"
 			 for="nti.contentrendering.interfaces.IRenderedBook"
 			 provides="nti.contentrendering.interfaces.INTIAudioExtractor" />
-			 
+
 	<utility factory=".media._NTIAudioExtractor"
 			 provides="nti.contentrendering.interfaces.INTIAudioExtractor"
 			 name="025.NTIAudioExtractor" />
-			 
+
 	<adapter factory=".timeline._TimelineExtractor"
 			 for="nti.contentrendering.interfaces.IRenderedBook"
 			 provides="nti.contentrendering.interfaces.ITimelineExtractor" />
-			 
+
 	<utility factory=".timeline._TimelineExtractor"
 			 provides="nti.contentrendering.interfaces.ITimelineExtractor"
 			 name="035.TimelineExtractor" />
@@ -59,9 +59,17 @@
 	<adapter factory=".statistics._ContentUnitStatistics"
 			 for="nti.contentrendering.interfaces.IRenderedBook"
 			 provides="nti.contentrendering.interfaces.IContentUnitStatistics" />
-			 
+
 	<utility factory=".statistics._ContentUnitStatistics"
 			 provides="nti.contentrendering.interfaces.IContentUnitStatistics"
-			 name="060.ContentUnitStatistics" />
-			 
+			 name="070.ContentUnitStatistics" />
+
+	<adapter factory=".concepts._ConceptsExtractor"
+			 for="nti.contentrendering.interfaces.IRenderedBook"
+			 provides="nti.contentrendering.interfaces.IConceptsExtractor" />
+
+	<utility factory=".concepts._ConceptsExtractor"
+			 provides="nti.contentrendering.interfaces.IConceptsExtractor"
+			 name="075.ConceptsExtractor" />
+
 </configure>
