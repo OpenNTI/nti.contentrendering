@@ -55,10 +55,11 @@ class _ConceptsExtractor(object):
         refs_index = self._build_concept_refs_index(concept_refs)
 
         # assuming a book only has one concepthierarchy environment
-        concept_tree = root.getElementsByTagName('concepthierarchy')[0]
+        concept_tree = root.getElementsByTagName('concepthierarchy')
         concept = {}
-        index = {'concept': concept}
-        self._build_concept_hierarchy_index(concept_tree, index['concept'], refs_index)
+        index = {'concepthierarchy': concept}
+        if concept_tree:
+            self._build_concept_hierarchy_index(concept_tree[0], index['concepthierarchy'], refs_index)
 
         return index
 
