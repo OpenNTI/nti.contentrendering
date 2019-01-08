@@ -37,6 +37,7 @@ class concept(Environment, plastexids.NTIIDMixin):
     def invoke(self, tex):
         result = super(concept, self).invoke(tex)
         # generate id from ntiid if \label is not specified under the concept environment
+        #TODO : how can the \conceptref{} can point the concept env when the \label is not specified
         _id = getattr(self, "@id", self)
         if _id is self:
             label = getattr(self, "ntiid", self)
