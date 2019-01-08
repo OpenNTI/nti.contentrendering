@@ -88,13 +88,13 @@ class _ConceptsExtractor(object):
                 concept_tag = u''.join(element.title.childNodes)
                 element_index = index[ntiid] = {}
                 element_index['name'] = concept_tag
-                element_index['refs'] = []
+                element_index['contentunitntiids'] = []
                 if ntiid in refs_index:
-                    element_index['refs'] = refs_index[ntiid]
+                    element_index['contentunitntiids'] = refs_index[ntiid]
             else:
                 element_index = index
 
             if element.hasChildNodes():
                 for child in element.childNodes:
-                    containing_index = element_index.setdefault('concept', {})
+                    containing_index = element_index.setdefault('concepts', {})
                     self._build_concept_hierarchy_index(child, containing_index, refs_index)
