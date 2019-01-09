@@ -36,18 +36,23 @@ class concept(Environment, plastexids.NTIIDMixin):
 
     def invoke(self, tex):
         result = super(concept, self).invoke(tex)
-        # generate id from ntiid if \label is not specified under the concept environment
-        _id = getattr(self, "@id", self)
-        if _id is self:
-            label = getattr(self, "ntiid", self)
-            idx = label.rfind(self._ntiid_suffix)
-            idx = idx + len(self._ntiid_suffix)
-            label = label[idx:]
-            setattr(self, "@id", label)
         return result
 
     def digest(self, tokens):
         result = super(concept, self).digest(tokens)
+        # generate id from ntiid if \label is not specified under the concept environment
+        # TODO : how the \conceptref{} can point the concept env when the \label is not specified
+        _id = getattr(self, "@id", self)
+        if _id is self:
+            dlabel = getattr(self, "ntiid", self)
+            idx = dlabel.rfind(self._ntiid_suffix)
+            idx = idx + len(self._ntiid_suffix)
+            dlabel = u'concept:{}'.format(dlabel[idx:])
+            setattr(self, "@id", dlabel)
+            label_node = Crossref.label()
+            label_node.argSource = u'{%s}' % (dlabel)
+            label_node.setAttribute('label', dlabel)
+            self.appendChild(label_node)
         return result
 
     def __delitem__(self, i):
