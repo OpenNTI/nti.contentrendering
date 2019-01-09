@@ -207,9 +207,6 @@ class TestNTIConcepts(unittest.TestCase):
         cref1 = crefs[0]
         cref2 = crefs[1]
 
-        from IPython.terminal.debugger import set_trace
-        set_trace()
-
         assert_that(concepts[0].ntiid, is_(u'tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.con:algb'))
         assert_that(concepts[1].ntiid, is_(u'tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.calculus'))
 

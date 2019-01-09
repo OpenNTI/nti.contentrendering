@@ -44,14 +44,14 @@ class concept(Environment, plastexids.NTIIDMixin):
         # TODO : how the \conceptref{} can point the concept env when the \label is not specified
         _id = getattr(self, "@id", self)
         if _id is self:
-            label = getattr(self, "ntiid", self)
-            idx = label.rfind(self._ntiid_suffix)
+            dlabel = getattr(self, "ntiid", self)
+            idx = dlabel.rfind(self._ntiid_suffix)
             idx = idx + len(self._ntiid_suffix)
-            label = u'concept:{}'.format(label[idx:])
-            setattr(self, "@id", label)
+            dlabel = u'concept:{}'.format(dlabel[idx:])
+            setattr(self, "@id", dlabel)
             label_node = Crossref.label()
-            label_node.argSource = u'{%s}' % (label)
-            label_node.setAttribute('label', label)
+            label_node.argSource = u'{%s}' % (dlabel)
+            label_node.setAttribute('label', dlabel)
             self.appendChild(label_node)
         return result
 
