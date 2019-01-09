@@ -178,15 +178,16 @@ class TestNTIConcepts(unittest.TestCase):
         cref2 = crefs[1]
 
         assert_that(cref1.idref['label'], is_(concepts[0]))
-        assert_that(cref1.idref['label'].ntiid, is_(u'tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.algebra'))
+        assert_that(cref1.idref['label'].ntiid, is_(u'tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.c1'))
 
         assert_that(cref2.idref['label'], is_(concepts[1]))
-        assert_that(cref2.idref['label'].ntiid, is_(u'tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.calculus'))
+        assert_that(cref2.idref['label'].ntiid, is_(u'tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.c2'))
 
     def test_concept_hierarchy_5(self):
         example = r"""
             \begin{concepthierarchy}
                 \begin{concept}<Algebra>
+                \label{con:algb}
                 \end{concept}
                 \begin{concept}<Calculus>
                 \end{concept}
@@ -206,6 +207,12 @@ class TestNTIConcepts(unittest.TestCase):
         cref1 = crefs[0]
         cref2 = crefs[1]
 
-        ##TODO : get the next line works
+        from IPython.terminal.debugger import set_trace
+        set_trace()
+
+        assert_that(concepts[0].ntiid, is_(u'tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.con:algb'))
+        assert_that(concepts[1].ntiid, is_(u'tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.calculus'))
+
+        # # TODO : get the next line works
         # assert_that(cref1.idref['label'], is_(concepts[0]))
         # assert_that(cref2.idref['label'], is_(concepts[1]))

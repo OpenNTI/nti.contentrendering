@@ -54,19 +54,19 @@ class TestConceptsExtractor(ContentrenderingLayerTest):
       concept_index = concept_extractor.transform(book)
       hierarchy = concept_index['concepthierarchy']
       assert_that(hierarchy, has_entries("concepts",
-                                         has_entries("tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.math",
+                                         has_entries("tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.concept:math",
                                                      has_entries("contentunitntiids", ["tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1"],
                                                                  "name", "math")
                                                      )
                                          )
                   )
 
-      concept_math = hierarchy["concepts"]["tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.math"]
+      concept_math = hierarchy["concepts"]['tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.concept:math']
       assert_that(concept_math, has_entries("concepts",
-                                            has_entries("tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.algebra",
+                                            has_entries("tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.concept:algebra",
                                                         has_entries("contentunitntiids", ["tag:nextthought.com,2011-10:testing-HTML-temp.section:1"],
                                                                     "name", "algebra"),
-                                                        "tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.subtraction",
+                                                        "tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.concept:subtraction",
                                                         has_entries("contentunitntiids", ["tag:nextthought.com,2011-10:testing-HTML-temp.section:2"],
                                                                     "name", "subtraction")
                                                         )
