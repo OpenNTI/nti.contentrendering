@@ -209,7 +209,3 @@ class TestNTIConcepts(unittest.TestCase):
 
         assert_that(concepts[0].ntiid, is_(u'tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.con:algb'))
         assert_that(concepts[1].ntiid, is_(u'tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.calculus'))
-
-        # # TODO : get the next line works
-        # assert_that(cref1.idref['label'], is_(concepts[0]))
-        # assert_that(cref2.idref['label'], is_(concepts[1]))

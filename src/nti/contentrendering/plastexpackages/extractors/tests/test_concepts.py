@@ -41,7 +41,7 @@ class TestConceptsExtractor(ContentrenderingLayerTest):
   def tearDown(self):
     shutil.rmtree(self.temp_dir)
 
-  def test_concepts_extractor(self):
+  def test_concepts_extractor_with_label(self):
     fname = 'sample_book_12.tex'
     with open(self.data_file(fname)) as fp:
       source_str = fp.read()
@@ -67,6 +67,41 @@ class TestConceptsExtractor(ContentrenderingLayerTest):
                                                         has_entries("contentunitntiids", ["tag:nextthought.com,2011-10:testing-HTML-temp.section:1"],
                                                                     "name", "algebra"),
                                                         "tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.concept:subtraction",
+                                                        has_entries("contentunitntiids", ["tag:nextthought.com,2011-10:testing-HTML-temp.section:2"],
+                                                                    "name", "subtraction")
+                                                        )
+                                            )
+                  )
+
+  def test_concepts_extractor_with_no_label(self):
+    fname = 'sample_book_13.tex'
+    with open(self.data_file(fname)) as fp:
+      source_str = fp.read()
+
+    with RenderContext(simpleLatexDocumentText(preludes=preludes,
+                                               bodies=(source_str,))) as ref_context:
+      ref_context.render()
+      book = RenderedBook(ref_context.dom, ref_context.docdir)
+      concept_extractor = _ConceptsExtractor()
+      concept_index = concept_extractor.transform(book)
+      hierarchy = concept_index['concepthierarchy']
+      assert_that(hierarchy, has_entries("concepts",
+                                         has_entries("tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.math",
+                                                     has_entries("contentunitntiids", ["tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1"],
+                                                                 "name", "math")
+                                                     )
+                                         )
+                  )
+      concept_math = hierarchy["concepts"]['tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.math']
+      assert_that(concept_math, has_entries("concepts",
+                                            has_entries("tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.algebra",
+                                                        has_entries("contentunitntiids", ["tag:nextthought.com,2011-10:testing-HTML-temp.section:1"],
+                                                                    "name", "algebra")
+                                                        )
+                                            )
+                  )
+      assert_that(concept_math, has_entries("concepts",
+                                            has_entries("tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.subtraction",
                                                         has_entries("contentunitntiids", ["tag:nextthought.com,2011-10:testing-HTML-temp.section:2"],
                                                                     "name", "subtraction")
                                                         )
