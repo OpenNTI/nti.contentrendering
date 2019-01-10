@@ -52,8 +52,9 @@ class _ConceptsExtractor(object):
 
     def _process_concept(self, root):
         concept_refs = root.getElementsByTagName('conceptref')
-        refs_index = self._build_concept_refs_index(concept_refs)
+        self.check_concept_refs(concept_refs, root)
 
+        refs_index = self._build_concept_refs_index(concept_refs)
         # assuming a book only has one concepthierarchy environment
         concept_tree = root.getElementsByTagName('concepthierarchy')
         concept = {}
@@ -63,15 +64,31 @@ class _ConceptsExtractor(object):
 
         return index
 
+    def check_concept_refs(self, refs, root):
+        concepts = root.getElementsByTagName('concept')
+        concept_ids = {}
+        for concept in concepts:
+            concept_ids[concept.id] = concept
+
+        keys = concept_ids.keys()
+        for cref in refs:
+            if cref.idref['label'].tagName != 'concept':
+                clabel = cref.attributes['label']
+                if clabel in keys:
+                    cref.idref['label'] = concept_ids[clabel]
+            else:
+                logger.warning("conceptref points to non concept element")
+
     def _build_concept_refs_index(self, refs):
         index = {}
         for node in refs:
-            idref = node.idref['label'].ntiid
-            unit_ntiid = self._search_section_level(node)
-            if idref not in index:
-                index[idref] = [unit_ntiid]
-            else:
-                index[idref] = index[idref].append(unit_ntiid)
+            if node.idref['label'].tagName == 'concept':
+                idref = node.idref['label'].ntiid
+                unit_ntiid = self._search_section_level(node)
+                if idref not in index:
+                    index[idref] = [unit_ntiid]
+                else:
+                    index[idref] = index[idref].append(unit_ntiid)
         return index
 
     def _search_section_level(self, node):
