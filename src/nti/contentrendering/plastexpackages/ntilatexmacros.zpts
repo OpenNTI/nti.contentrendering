@@ -93,7 +93,9 @@ name: ntiembedwidget
     <tal:block tal:repeat="key_val python: self.attributes.items()">
         <tal:block tal:define="key python: key_val[0]">
         <tal:block tal:define="val python: key_val[1]">
-            <param tal:attributes="value val;name key"/>
+            <tal:block tal:condition="python: key!='url'">
+                <param tal:attributes="value val;name key"/>
+            </tal:block>
         </tal:block>
         </tal:block>
     </tal:block>
