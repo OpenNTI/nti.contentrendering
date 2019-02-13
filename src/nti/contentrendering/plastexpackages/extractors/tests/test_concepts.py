@@ -107,3 +107,31 @@ class TestConceptsExtractor(ContentrenderingLayerTest):
                                                         )
                                             )
                   )
+
+  def test_concepts_extractor_with_no_label(self):
+    fname = 'sample_book_14.tex'
+    with open(self.data_file(fname)) as fp:
+      source_str = fp.read()
+
+    with RenderContext(simpleLatexDocumentText(preludes=preludes,
+                                               bodies=(source_str,))) as ref_context:
+      ref_context.render()
+      book = RenderedBook(ref_context.dom, ref_context.docdir)
+      concept_extractor = _ConceptsExtractor()
+      concept_index = concept_extractor.transform(book)
+      hierarchy = concept_index['concepthierarchy']
+      assert_that(hierarchy, has_entries("concepts",
+                                         has_entries("tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.math",
+                                                     has_entries("contentunitntiids", [u'tag:nextthought.com,2011-10:testing-HTML-temp.chapter_2'],
+                                                                 "name", "math")
+                                                     )
+                                         )
+                  )
+
+      assert_that(hierarchy, has_entries("concepts",
+                                         has_entries("tag:nextthought.com,2011-10:testing-NTIConcept-temp.concept.nfpa_1720",
+                                                     has_entries("contentunitntiids", [u'tag:nextthought.com,2011-10:testing-HTML-temp.chapter:1', u'tag:nextthought.com,2011-10:testing-HTML-temp.chapter_2'],
+                                                                 "name", "NFPA 1720")
+                                                     )
+                                         )
+                  )

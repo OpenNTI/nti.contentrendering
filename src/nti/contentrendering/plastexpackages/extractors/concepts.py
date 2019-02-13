@@ -88,7 +88,7 @@ class _ConceptsExtractor(object):
                 if idref not in index:
                     index[idref] = [unit_ntiid]
                 else:
-                    index[idref] = index[idref].append(unit_ntiid)
+                    index[idref].append(unit_ntiid)
         return index
 
     def _search_section_level(self, node):
