@@ -108,7 +108,7 @@ class TestConceptsExtractor(ContentrenderingLayerTest):
                                             )
                   )
 
-  def test_concepts_extractor_with_no_label(self):
+  def test_concepts_extractor_with_multiple_chapter_refs(self):
     fname = 'sample_book_14.tex'
     with open(self.data_file(fname)) as fp:
       source_str = fp.read()
