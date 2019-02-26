@@ -109,8 +109,12 @@ class _ContentUnitStatistics(object):
         element_index['avg_word_per_paragraph'] = self.try_div(element_index['word_count'], element_index['paragraph_count'])
         element_index['unique_percentage_of_word_count'] = self.try_div(element_index['unique_word_count'], element_index['word_count'])
         sorted_words = sorted(unique_words, key=len)
-        element_index['length_of_the_shortest_word'] = len(sorted_words[0])
-        element_index['length_of_the_longest_word'] = len(sorted_words[-1])
+        if sorted_words:
+            element_index['length_of_the_shortest_word'] = len(sorted_words[0])
+            element_index['length_of_the_longest_word'] = len(sorted_words[-1])
+        else:
+            element_index['length_of_the_shortest_word'] = 0
+            element_index['length_of_the_longest_word'] = 0
         self.compute_total_stat(element_index)
 
     def _read_html(self, name):
