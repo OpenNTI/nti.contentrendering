@@ -166,9 +166,6 @@ def post_render(document,
 
     logger.info("Creating JSONP content")
     jsonpbuilder.transform(book)
-
-    logger.info("Creating an archive file")
-    archive.create_archive(book, name=jobname)
 postRender = post_render
 
 
@@ -275,8 +272,8 @@ def process_document(document, jobname, components=None,
     return document
 
 
-def render(sourceFile, provider='AOPS', out_format='xhtml', 
-           nochecking=False, docachefile=True, 
+def render(sourceFile, provider='AOPS', out_format='xhtml',
+           nochecking=False, docachefile=True,
            load_configs=True, set_chameleon_cache=True):
     logger.info("Start rendering for %s", sourceFile)
     start_t = time.time()
@@ -286,10 +283,10 @@ def render(sourceFile, provider='AOPS', out_format='xhtml',
                                                  outFormat=out_format,
                                                  load_configs=load_configs,
                                                  set_chameleon_cache=set_chameleon_cache)
-    process_document(document, 
-                     jobname, 
-                     components, 
-                     out_format, 
+    process_document(document,
+                     jobname,
+                     components,
+                     out_format,
                      dochecking=dochecking,
                      docachefile=docachefile)
 
