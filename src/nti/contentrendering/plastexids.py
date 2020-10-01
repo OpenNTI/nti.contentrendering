@@ -62,6 +62,7 @@ def _make_ntiid(document, local, local_prefix=u'', nttype=u'HTML'):
         base = None
     base = base or document.userdata['jobname']
 
+    base = make_specific_safe(base, strict=strict)
     local = make_specific_safe(local, strict=strict)
     provider = document.config.get("NTI", "provider")
     specific = u'%s.%s%s' % (base, local_prefix, local)
