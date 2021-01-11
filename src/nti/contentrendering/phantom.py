@@ -14,6 +14,8 @@ import subprocess
 import contextlib
 from six.moves import urllib_parse
 
+from phantomjs_bin import executable_path as phantomjs_exe
+
 try:
     from urllib.request import pathname2url
 except ImportError:
@@ -27,7 +29,6 @@ resource_filename = __import__('pkg_resources').resource_filename
 
 logger = __import__('logging').getLogger(__name__)
 
-
 def javascript_path(js_name):
     """
     :return: A path to a javascript resource of this package, suitable for passing to phantomjs.
@@ -37,18 +38,6 @@ def javascript_path(js_name):
     if not resource_exists(__name__, js_name):
         raise Exception("Resource %s not found" % js_name)
     return resource_filename(__name__, js_name)
-
-
-if not os.getenv('DATASERVER_DIR_IS_BUILDOUT'):
-    # Buildout puts it first on the path
-    import warnings
-    try:
-        warnings.warn("Using whatever phantomjs is on the PATH; supported version 2.1.1; version found at %s is %s"
-                      % (subprocess.check_output(['which', 'phantomjs']).strip(),
-                         subprocess.check_output(['phantomjs', '-v']).strip()),
-                      UserWarning, stacklevel=1)
-    except subprocess.CalledProcessError:
-        warnings.warn("Phantomjs not found on the PATH")
 
 
 class _PhantomProducedUnexpectedOutputError(subprocess.CalledProcessError):
@@ -105,7 +94,7 @@ def run_phantom_on_page(htmlFile, scriptName, args=(), key=_none_key,
     # over a socket as opposed to stdout/stderr? As of 1.6, I think this is the
     # recommended approach
 
-    process = ['phantomjs', scriptName, htmlFile]
+    process = [phantomjs_exe, scriptName, htmlFile]
     process.extend(args)
     __traceback_info__ = process
     logger.debug("Executing %s", process)
@@ -118,7 +107,23 @@ def run_phantom_on_page(htmlFile, scriptName, args=(), key=_none_key,
         stderr = open('/dev/null', 'wb')
 
     with _closing(stderr):
-        jsonStr = subprocess.check_output(process, stderr=stderr).strip()
+        try:
+            jsonStr = subprocess.check_output(process, stderr=stderr).strip()
+        except OSError as ex:
+            import errno
+            if ex.errno != errno.EACCES:
+                raise
+
+            # Make sure our phantomjs executable is, in fact, user executable
+            # https://github.com/jayjiahua/phantomjs-bin-pip/issues/1
+            logger.warn('Phantomjs executable %s is not executable. Will attempt permissions update.', phantomjs_exe) 
+
+            import stat
+            mode = os.stat(process[0]).st_mode
+            os.chmod(process[0], mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+            # Try to execute again now that we have updated permissions
+            jsonStr = subprocess.check_output(process, stderr=stderr).strip()
         __traceback_info__ += (jsonStr,)
 
     if expect_no_output:
