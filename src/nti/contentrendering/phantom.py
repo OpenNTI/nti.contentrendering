@@ -8,9 +8,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-import errno
 import os
-import stat
 import sys
 import subprocess
 import contextlib
@@ -111,8 +109,8 @@ def run_phantom_on_page(htmlFile, scriptName, args=(), key=_none_key,
     with _closing(stderr):
         try:
             jsonStr = subprocess.check_output(process, stderr=stderr).strip()
-            __traceback_info__ += (jsonStr,)
         except OSError as ex:
+            import errno
             if ex.errno != errno.EACCES:
                 raise
 
@@ -121,13 +119,14 @@ def run_phantom_on_page(htmlFile, scriptName, args=(), key=_none_key,
             import warnings
             warnings.warn('Phantomjs executable %s is not executable. Updating permissions' % (phantomjs_exe),
                   UserWarning, stacklevel=1)
-            
+
+            import stat
             mode = os.stat(process[0]).st_mode
             os.chmod(process[0], mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
             # Try to execute again now that we have updated permissions
             jsonStr = subprocess.check_output(process, stderr=stderr).strip()
-            __traceback_info__ += (jsonStr,)
+        __traceback_info__ += (jsonStr,)
 
     if expect_no_output:
         if jsonStr:
