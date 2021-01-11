@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import errno
 import os
 import stat
 import sys
@@ -29,16 +30,6 @@ resource_exists = __import__('pkg_resources').resource_exists
 resource_filename = __import__('pkg_resources').resource_filename
 
 logger = __import__('logging').getLogger(__name__)
-
-# Make sure our phantomjs executable is, in fact, user executable
-# https://github.com/jayjiahua/phantomjs-bin-pip/issues/1
-st = os.stat(phantomjs_exe)
-if not st.st_mode & stat.S_IXUSR:
-    import warnings
-    warnings.warn('Phantomjs executable %s is not executable. Updating permissions' % (phantomjs_exe),
-                  UserWarning, stacklevel=1)
-    os.chmod(phantomjs_exe, st.st_mode | stat.S_IXUSR)
-
 
 def javascript_path(js_name):
     """
@@ -118,8 +109,25 @@ def run_phantom_on_page(htmlFile, scriptName, args=(), key=_none_key,
         stderr = open('/dev/null', 'wb')
 
     with _closing(stderr):
-        jsonStr = subprocess.check_output(process, stderr=stderr).strip()
-        __traceback_info__ += (jsonStr,)
+        try:
+            jsonStr = subprocess.check_output(process, stderr=stderr).strip()
+            __traceback_info__ += (jsonStr,)
+        except OSError as ex:
+            if ex.errno != errno.EACCES:
+                raise
+
+            # Make sure our phantomjs executable is, in fact, user executable
+            # https://github.com/jayjiahua/phantomjs-bin-pip/issues/1
+            import warnings
+            warnings.warn('Phantomjs executable %s is not executable. Updating permissions' % (phantomjs_exe),
+                  UserWarning, stacklevel=1)
+            
+            mode = os.stat(process[0]).st_mode
+            os.chmod(process[0], mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+            # Try to execute again now that we have updated permissions
+            jsonStr = subprocess.check_output(process, stderr=stderr).strip()
+            __traceback_info__ += (jsonStr,)
 
     if expect_no_output:
         if jsonStr:
