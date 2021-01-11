@@ -19,6 +19,7 @@ TESTS_REQUIRE = [
     'fudge',
     'nti.testing',
     'zope.testrunner',
+    'nose >= 1.3.0'
 ]
 
 
@@ -70,6 +71,7 @@ setup(
         'nti.wref',
         'Paste',
         'PasteDeploy',
+        'phantomjs-binary==2.1.3',
         'PyPDF2',
         'pyquery',
         'pytz',
