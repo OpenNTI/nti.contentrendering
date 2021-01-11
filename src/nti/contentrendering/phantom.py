@@ -116,9 +116,7 @@ def run_phantom_on_page(htmlFile, scriptName, args=(), key=_none_key,
 
             # Make sure our phantomjs executable is, in fact, user executable
             # https://github.com/jayjiahua/phantomjs-bin-pip/issues/1
-            import warnings
-            warnings.warn('Phantomjs executable %s is not executable. Updating permissions' % (phantomjs_exe),
-                  UserWarning, stacklevel=1)
+            logger.warn('Phantomjs executable %s is not executable. Will attempt permissions update.', phantomjs_exe) 
 
             import stat
             mode = os.stat(process[0]).st_mode
