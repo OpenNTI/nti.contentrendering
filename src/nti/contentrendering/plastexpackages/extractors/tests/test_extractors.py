@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -17,6 +16,8 @@ from hamcrest import assert_that
 import os
 import unittest
 
+from datetime import datetime
+
 from xml.dom import minidom
 
 from nti.contentrendering.tests import RenderContext
@@ -29,6 +30,10 @@ from nti.contentrendering.plastexpackages.extractors import _CourseExtractor
 from nti.contentrendering.plastexpackages.extractors import _RelatedWorkExtractor
 
 from nti.contentrendering.plastexpackages.tests import ExtractorTestLayer
+
+from nti.externalization import to_external_object
+
+from nti.externalization.datetime import datetime_from_string
 
 
 class TestCourseExtractor(unittest.TestCase):
@@ -93,9 +98,14 @@ class TestCourseExtractor(unittest.TestCase):
                         has_entry('isOutlineStubOnly', 'true'))
 
             lesson = unit.childNodes[1]
+            beg_date = datetime_from_string('2013-08-19T00:00:00', assume_local=True)
+            beg_date = to_external_object(beg_date)
+            end_date = datetime_from_string('2013-08-21T23:59:59', assume_local=True)
+            end_date = to_external_object(end_date)
+            date_str = '%s,%s' % (beg_date, end_date)
             assert_that(dict(lesson.attributes.items()),
                         has_entries('levelnum', '1',
-                                    'date', "2013-08-19T05:00:00Z,2013-08-22T04:59:59Z",
+                                    'date', date_str,
                                     'topic-ntiid', "tag:nextthought.com,2011-10:testing-HTML-temp.l2",
                                     'isOutlineStubOnly', 'false'))
 

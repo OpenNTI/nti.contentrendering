@@ -335,7 +335,7 @@ class courseinfoname(Command):
 
 class courseinfo(section):
     args = '* [ toc ] title'
-    
+
     blockType = True
     forcePars = False
     counter = 'courseinfo'
