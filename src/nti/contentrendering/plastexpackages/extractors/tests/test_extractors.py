@@ -16,8 +16,6 @@ from hamcrest import assert_that
 import os
 import unittest
 
-from datetime import datetime
-
 from xml.dom import minidom
 
 from nti.contentrendering.tests import RenderContext
@@ -113,17 +111,24 @@ class TestCourseExtractor(unittest.TestCase):
             assert_that(sub_lessons, has_length(1))
 
             sub_lesson = sub_lessons[0]
+            beg_date = datetime_from_string('2013-12-31T00:00:00', assume_local=True)
+            beg_date = to_external_object(beg_date)
+            end_date = datetime_from_string('2014-01-02T23:59:00', assume_local=True)
+            end_date = to_external_object(end_date)
+            date_str = '%s,%s' % (beg_date, end_date)
             assert_that(dict(sub_lesson.attributes.items()),
                         has_entries('levelnum', '2',
-                                    'date', "2013-12-31T06:00:00Z,2014-01-03T05:59:00Z",
+                                    'date', date_str,
                                     'topic-ntiid', "tag:nextthought.com,2011-10:testing-HTML-temp.section_title_2"))
 
             sub_sub_lessons = sub_lesson.childNodes
             assert_that(sub_sub_lessons, has_length(1))
 
             sub_sub_lesson = sub_sub_lessons[0]
+            beg_date = datetime_from_string('2014-01-03T23:59:00', assume_local=True)
+            beg_date = to_external_object(beg_date)
             assert_that(dict(sub_sub_lesson.attributes.items()),
                         has_entries('levelnum', '3',
-                                    'date', "2014-01-04T05:59:00Z",
+                                    'date', beg_date,
                                     'topic-ntiid', "tag:nextthought.com,2011-10:testing-HTML-temp.subsection_title_2",
                                     'isOutlineStubOnly', 'true'))
