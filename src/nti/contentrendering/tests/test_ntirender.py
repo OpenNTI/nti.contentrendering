@@ -57,10 +57,10 @@ class TestNTIRender(ContentrenderingLayerTest):
 		# (Python 3, and PyPy, and Jython will always use one char)
 		tau = u"\U0001D70F"
 
-		# right now, we expect to be on narrow builds of CPython2
+		# All envs should be on wide builds
 		import platform
 		if platform.python_implementation() == 'CPython':
-			assert_that( tau, has_length(2) )
+			assert_that( tau, has_length(1) )
 
 		body = "\\includegraphics{Glossary.png} This is some text $z^2$ \\[t^3\\]" + tau
 
