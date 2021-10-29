@@ -106,7 +106,8 @@ class TestNTIHyperRef(ContentrenderingLayerTest):
                            packages_on_texinputs=True,
                            config_hook=load_links) as ref_context:
             ref_context.render()
-            name = 'tag_nextthought_com_2011-10_testing-HTML-temp_Two.html'
+            # This section does not have a label, so we get the lowercase version ('two').
+            name = 'tag_nextthought_com_2011-10_testing-HTML-temp_two.html'
             section_two = ref_context.read_rendered_file(name)
 
             assert_that(section_two,

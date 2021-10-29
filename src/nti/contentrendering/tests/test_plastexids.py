@@ -229,8 +229,9 @@ class TestPlastexIdsRender(ContentrenderingLayerTest):
 
             chapter_one = ref_context.read_rendered_file(
                 'tag_nextthought_com_2011-10_testing-HTML-temp_One.html')
+            # This section does not have a lable, so we get the lowercase part ('two').
             section_two = ref_context.read_rendered_file(
-                'tag_nextthought_com_2011-10_testing-HTML-temp_Two.html')
+                'tag_nextthought_com_2011-10_testing-HTML-temp_two.html')
 
             assert_that(chapter_one,
                         contains_string('href="%s"' % source_a_ntiid))
